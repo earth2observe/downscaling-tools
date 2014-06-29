@@ -16,6 +16,8 @@ import osgeo.gdal as gdal
 from osgeo.gdalconst import *
 
 
+ncurl = "http://'http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
+
 def usage(*args):
     """
     Print usage information
@@ -66,11 +68,55 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
 
 
 
-def opendatset(ncfilename):
+class ncdatset():
     """
-    Opens the dataset and returns the number of dimensions
+    Opens the dataset and determines the number of dimensions
+    3 = T, Lat Lon
+    4 = T heigth, Lat Lon
+    """
+    def __init__(self,ncurl):
 
-    """
+        self.nc = netCDF4.Dataset(ncurl)
+        self.lat = self.getlat(self.nc)
+        self.lon = self.getlon(self.nc)
+        self.heigth = self.getheigth(self.nc)
+        self.dimensions = 3 if self.heigth == None else 4
+
+    def getlat(ncdataset):
+        """
+        """
+
+        for a in ncdataset.variables:
+            if  ncdataset.variables[a].standard_name == 'latitude':
+                return ncdataset.variables[a]
+
+        return None
+
+
+    def getlon(ncdataset):
+        """
+        """
+
+        for a in ncdataset.variables:
+            if  ncdataset.variables[a].standard_name == 'longitude':
+                return ncdataset.variables[a]
+
+        return None
+
+
+    def getheigth(ncdataset):
+        """
+        """
+
+        for a in ncdataset.variables:
+            if  ncdataset.variables[a].standard_name == 'height':
+                return ncdataset.variables[a]
+
+        return None
+
+
+
+
 
 def main(argv=None):
     """

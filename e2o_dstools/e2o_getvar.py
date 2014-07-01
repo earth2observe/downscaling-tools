@@ -20,15 +20,15 @@ from osgeo.gdalconst import *
 
 serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
 wrrsetroot = "ecmwf/met_forcing_v0/"
-variable = " Tair_daily_E2OBS_"
+variable = "Tair_daily_E2OBS_"
 startyear = 1979
 endyear= 1980
 startmonth = 1
 endmonth = 12
-latmin =
-latmax =
-lonmin =
-lonmax =
+latmin = 51
+latmax = 52
+lonmin = 3
+lonmax = 4
 
 ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
 
@@ -151,32 +151,53 @@ class ncdatset():
 
 
 
-def main(argv=None):
-    """
-    Perform command line execution of the model.
-    """
+a = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1979/Tair_daily_E2OBS_197901.nc"
+#def main(argv=None):
+"""
+Perform command line execution of the model.
+"""
 
-    if argv is None:
-        argv = sys.argv[1:]
-        if len(argv) == 0:
-            usage()
-            return
+#if argv is None:
+#    argv = sys.argv[1:]
+#    if len(argv) == 0:
+#        usage()
+#        return
+#
+argv =["lll"]
+try:
+    opts, args = getopt.getopt(argv, 'I:')
+except getopt.error, msg:
+    usage(msg)
+
+for o, a in opts:
+    if o == '-I': inifile = a
 
 
-    try:
-        opts, args = getopt.getopt(argv, 'I:')
-    except getopt.error, msg:
-        usage(msg)
+# Generate the data range
+years = arange(startyear,endyear+1,1)
+months = arange(startmonth, endmonth + 1,1)
 
-    for o, a in opts:
-        if o == '-I': inifile = a
+ncflist = []
+for year in years:
+    for month in months:
+        ncflist.append(serverroot + wrrsetroot + "%d" % (year) + "/" + variable + "%d%02d.nc" % (year,month))
 
-
-    # Generate the data range
-    years = arange(startyear,endyear+1,1)
-    months = arange(startmonth, endmonth + 1,1)
-
-    ncflist = []
-    for year in years:
-        for month in months:
-            ncflist.append(serverroot + wrrsetroot + "%d" % (year) + "/" + variable + "%d%02d" % (year,month))
+# first assumption: all files have the same geo dimentsion
+BB = dict(
+       lon=[ lonmin, lonmax],
+       lat= [ latmin, latmax]
+       )
+    
+print ncflist[0]
+print a
+nc = ncdatset(ncflist[0])
+lat = nc.lat[:]
+lon = nc.lat[:]
+(latidx,) = logical_and(lat >= BB['lat'][0], lat < BB['lat'][1]).nonzero()
+(lonidx,) = logical_and(lon >= BB['lon'][0], lon < BB['lon'][1]).nonzero()
+print lat
+print lon
+print latidx
+print lonidx
+    
+#main(argv="ggg")

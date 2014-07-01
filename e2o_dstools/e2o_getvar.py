@@ -16,7 +16,21 @@ import osgeo.gdal as gdal
 from osgeo.gdalconst import *
 
 
-ncurl = "http://'http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
+
+
+serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
+wrrsetroot = "ecmwf/met_forcing_v0/"
+variable = " Tair_daily_E2OBS_"
+startyear = 1979
+endyear= 1980
+startmonth = 1
+endmonth = 12
+latmin =
+latmax =
+lonmin =
+lonmax =
+
+ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
 
 def usage(*args):
     """
@@ -70,6 +84,8 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
 
 class ncdatset():
     """
+    Wrapper around the nc object to simplify things
+    
     Opens the dataset and determines the number of dimensions
     3 = T, Lat Lon
     4 = T heigth, Lat Lon
@@ -81,8 +97,15 @@ class ncdatset():
         self.lon = self.getlon(self.nc)
         self.heigth = self.getheigth(self.nc)
         self.dimensions = 3 if self.heigth == None else 4
+        self.time =   self.gettime(self.nc)
+        self.timesteps = self.time.shape[0]
 
-    def getlat(ncdataset):
+
+    def __del__(self):
+        self.nc.close()
+        
+        
+    def getlat(self,ncdataset):
         """
         """
 
@@ -92,8 +115,18 @@ class ncdatset():
 
         return None
 
+    def gettime(self,ncdataset):
+        """
+        """
 
-    def getlon(ncdataset):
+        for a in ncdataset.variables:
+            if  ncdataset.variables[a].standard_name == 'time':
+                return ncdataset.variables[a]
+
+        return None
+        
+
+    def getlon(self,ncdataset):
         """
         """
 
@@ -104,7 +137,7 @@ class ncdatset():
         return None
 
 
-    def getheigth(ncdataset):
+    def getheigth(self,ncdataset):
         """
         """
 
@@ -138,3 +171,12 @@ def main(argv=None):
     for o, a in opts:
         if o == '-I': inifile = a
 
+
+    # Generate the data range
+    years = arange(startyear,endyear+1,1)
+    months = arange(startmonth, endmonth + 1,1)
+
+    ncflist = []
+    for year in years:
+        for month in months:
+            ncflist.append(serverroot + wrrsetroot + "%d" % (year) + "/" + variable + "%d%02d" % (year,month))

@@ -115,6 +115,17 @@ class ncdatset():
 
         return None
 
+    def getvarbyname(self,name):
+        """
+        """
+
+        for a in self.nc.variables:
+            print self.nc.variables[a].standard_name
+            if  self.nc.variables[a].standard_name == name:
+                return self.nc.variables[a]
+
+        return None
+
     def gettime(self,ncdataset):
         """
         """
@@ -199,5 +210,15 @@ print lat
 print lon
 print latidx
 print lonidx
+ 
+myvar = nc.getvarbyname("air_temperature")   
+    
+if nc.dimensions == 3:
+    window = myvar[:,latidx.min():latidx.max(),lonidx.min():lonidx.max()] 
+else:
+    window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]     
+  
+
+ts_mean = window.mean(axis=2).mean(axis=1)   
     
 #main(argv="ggg")

@@ -161,21 +161,45 @@ class ncdatset():
 
 
 
-class get_one_time(startdatetime, enddatetime, var,BB):
+def get_times_daily(startdate,enddate, serverroot, wrrsetroot, variable):
     """
+    generate a dictonary with date/times and the NC files in which the data resides
     """
+    # Find thr nc file we need to get the data from
+    numdays = end - start
+    dateList = []
+    filelist = {}
+    for x in range (0, numdays.days + 1):
+        dateList.append(start + datetime.timedelta(days = x))
+    
+    for thedate in dateList:
+        ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + variable + "%d%02d.nc" % (thedate.year,thedate.month)
+        filelist[str(thedate)] = ncfile
+    
+    return filelist
+
+
+
+
+class get_date_dayly():
+    __init__(self,nclist):
+        """
+        """
+        
+        for 
+        
 
 
 
 start = datetime.datetime(2012,1,1)
-end = datetime.datetime(2012,1,10)
+end = datetime.datetime(2012,3,10)
 
 
-numdays = 100
+numdays = end - start
 dateList = []
-for x in range (0, numdays):
+for x in range (0, numdays.days + 1):
     dateList.append(start + datetime.timedelta(days = x))
-print dateList
+
 
 
 

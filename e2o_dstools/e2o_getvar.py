@@ -14,6 +14,7 @@ usage:
 import getopt, sys, os, netCDF4
 import osgeo.gdal as gdal
 from osgeo.gdalconst import *
+import datetime
 
 
 
@@ -30,7 +31,7 @@ latmax = 52
 lonmin = 3
 lonmax = 4
 
-ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
+#ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
 
 def usage(*args):
     """
@@ -160,6 +161,22 @@ class ncdatset():
 
 
 
+class get_one_time(startdatetime, enddatetime, var,BB):
+    """
+    """
+
+
+
+start = datetime.datetime(2012,1,1)
+end = datetime.datetime(2012,1,10)
+
+
+numdays = 100
+dateList = []
+for x in range (0, numdays):
+    dateList.append(start + datetime.timedelta(days = x))
+print dateList
+
 
 
 a = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1979/Tair_daily_E2OBS_197901.nc"
@@ -216,8 +233,7 @@ myvar = nc.getvarbyname("air_temperature")
 if nc.dimensions == 3:
     window = myvar[:,latidx.min():latidx.max(),lonidx.min():lonidx.max()] 
 else:
-    window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]     
-  
+    window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
 
 ts_mean = window.mean(axis=2).mean(axis=1)   
     

@@ -83,6 +83,37 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
 
 
 
+
+class getdatedaily():
+    def __init__(self,nclist,BB,varname):
+        """
+        """
+        self.o_nc_files = []
+        self.list = nclist
+        self.varname = varname
+        self.BB = BB
+
+    def getdate(self,thedate):
+
+        datestr = str(thedate)
+
+        if hasattr(self.list,datestr):
+            dset = ncdatset(self.list[datestr])
+            data = dset.getvarbyname(self.varname)
+            lat = dset.lat[:]
+            lon = dset.lat[:]
+            (latidx,) = logical_and(lat >= self.BB['lat'][0], lat < self.BB['lat'][1]).nonzero()
+            (lonidx,) = logical_and(lon >= self.BB['lon'][0], lon < self.BB['lon'][1]).nonzero()
+
+            dpos = thedate.
+            if dset.dimensions ==3:
+                window = myvar[:,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
+            if dset.dimensions ==4:
+                window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
+
+            return dset.lat, dset.lon
+
+
 class ncdatset():
     """
     Wrapper around the nc object to simplify things
@@ -161,11 +192,13 @@ class ncdatset():
 
 
 
+
+
 def get_times_daily(startdate,enddate, serverroot, wrrsetroot, variable):
     """
     generate a dictonary with date/times and the NC files in which the data resides
     """
-    # Find thr nc file we need to get the data from
+
     numdays = end - start
     dateList = []
     filelist = {}
@@ -181,24 +214,12 @@ def get_times_daily(startdate,enddate, serverroot, wrrsetroot, variable):
 
 
 
-class get_date_dayly():
-    __init__(self,nclist):
-        """
-        """
-        
-        for 
         
 
 
 
 start = datetime.datetime(2012,1,1)
 end = datetime.datetime(2012,3,10)
-
-
-numdays = end - start
-dateList = []
-for x in range (0, numdays.days + 1):
-    dateList.append(start + datetime.timedelta(days = x))
 
 
 

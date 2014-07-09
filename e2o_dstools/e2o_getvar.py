@@ -26,10 +26,10 @@ startyear = 1979
 endyear= 1980
 startmonth = 1
 endmonth = 12
-latmin = 51
-latmax = 52
-lonmin = 3
-lonmax = 4
+latmin = 51.75
+latmax = 51.75
+lonmin = 5.25
+lonmax = 5.25
 
 #ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
 
@@ -84,34 +84,6 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
 
 
 
-class getdatedaily():
-    def __init__(self,nclist,BB,varname):
-        """
-        """
-        self.o_nc_files = []
-        self.list = nclist
-        self.varname = varname
-        self.BB = BB
-
-    def getdate(self,thedate):
-
-        datestr = str(thedate)
-
-        if hasattr(self.list,datestr):
-            dset = ncdatset(self.list[datestr])
-            data = dset.getvarbyname(self.varname)
-            lat = dset.lat[:]
-            lon = dset.lat[:]
-            (latidx,) = logical_and(lat >= self.BB['lat'][0], lat < self.BB['lat'][1]).nonzero()
-            (lonidx,) = logical_and(lon >= self.BB['lon'][0], lon < self.BB['lon'][1]).nonzero()
-
-            dpos = thedate.
-            if dset.dimensions ==3:
-                window = myvar[:,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
-            if dset.dimensions ==4:
-                window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
-
-            return dset.lat, dset.lon
 
 
 class ncdatset():
@@ -152,7 +124,6 @@ class ncdatset():
         """
 
         for a in self.nc.variables:
-            print self.nc.variables[a].standard_name
             if  self.nc.variables[a].standard_name == name:
                 return self.nc.variables[a]
 
@@ -209,77 +180,207 @@ def get_times_daily(startdate,enddate, serverroot, wrrsetroot, variable):
         ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + variable + "%d%02d.nc" % (thedate.year,thedate.month)
         filelist[str(thedate)] = ncfile
     
-    return filelist
+    return filelist, dateList
 
 
 
+class getstepdaily():
+    
+    def __init__(self,nclist,BB,varname):
+        """
+        """
+        self.o_nc_files = []
+        self.list = nclist
+        self.varname = varname
+        self.BB = BB
+        self.latidx = []
+        self.lonidx =[]
+        self.lat=[]
+        self.lon=[]
+        self.data = []
 
+    def getdate(self,thedate):
+
+        datestr = str(thedate)
+        lat = None
+        lon = None
+        window = None
         
+        if datestr in self.list.keys():
+            self.dset = ncdatset(self.list[datestr])
+            data = self.dset.getvarbyname(self.varname)
+            lat = self.dset.lat[:]
+            lon = self.dset.lat[:]
+            (latidx,) = logical_and(lat >= self.BB['lat'][0], lat < self.BB['lat'][1]).nonzero()
+            (lonidx,) = logical_and(lon >= self.BB['lon'][0], lon < self.BB['lon'][1]).nonzero()
+
+            time = self.dset.time
+            timeObj = netCDF4.num2date(time[:], units=time.units, calendar=time.calendar)
+            
+            dpos = thedate.day -1
+            if self.dset.dimensions ==3:
+                window = data[dpos,latidx.min():latidx.max()+1,lonidx.min():lonidx.max()+1]
+            if self.dset.dimensions ==4:
+                window = data[dpos,0,latidx.min():latidx.max()+1,lonidx.min():lonidx.max()+1]
+            
+            self.lat = lat[latidx]
+            self.lon = lon[lonidx]
+    
+        else:
+            print "cannot find: " + datestr
+            
+        return self.lat, self.lon, window
+
+    def getdates(self,alldates):
+        """
+        Does not work yet
+        """
+        lat = None
+        lon = None
+        ret = []
+        
+        lastnc = None
+        
+        # here we loop over nc files fro speed reasons
+        
+        for theone in  unique(self.list.values()):
+            self.dset = ncdatset(theone)
+            time = self.dset.time
+            tar = time[:]
+            timeObj = netCDF4.num2date(tar, units=time.units, calendar=time.calendar)
+            #print timeObj
+            spos = nonzero(timeObj == alldates[0])[0]
+            if len(spos) != 1:
+                spos = 0
+            else:
+                spos = int(spos)
+ 
+            epos = nonzero(timeObj == alldates[-1])[0]
+            if len(epos) != 1:
+                epos = len(tar)
+            else:
+                epos = int(epos + 1)
+                
+            data = self.dset.getvarbyname(self.varname)
+            lat = self.dset.lat[:]
+            lon = self.dset.lat[:]
+            (self.latidx,) = logical_and(lat >= self.BB['lat'][0], lat <= self.BB['lat'][1]).nonzero()
+            (self.lonidx,) = logical_and(lon >= self.BB['lon'][0], lon <= self.BB['lon'][1]).nonzero()
+
+            
+            if self.dset.dimensions ==3:
+                window = data[spos:epos,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
+            if self.dset.dimensions ==4:
+                window = data[spos:epos,0,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
+            
+            self.lat = lat[self.latidx]
+            self.lon = lon[self.lonidx]
+            
+            if len(ret) == 0:
+                ret = window.copy()
+            else:
+                ret = vstack((ret,window))
+        
+        return ret
+                 
+ 
+
+ 
 
 
 
-start = datetime.datetime(2012,1,1)
-end = datetime.datetime(2012,3,10)
 
 
 
-
-a = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1979/Tair_daily_E2OBS_197901.nc"
-#def main(argv=None):
-"""
-Perform command line execution of the model.
-"""
-
-#if argv is None:
-#    argv = sys.argv[1:]
-#    if len(argv) == 0:
-#        usage()
-#        return
-#
-argv =["lll"]
-try:
-    opts, args = getopt.getopt(argv, 'I:')
-except getopt.error, msg:
-    usage(msg)
-
-for o, a in opts:
-    if o == '-I': inifile = a
-
-
-# Generate the data range
-years = arange(startyear,endyear+1,1)
-months = arange(startmonth, endmonth + 1,1)
-
-ncflist = []
-for year in years:
-    for month in months:
-        ncflist.append(serverroot + wrrsetroot + "%d" % (year) + "/" + variable + "%d%02d.nc" % (year,month))
-
-# first assumption: all files have the same geo dimentsion
 BB = dict(
        lon=[ lonmin, lonmax],
        lat= [ latmin, latmax]
        )
-    
-print ncflist[0]
-print a
-nc = ncdatset(ncflist[0])
-lat = nc.lat[:]
-lon = nc.lat[:]
-(latidx,) = logical_and(lat >= BB['lat'][0], lat < BB['lat'][1]).nonzero()
-(lonidx,) = logical_and(lon >= BB['lon'][0], lon < BB['lon'][1]).nonzero()
-print lat
-print lon
-print latidx
-print lonidx
- 
-myvar = nc.getvarbyname("air_temperature")   
-    
-if nc.dimensions == 3:
-    window = myvar[:,latidx.min():latidx.max(),lonidx.min():lonidx.max()] 
-else:
-    window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
+        
 
-ts_mean = window.mean(axis=2).mean(axis=1)   
-    
-#main(argv="ggg")
+
+
+start = datetime.datetime(2000,1,1)
+end = datetime.datetime(2003,1,2)
+
+
+tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot,  variable  )
+ncstepobj = getstepdaily(tlist,BB,"air_temperature")
+
+#print unique(tlist.values())
+
+aa = ncstepobj.getdates(timelist) - 273.15
+
+
+mmean = (aa.mean(axis=1).mean(axis=1))
+
+plot(mmean)
+
+a = []
+#for thedate in timelist:
+#    print  thedate
+#    lat, lon, data = ncstepobj.getdate(thedate)
+#    a.append(data.mean())
+
+
+
+#
+#a = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1979/Tair_daily_E2OBS_197901.nc"
+##def main(argv=None):
+#"""
+#Perform command line execution of the model.
+#"""
+#
+##if argv is None:
+##    argv = sys.argv[1:]
+##    if len(argv) == 0:
+##        usage()
+##        return
+##
+#argv =["lll"]
+#try:
+#    opts, args = getopt.getopt(argv, 'I:')
+#except getopt.error, msg:
+#    usage(msg)
+#
+#for o, a in opts:
+#    if o == '-I': inifile = a
+#
+#
+## Generate the data range
+#years = arange(startyear,endyear+1,1)
+#months = arange(startmonth, endmonth + 1,1)
+#
+#ncflist = []
+#for year in years:
+#    for month in months:
+#        ncflist.append(serverroot + wrrsetroot + "%d" % (year) + "/" + variable + "%d%02d.nc" % (year,month))
+#
+## first assumption: all files have the same geo dimentsion
+#BB = dict(
+#       lon=[ lonmin, lonmax],
+#       lat= [ latmin, latmax]
+#       )
+#    
+#print ncflist[0]
+#print a
+#nc = ncdatset(ncflist[0])
+#lat = nc.lat[:]
+#lon = nc.lat[:]
+#(latidx,) = logical_and(lat >= BB['lat'][0], lat < BB['lat'][1]).nonzero()
+#(lonidx,) = logical_and(lon >= BB['lon'][0], lon < BB['lon'][1]).nonzero()
+#print lat
+#print lon
+#print latidx
+#print lonidx
+# 
+#myvar = nc.getvarbyname("air_temperature")   
+#    
+#if nc.dimensions == 3:
+#    window = myvar[:,latidx.min():latidx.max(),lonidx.min():lonidx.max()] 
+#else:
+#    window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
+#
+#ts_mean = window.mean(axis=2).mean(axis=1)   
+#    
+##main(argv="ggg")

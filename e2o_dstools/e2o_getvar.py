@@ -26,10 +26,10 @@ startyear = 1979
 endyear= 1980
 startmonth = 1
 endmonth = 12
-latmin = 51.75
+latmin = 51.25
 latmax = 51.75
 lonmin = 5.25
-lonmax = 5.25
+lonmax = 5.75
 
 #ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
 
@@ -209,8 +209,9 @@ class getstepdaily():
         if datestr in self.list.keys():
             self.dset = ncdatset(self.list[datestr])
             data = self.dset.getvarbyname(self.varname)
-            lat = self.dset.lat[:]
-            lon = self.dset.lat[:]
+            lat = flipud(self.dset.lat[:])
+            
+            lon = self.dset.lon[:]
             (latidx,) = logical_and(lat >= self.BB['lat'][0], lat < self.BB['lat'][1]).nonzero()
             (lonidx,) = logical_and(lon >= self.BB['lon'][0], lon < self.BB['lon'][1]).nonzero()
 
@@ -218,6 +219,7 @@ class getstepdaily():
             timeObj = netCDF4.num2date(time[:], units=time.units, calendar=time.calendar)
             
             dpos = thedate.day -1
+            
             if self.dset.dimensions ==3:
                 window = data[dpos,latidx.min():latidx.max()+1,lonidx.min():lonidx.max()+1]
             if self.dset.dimensions ==4:
@@ -245,6 +247,7 @@ class getstepdaily():
         
         for theone in  unique(self.list.values()):
             self.dset = ncdatset(theone)
+            
             time = self.dset.time
             tar = time[:]
             timeObj = netCDF4.num2date(tar, units=time.units, calendar=time.calendar)
@@ -260,18 +263,21 @@ class getstepdaily():
                 epos = len(tar)
             else:
                 epos = int(epos + 1)
-                
+            
+            
+            print "Processing url: " + theone 
             data = self.dset.getvarbyname(self.varname)
             lat = self.dset.lat[:]
-            lon = self.dset.lat[:]
+            lon = self.dset.lon[:]
+
             (self.latidx,) = logical_and(lat >= self.BB['lat'][0], lat <= self.BB['lat'][1]).nonzero()
             (self.lonidx,) = logical_and(lon >= self.BB['lon'][0], lon <= self.BB['lon'][1]).nonzero()
 
-            
             if self.dset.dimensions ==3:
                 window = data[spos:epos,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
             if self.dset.dimensions ==4:
                 window = data[spos:epos,0,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
+
             
             self.lat = lat[self.latidx]
             self.lon = lon[self.lonidx]
@@ -301,7 +307,7 @@ BB = dict(
 
 
 start = datetime.datetime(2000,1,1)
-end = datetime.datetime(2003,1,2)
+end = datetime.datetime(2010,12,2)
 
 
 tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot,  variable  )
@@ -309,12 +315,15 @@ ncstepobj = getstepdaily(tlist,BB,"air_temperature")
 
 #print unique(tlist.values())
 
-aa = ncstepobj.getdates(timelist) - 273.15
+aa = ncstepobj.getdates(timelist)
 
 
-mmean = (aa.mean(axis=1).mean(axis=1))
+mean_as_series = (aa.mean(axis=1).mean(axis=1))
+mean_as_map = aa.mean(axis=0)
 
-plot(mmean)
+#axis = 0 Over all times per pixel
+# axis=1 nog een axis=1 voor in spave en output voor alle timesteps
+plot(mmean -273.15)
 
 a = []
 #for thedate in timelist:

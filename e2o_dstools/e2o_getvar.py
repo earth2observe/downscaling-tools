@@ -289,10 +289,22 @@ class getstepdaily():
         
         return ret
                  
- 
+
+
+
 
  
 
+def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):        
+    
+    cnt = 0
+    for a in times:
+            below_thousand = cnt % 1000
+            above_thousand = cnt / 1000
+            mapname  = str(prefix + '%0' + str(8-len(prefix)) + '.f.%03.f') % (above_thousand, below_thousand)
+            print "saving map: " + os.path.join(directory,mapname)
+            writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[cnt,:,:]),-999.0)
+            cnt = cnt + 1    
 
 
 

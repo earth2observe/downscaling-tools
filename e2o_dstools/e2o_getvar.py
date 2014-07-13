@@ -15,6 +15,8 @@ import getopt, sys, os, netCDF4
 import osgeo.gdal as gdal
 from osgeo.gdalconst import *
 import datetime
+import logging
+import config
 
 
 
@@ -22,6 +24,7 @@ import datetime
 serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
 wrrsetroot = "ecmwf/met_forcing_v0/"
 variable = "Tair_daily_E2OBS_"
+standard_name ='air_temperature'
 startyear = 1979
 endyear= 1980
 startmonth = 1
@@ -82,6 +85,114 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
         print 'Writing to ' + fileName + ' is done!'
 
 
+
+def configget(log,config,section,var,default):
+    """   
+    Gets a string from a config file (.ini) and returns a default value if
+    the key is not found. If the key is not found it also sets the value 
+    with the default in the config-file
+    
+    Input:
+        - config - python ConfigParser object
+        - section - section in the file
+        - var - variable (key) to get
+        - default - default string
+        
+    Returns:
+        - string - either the value from the config file or the default value
+    """
+    
+    Def = False
+    try:
+        ret = config.get(section,var)
+    except:
+        Def = True
+        ret = default
+        log.info( "returning default (" + default + ") for " + section + ":" + var)
+        configset(config,section,var,default, overwrite=False)
+    
+    default = Def
+    return ret       
+
+def configset(config,section,var,value, overwrite=False):
+    """   
+    Sets a string in the in memory representation of the config object
+    Deos NOT overwrite existing values if overwrite is set to False (default)
+    
+    Input:
+        - config - python ConfigParser object
+        - section - section in the file
+        - var - variable (key) to set
+        - value - the value to set
+        - overwrite (optional, default is False)
+   
+    Returns:
+        - nothing
+        
+    """
+    
+    if not config.has_section(section):
+        config.add_section(section)
+        config.set(section,var,value)
+    else:     
+        if not config.has_option(section,var):
+            config.set(section,var,value)
+        else:
+            if overwrite:
+                config.set(section,var,value)
+
+def iniFileSetUp(configfile):
+    """
+    Reads .ini file and sets default values if not present
+    """
+    # TODO: clean up wflwo specific stuff
+    #setTheEnv(runId='runId,caseName='caseName)
+    # Try and read config file and set default options
+    config = ConfigParser.SafeConfigParser()
+    config.optionxform = str
+    config.read(configfile)
+    return config
+
+def setlogger(logfilename, logReference):
+    """
+    Set-up the logging system. Exit if this fails
+    input:
+        logfilename:    string, referring to the logfile
+        logReference:   string, referring to reference used in log lines
+    output:
+        ch:             handle, refer to logging object
+        logger:         logger object
+    """
+    try:
+        #create logger
+        logger = logging.getLogger(logReference)
+        logger.setLevel(logging.DEBUG)
+        ch = logging.handlers.RotatingFileHandler(logfilename,maxBytes=10*1024*1024, backupCount=5)
+        console = logging.StreamHandler()
+        console.setLevel(logging.DEBUG)
+        ch.setLevel(logging.DEBUG)
+        #create formatter
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        #add formatter to ch
+        ch.setFormatter(formatter)
+        console.setFormatter(formatter)
+        #add ch to logger
+        logger.addHandler(ch)
+        logger.addHandler(console)
+        logger.debug("File logging to " + logfilename)
+        return logger, ch
+    except IOError:
+        print "ERROR: Failed to initialize logger with logfile: " + logfilename
+        sys.exit(2)
+
+def closeLogger(logger, ch):
+    """
+    Closes the logger
+    """
+    logger.removeHandler(ch)
+    ch.flush()
+    ch.close()
+    return logger, ch
 
 
 
@@ -309,99 +420,120 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
 
 
 
+def main(argv=None):
 
-BB = dict(
-       lon=[ lonmin, lonmax],
-       lat= [ latmin, latmax]
-       )
-        
-
-
-
-start = datetime.datetime(2000,1,1)
-end = datetime.datetime(2010,12,2)
+    if argv is None:
+        argv = sys.argv[1:]
+        if len(argv) == 0:
+            usage()
+            return
 
 
-tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot,  variable  )
-ncstepobj = getstepdaily(tlist,BB,"air_temperature")
+    try:
+        opts, args = getopt.getopt(argv, 'I:')
+    except getopt.error, msg:
+        usage(msg)
 
-#print unique(tlist.values())
-
-aa = ncstepobj.getdates(timelist)
-
-
-mean_as_series = (aa.mean(axis=1).mean(axis=1))
-mean_as_map = aa.mean(axis=0)
-
-#axis = 0 Over all times per pixel
-# axis=1 nog een axis=1 voor in spave en output voor alle timesteps
-plot(mmean -273.15)
-
-a = []
-#for thedate in timelist:
-#    print  thedate
-#    lat, lon, data = ncstepobj.getdate(thedate)
-#    a.append(data.mean())
+    for o, a in opts:
+        if o == '-I': inifile = a
 
 
+    logger = setlogger("e2o_getvar.log","e2o_getvar")
+    theconf = iniFileSetUp("e2o_getvar.ini")
 
-#
-#a = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1979/Tair_daily_E2OBS_197901.nc"
-##def main(argv=None):
-#"""
-#Perform command line execution of the model.
-#"""
-#
-##if argv is None:
-##    argv = sys.argv[1:]
-##    if len(argv) == 0:
-##        usage()
-##        return
-##
-#argv =["lll"]
-#try:
-#    opts, args = getopt.getopt(argv, 'I:')
-#except getopt.error, msg:
-#    usage(msg)
-#
-#for o, a in opts:
-#    if o == '-I': inifile = a
-#
-#
-## Generate the data range
-#years = arange(startyear,endyear+1,1)
-#months = arange(startmonth, endmonth + 1,1)
-#
-#ncflist = []
-#for year in years:
-#    for month in months:
-#        ncflist.append(serverroot + wrrsetroot + "%d" % (year) + "/" + variable + "%d%02d.nc" % (year,month))
-#
-## first assumption: all files have the same geo dimentsion
-#BB = dict(
-#       lon=[ lonmin, lonmax],
-#       lat= [ latmin, latmax]
-#       )
-#    
-#print ncflist[0]
-#print a
-#nc = ncdatset(ncflist[0])
-#lat = nc.lat[:]
-#lon = nc.lat[:]
-#(latidx,) = logical_and(lat >= BB['lat'][0], lat < BB['lat'][1]).nonzero()
-#(lonidx,) = logical_and(lon >= BB['lon'][0], lon < BB['lon'][1]).nonzero()
-#print lat
-#print lon
-#print latidx
-#print lonidx
-# 
-#myvar = nc.getvarbyname("air_temperature")   
-#    
-#if nc.dimensions == 3:
-#    window = myvar[:,latidx.min():latidx.max(),lonidx.min():lonidx.max()] 
-#else:
-#    window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
-#
-#ts_mean = window.mean(axis=2).mean(axis=1)   
-#    
-##main(argv="ggg")
+    lonmax = int(configget(logger,theconf,"selection","lonmax",str(lonmax)))
+    lonmin = int(configget(logger,theconf,"selection","lonmin",str(lonmin)))
+    latmax = int(configget(logger,theconf,"selection","latmax",str(latmax)))
+    latmin = int(configget(logger,theconf,"selection","latmin",str(latmin)))
+    BB = dict(
+           lon=[ lonmin, lonmax],
+           lat= [ latmin, latmax]
+           )
+    startyear = int(configget(logger,theconf,"selection","startyear",str(startyear)))
+    endyear = int(configget(logger,theconf,"selection","endyear",str(endyear)))
+    endmonth = int(configget(logger,theconf,"selection","endmonth",str(endmonth)))
+    startmonth = int(configget(logger,theconf,"selection","startmonth",str(startmonth)))
+    standard_name = configget(logger,theconf,"selection","standard_name",standard_name)
+    endday = int(configget(logger,theconf,"selection","endday",str(endday)))
+    startday = int(configget(logger,theconf,"selection","startday",str(startday)))
+
+
+    start = datetime.datetime(startyear,startmonth,startday)
+    end = datetime.datetime(endyear,endmonth,endday)
+
+
+    tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot,  variable  )
+    ncstepobj = getstepdaily(tlist,BB,standard_name)
+
+    #print unique(tlist.values())
+
+    aa = ncstepobj.getdates(timelist)
+
+
+    mean_as_series = (aa.mean(axis=1).mean(axis=1))
+    mean_as_map = aa.mean(axis=0)
+
+
+
+
+
+if __name__ == "__main__":
+    main()
+
+
+    #axis = 0 Over all times per pixel
+    # axis=1 nog een axis=1 voor in spave en output voor alle timesteps
+    #plot(mmean -273.15)
+    #for thedate in timelist:
+    #    print  thedate
+    #    lat, lon, data = ncstepobj.getdate(thedate)
+    #    a.append(data.mean())
+
+
+
+    #
+    #a = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1979/Tair_daily_E2OBS_197901.nc"
+    ##def main(argv=None):
+    #"""
+    #Perform command line execution of the model.
+    #"""
+    #
+    #
+    #
+    ## Generate the data range
+    #years = arange(startyear,endyear+1,1)
+    #months = arange(startmonth, endmonth + 1,1)
+    #
+    #ncflist = []
+    #for year in years:
+    #    for month in months:
+    #        ncflist.append(serverroot + wrrsetroot + "%d" % (year) + "/" + variable + "%d%02d.nc" % (year,month))
+    #
+    ## first assumption: all files have the same geo dimentsion
+    #BB = dict(
+    #       lon=[ lonmin, lonmax],
+    #       lat= [ latmin, latmax]
+    #       )
+    #
+    #print ncflist[0]
+    #print a
+    #nc = ncdatset(ncflist[0])
+    #lat = nc.lat[:]
+    #lon = nc.lat[:]
+    #(latidx,) = logical_and(lat >= BB['lat'][0], lat < BB['lat'][1]).nonzero()
+    #(lonidx,) = logical_and(lon >= BB['lon'][0], lon < BB['lon'][1]).nonzero()
+    #print lat
+    #print lon
+    #print latidx
+    #print lonidx
+    #
+    #myvar = nc.getvarbyname("air_temperature")
+    #
+    #if nc.dimensions == 3:
+    #    window = myvar[:,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
+    #else:
+    #    window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
+    #
+    #ts_mean = window.mean(axis=2).mean(axis=1)
+    #
+    ##main(argv="ggg")

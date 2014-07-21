@@ -15,24 +15,12 @@ import getopt, sys, os, netCDF4
 import osgeo.gdal as gdal
 from osgeo.gdalconst import *
 import datetime
-import logging
-import config
+from numpy import *
+from e2o_utils import *
 
 
 
 
-serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
-wrrsetroot = "ecmwf/met_forcing_v0/"
-variable = "Tair_daily_E2OBS_"
-standard_name ='air_temperature'
-startyear = 1979
-endyear= 1980
-startmonth = 1
-endmonth = 12
-latmin = 51.25
-latmax = 51.75
-lonmin = 5.25
-lonmax = 5.75
 
 #ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
 
@@ -47,152 +35,6 @@ def usage(*args):
     print __doc__
     sys.exit(0)
 
-def writeMap(fileName, fileFormat, x, y, data, FillVal):
-    """ Write geographical data into file"""
-
-    verbose = False
-    gdal.AllRegister()
-    driver1 = gdal.GetDriverByName('GTiff')
-    driver2 = gdal.GetDriverByName(fileFormat)
-
-    # Processing
-    if verbose:
-        print 'Writing to temporary file ' + fileName + '.tif'
-    # Create Output filename from (FEWS) product name and date and open for writing
-    TempDataset = driver1.Create(fileName + '.tif',data.shape[1],data.shape[0],1,gdal.GDT_Float32)
-    # Give georeferences
-    xul = x[0]-(x[1]-x[0])/2
-    yul = y[0]+(y[0]-y[1])/2
-
-    TempDataset.SetGeoTransform( [ xul, x[1]-x[0], 0, yul, 0, y[1]-y[0] ] )
-    # get rasterband entry
-    TempBand = TempDataset.GetRasterBand(1)
-    # fill rasterband with array
-    TempBand.WriteArray(data,0,0)
-    TempBand.FlushCache()
-    TempBand.SetNoDataValue(FillVal)
-    # Create data to write to correct format (supported by 'CreateCopy')
-    if verbose:
-        print 'Writing to ' + fileName + '.map'
-    outDataset = driver2.CreateCopy(fileName, TempDataset, 0)
-    TempDataset = None
-    outDataset = None
-    if verbose:
-        print 'Removing temporary file ' + fileName + '.tif'
-    os.remove(fileName + '.tif');
-
-    if verbose:
-        print 'Writing to ' + fileName + ' is done!'
-
-
-
-def configget(log,config,section,var,default):
-    """   
-    Gets a string from a config file (.ini) and returns a default value if
-    the key is not found. If the key is not found it also sets the value 
-    with the default in the config-file
-    
-    Input:
-        - config - python ConfigParser object
-        - section - section in the file
-        - var - variable (key) to get
-        - default - default string
-        
-    Returns:
-        - string - either the value from the config file or the default value
-    """
-    
-    Def = False
-    try:
-        ret = config.get(section,var)
-    except:
-        Def = True
-        ret = default
-        log.info( "returning default (" + default + ") for " + section + ":" + var)
-        configset(config,section,var,default, overwrite=False)
-    
-    default = Def
-    return ret       
-
-def configset(config,section,var,value, overwrite=False):
-    """   
-    Sets a string in the in memory representation of the config object
-    Deos NOT overwrite existing values if overwrite is set to False (default)
-    
-    Input:
-        - config - python ConfigParser object
-        - section - section in the file
-        - var - variable (key) to set
-        - value - the value to set
-        - overwrite (optional, default is False)
-   
-    Returns:
-        - nothing
-        
-    """
-    
-    if not config.has_section(section):
-        config.add_section(section)
-        config.set(section,var,value)
-    else:     
-        if not config.has_option(section,var):
-            config.set(section,var,value)
-        else:
-            if overwrite:
-                config.set(section,var,value)
-
-def iniFileSetUp(configfile):
-    """
-    Reads .ini file and sets default values if not present
-    """
-    # TODO: clean up wflwo specific stuff
-    #setTheEnv(runId='runId,caseName='caseName)
-    # Try and read config file and set default options
-    config = ConfigParser.SafeConfigParser()
-    config.optionxform = str
-    config.read(configfile)
-    return config
-
-def setlogger(logfilename, logReference):
-    """
-    Set-up the logging system. Exit if this fails
-    input:
-        logfilename:    string, referring to the logfile
-        logReference:   string, referring to reference used in log lines
-    output:
-        ch:             handle, refer to logging object
-        logger:         logger object
-    """
-    try:
-        #create logger
-        logger = logging.getLogger(logReference)
-        logger.setLevel(logging.DEBUG)
-        ch = logging.handlers.RotatingFileHandler(logfilename,maxBytes=10*1024*1024, backupCount=5)
-        console = logging.StreamHandler()
-        console.setLevel(logging.DEBUG)
-        ch.setLevel(logging.DEBUG)
-        #create formatter
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        #add formatter to ch
-        ch.setFormatter(formatter)
-        console.setFormatter(formatter)
-        #add ch to logger
-        logger.addHandler(ch)
-        logger.addHandler(console)
-        logger.debug("File logging to " + logfilename)
-        return logger, ch
-    except IOError:
-        print "ERROR: Failed to initialize logger with logfile: " + logfilename
-        sys.exit(2)
-
-def closeLogger(logger, ch):
-    """
-    Closes the logger
-    """
-    logger.removeHandler(ch)
-    ch.flush()
-    ch.close()
-    return logger, ch
 
 
 
@@ -205,15 +47,22 @@ class ncdatset():
     3 = T, Lat Lon
     4 = T heigth, Lat Lon
     """
-    def __init__(self,ncurl):
+    def __init__(self,ncurl,logger):
 
         self.nc = netCDF4.Dataset(ncurl)
+        self.logger = logger
         self.lat = self.getlat(self.nc)
+        if self.lat == None:
+            self.logger.error("No lat information found!")
         self.lon = self.getlon(self.nc)
+        if self.lon == None:
+            self.logger.error("No lon information found!")
+
         self.heigth = self.getheigth(self.nc)
         self.dimensions = 3 if self.heigth == None else 4
         self.time =   self.gettime(self.nc)
         self.timesteps = self.time.shape[0]
+        self.logger.debug(self.nc)
 
 
     def __del__(self):
@@ -233,6 +82,7 @@ class ncdatset():
     def getvarbyname(self,name):
         """
         """
+
 
         for a in self.nc.variables:
             if  self.nc.variables[a].standard_name == name:
@@ -276,16 +126,16 @@ class ncdatset():
 
 
 
-def get_times_daily(startdate,enddate, serverroot, wrrsetroot, variable):
+def get_times_daily(startdate,enddate, serverroot, wrrsetroot, variable,logger):
     """
-    generate a dictonary with date/times and the NC files in which the data resides
+    generate a dictionary with date/times and the NC files in which the data resides
     """
 
-    numdays = end - start
+    numdays = enddate - startdate
     dateList = []
     filelist = {}
     for x in range (0, numdays.days + 1):
-        dateList.append(start + datetime.timedelta(days = x))
+        dateList.append(startdate + datetime.timedelta(days = x))
     
     for thedate in dateList:
         ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + variable + "%d%02d.nc" % (thedate.year,thedate.month)
@@ -296,8 +146,13 @@ def get_times_daily(startdate,enddate, serverroot, wrrsetroot, variable):
 
 
 class getstepdaily():
+    """
+    class to get data from a set of NC files
+    Initialise with a list of netcdf files and a variable name (standard_name)
+
+    """
     
-    def __init__(self,nclist,BB,varname):
+    def __init__(self,nclist,BB,varname,logger):
         """
         """
         self.o_nc_files = []
@@ -309,6 +164,7 @@ class getstepdaily():
         self.lat=[]
         self.lon=[]
         self.data = []
+        self.logger = logger
 
     def getdate(self,thedate):
 
@@ -318,7 +174,7 @@ class getstepdaily():
         window = None
         
         if datestr in self.list.keys():
-            self.dset = ncdatset(self.list[datestr])
+            self.dset = ncdatset(self.list[datestr],self.logger)
             data = self.dset.getvarbyname(self.varname)
             lat = flipud(self.dset.lat[:])
             
@@ -340,7 +196,7 @@ class getstepdaily():
             self.lon = lon[lonidx]
     
         else:
-            print "cannot find: " + datestr
+            self.logger.error( "cannot find: " + datestr)
             
         return self.lat, self.lon, window
 
@@ -357,7 +213,7 @@ class getstepdaily():
         # here we loop over nc files fro speed reasons
         
         for theone in  unique(self.list.values()):
-            self.dset = ncdatset(theone)
+            self.dset = ncdatset(theone,self.logger)
             
             time = self.dset.time
             tar = time[:]
@@ -376,13 +232,19 @@ class getstepdaily():
                 epos = int(epos + 1)
             
             
-            print "Processing url: " + theone 
+            self.logger.debug("Processing url: " + theone )
+            
             data = self.dset.getvarbyname(self.varname)
+            
+            if data == None:
+                self.logger.error("dataset with standard_name " + self.varname + " not found" )
+                
             lat = self.dset.lat[:]
             lon = self.dset.lon[:]
 
             (self.latidx,) = logical_and(lat >= self.BB['lat'][0], lat <= self.BB['lat'][1]).nonzero()
             (self.lonidx,) = logical_and(lon >= self.BB['lon'][0], lon <= self.BB['lon'][1]).nonzero()
+
 
             if self.dset.dimensions ==3:
                 window = data[spos:epos,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
@@ -409,6 +271,8 @@ class getstepdaily():
 def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):        
     
     cnt = 0
+    if not os.path.exists(directory):
+        os.mkdir(directory)
     for a in times:
             below_thousand = cnt % 1000
             above_thousand = cnt / 1000
@@ -421,6 +285,23 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
 
 
 def main(argv=None):
+
+
+    serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
+    wrrsetroot = "ecmwf/met_forcing_v0/"
+    variable = "Tair_daily_E2OBS_"
+    standard_name ='air_temperature'
+    startyear = 1979
+    endyear= 1980
+    startmonth = 1
+    endmonth = 12
+    latmin = 51.25
+    latmax = 51.75
+    lonmin = 5.25
+    lonmax = 5.75
+    startday = 1
+    endday = 1
+    
 
     if argv is None:
         argv = sys.argv[1:]
@@ -438,13 +319,14 @@ def main(argv=None):
         if o == '-I': inifile = a
 
 
-    logger = setlogger("e2o_getvar.log","e2o_getvar")
+    logger, ch = setlogger("e2o_getvar.log","e2o_getvar")
+    logger.debug("Reading settings from in: " + inifile)
     theconf = iniFileSetUp("e2o_getvar.ini")
 
-    lonmax = int(configget(logger,theconf,"selection","lonmax",str(lonmax)))
-    lonmin = int(configget(logger,theconf,"selection","lonmin",str(lonmin)))
-    latmax = int(configget(logger,theconf,"selection","latmax",str(latmax)))
-    latmin = int(configget(logger,theconf,"selection","latmin",str(latmin)))
+    lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
+    lonmin = float(configget(logger,theconf,"selection","lonmin",str(lonmin)))
+    latmax = float(configget(logger,theconf,"selection","latmax",str(latmax)))
+    latmin = float(configget(logger,theconf,"selection","latmin",str(latmin)))
     BB = dict(
            lon=[ lonmin, lonmax],
            lat= [ latmin, latmax]
@@ -456,23 +338,33 @@ def main(argv=None):
     standard_name = configget(logger,theconf,"selection","standard_name",standard_name)
     endday = int(configget(logger,theconf,"selection","endday",str(endday)))
     startday = int(configget(logger,theconf,"selection","startday",str(startday)))
-
+    #serverroot = configget(logger,theconf,"url","serverroot",serverroot)
+    #wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
+    #variable = configget(logger,theconf,"url","variable",variable)
+    
+    oformat = configget(logger,theconf,"output","format","PCRaster")
+    odir = configget(logger,theconf,"output","directory","output/")
+    oprefix = configget(logger,theconf,"output","prefix","E2O")
+    logger.debug("Done reading settings.")
 
     start = datetime.datetime(startyear,startmonth,startday)
     end = datetime.datetime(endyear,endmonth,endday)
 
 
-    tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot,  variable  )
-    ncstepobj = getstepdaily(tlist,BB,standard_name)
+    tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot,  variable ,logger )
+    ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
 
     #print unique(tlist.values())
 
-    aa = ncstepobj.getdates(timelist)
+    mstack = ncstepobj.getdates(timelist)
 
 
-    mean_as_series = (aa.mean(axis=1).mean(axis=1))
-    mean_as_map = aa.mean(axis=0)
-
+    mean_as_series = (mstack.mean(axis=1).mean(axis=1))
+    mean_as_map = mstack.mean(axis=0)
+    
+    logger.info("Saving " + ncstepobj.varname + " to mapstack " + odir + oprefix)
+    save_as_mapsstack(ncstepobj.lat,ncstepobj.lon,mstack,timelist,odir,prefix=oprefix,oformat=oformat)  
+    logger.info("Done.")
 
 
 
@@ -481,59 +373,4 @@ if __name__ == "__main__":
     main()
 
 
-    #axis = 0 Over all times per pixel
-    # axis=1 nog een axis=1 voor in spave en output voor alle timesteps
-    #plot(mmean -273.15)
-    #for thedate in timelist:
-    #    print  thedate
-    #    lat, lon, data = ncstepobj.getdate(thedate)
-    #    a.append(data.mean())
 
-
-
-    #
-    #a = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1979/Tair_daily_E2OBS_197901.nc"
-    ##def main(argv=None):
-    #"""
-    #Perform command line execution of the model.
-    #"""
-    #
-    #
-    #
-    ## Generate the data range
-    #years = arange(startyear,endyear+1,1)
-    #months = arange(startmonth, endmonth + 1,1)
-    #
-    #ncflist = []
-    #for year in years:
-    #    for month in months:
-    #        ncflist.append(serverroot + wrrsetroot + "%d" % (year) + "/" + variable + "%d%02d.nc" % (year,month))
-    #
-    ## first assumption: all files have the same geo dimentsion
-    #BB = dict(
-    #       lon=[ lonmin, lonmax],
-    #       lat= [ latmin, latmax]
-    #       )
-    #
-    #print ncflist[0]
-    #print a
-    #nc = ncdatset(ncflist[0])
-    #lat = nc.lat[:]
-    #lon = nc.lat[:]
-    #(latidx,) = logical_and(lat >= BB['lat'][0], lat < BB['lat'][1]).nonzero()
-    #(lonidx,) = logical_and(lon >= BB['lon'][0], lon < BB['lon'][1]).nonzero()
-    #print lat
-    #print lon
-    #print latidx
-    #print lonidx
-    #
-    #myvar = nc.getvarbyname("air_temperature")
-    #
-    #if nc.dimensions == 3:
-    #    window = myvar[:,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
-    #else:
-    #    window = myvar[:,0,latidx.min():latidx.max(),lonidx.min():lonidx.max()]
-    #
-    #ts_mean = window.mean(axis=2).mean(axis=1)
-    #
-    ##main(argv="ggg")

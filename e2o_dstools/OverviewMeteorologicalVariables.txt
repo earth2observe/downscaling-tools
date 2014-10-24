@@ -1,0 +1,37 @@
+Temperature
+standad_name = air_temperature
+variable = "Tair_daily_E2OBS_"
+
+DownwellingLongWaveRadiation
+standard_name = surface_downwelling_longwave_flux_in_air
+variable = "LWdown_daily_E2OBS_"
+
+SurfaceAtmosphericPressure
+standard_name = surface_air_pressure
+variable = "PSurf_daily_E2OBS_"
+
+NearSurfaceSpecificHumidity
+standard_name = specific_humidity
+variable = "Qair_daily_E2OBS_"
+
+Rainfall
+standard_name = rainfal_flux
+variable = "Rainf_daily_E2OBS_"
+
+SurfaceIncidentShortwaveRadiation
+standard_name = surface_downwelling_shortwave_flux_in_air
+variable = "SWdown_daily_E2OBS_"
+
+SnowfallRate
+standard_name = snowfall_flux
+variable = "Snowf_daily_E2OBS_"
+
+NearSurfaceWindSpeed
+standard_name = wind_speed
+variable = "Wind_daily_E2OBS_"
+
+Temperature,DownwellingLongWaveRadiation,SurfaceAtmosphericPressure,NearSurfaceSpecificHumidity,Rainfall,SurfaceIncidentShortwaveRadiation,SnowfallRate,NearSurfaceWindSpeed
+
+"Tair_daily_E2OBS_","LWdown_daily_E2OBS_","PSurf_daily_E2OBS_","Qair_daily_E2OBS_","Rainf_daily_E2OBS_","SWdown_daily_E2OBS_","Snowf_daily_E2OBS_","Wind_daily_E2OBS_"
+
+air_temperature,surface_downwelling_longwave_flux_in_air,surface_air_pressure,specific_humidity,rainfal_flux,surface_downwelling_shortwave_flux_in_air,snowfall_flux,wind_speed

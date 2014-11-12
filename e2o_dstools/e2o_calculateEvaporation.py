@@ -603,11 +603,11 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     tt  = currentdate.timetuple()
     JULDAY = tt.tm_yday
 #    #Latitude radians
-    LatRad= lat*pi/180.0
+    LatRad= lat*np.pi/180.0
     test = np.tan(LatRad)
 #    ### water euivalent extraterrestial radiation ###    
 #    # declination (rad)
-    declin = 0.409*(np.sin(((2.0*pi*JULDAY)/365.0)-1.405))
+    declin = 0.4093*(np.sin(((2.0*pi*JULDAY)/365.0)-1.405))
 #    # sunset hour angle
     arccosInput = (-(np.tan(LatRad))*(np.tan(declin)))
 #    
@@ -615,7 +615,7 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     arccosInput = np.maximum(-1,arccosInput)
     sunangle = np.arccos(arccosInput)
 #    # distance of earth to sun
-    distsun = 1+0.033*(np.cos((2*pi*JULDAY)/365))
+    distsun = 1+0.033*(np.cos((2*pi*JULDAY)/365.0))
 #    # SO = water equivalent extra terrestiral radiation in mm/day
     Ra = 15.392*distsun*(sunangle*(np.sin(LatRad))*(np.sin(declin))+(np.cos(LatRad))*(np.cos(declin))*(np.sin(sunangle)))
     strDay       = str(JULDAY)
@@ -628,7 +628,7 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     #print 'test2'
         
     airT = relevantDataFields[0]
-    PETmm = 0.0023*Ra*((np.maximum(0,(airT-273))) + 17.8)*sqrt(np.maximum(0,(Tmax-Tmin)))
+    PETmm = 0.0023*Ra*((np.maximum(0,(airT-273.0))) + 17.8)*sqrt(np.maximum(0,(Tmax-Tmin)))
  
     return PETmm, Ra, LatRad, sunangle, declin
 

@@ -10,7 +10,8 @@ usage:
 """
 
 #TODO: Add local cache
-#TODO: Fix Hargreaves problem
+#TODO: Add tiling -> get small chunks
+#TODO: add caching
 
 import getopt, sys, os, netCDF4
 import osgeo.gdal as gdal
@@ -259,7 +260,7 @@ class getstepdaily():
                 epos = int(epos + 1)
             
             
-            self.logger.debug("Processing url: " + theone )
+            self.logger.info("Processing url: " + theone )
             
             data = self.dset.getvarbyname(self.varname)
             
@@ -321,7 +322,7 @@ class getstepdaily():
                 epos = int(epos + 1)
             
             
-            self.logger.debug("Processing url: " + theone )
+            self.logger.info("Processing url: " + theone )
             
             data = self.dset.getvarbyname(self.varname)
             
@@ -443,7 +444,7 @@ class getstep():
                 epos = int(epos + 1)
             
             
-            self.logger.debug("Processing url: " + theone )
+            self.logger.info("Processing url: " + theone )
             
             data = self.dset.getvarbyname(self.varname)
             
@@ -619,14 +620,7 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
 #    # SO = water equivalent extra terrestiral radiation in mm/day
     Ra = 15.392*distsun*(sunangle*(np.sin(LatRad))*(np.sin(declin))+(np.cos(LatRad))*(np.cos(declin))*(np.sin(sunangle)))
     strDay       = str(JULDAY)
-#    while len(strDay) < 3:
-#        strDay  = str(0)+ strDay
-#    fileName    = 'so000000.' + strDay
-#    RaMap       = pcr.readmap(os.path.join('maps',fileName))
-#    Ra          = np.flipud(pcr.pcr2numpy(RaMap,0))
-    
-    #print 'test2'
-        
+
     airT = relevantDataFields[0]
     PETmm = 0.0023*Ra*((np.maximum(0,(airT-273.0))) + 17.8)*sqrt(np.maximum(0,(Tmax-Tmin)))
  
@@ -663,10 +657,8 @@ def main(argv=None):
     getDataForVar = True
     calculateEvap = False
     evapMethod = None
-    
-    
-    #argv = ["-I","e2o_getvar.ini"]
-    
+    nrcalls = 0
+
     if argv is None:
         argv = sys.argv[1:]
         if len(argv) == 0:
@@ -681,7 +673,7 @@ def main(argv=None):
         if o == '-I': inifile = a
             
     logger, ch = setlogger("e2o_getvar.log","e2o_getvar",level=logging.INFO)
-    logger.debug("Reading settings from ini: " + inifile)
+    logger.info("Reading settings from ini: " + inifile)
     theconf = iniFileSetUp(a)
     
     # Read period from file
@@ -732,13 +724,17 @@ def main(argv=None):
                 logger.info("Getting data field: " + filename)
                 filename = filenames[i]
                 standard_name = standard_names[i]
-    
-                tlist, timelist = get_times_daily(currentdate,currentdate,serverroot, wrrsetroot, filename,logger )             
+                logger.info("Get file list..")
+                tlist, timelist = get_times_daily(currentdate,currentdate,serverroot, wrrsetroot, filename,logger)
+                logger.info("Get dates..")
+
                 ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
+                logger.info("Get data...: " + str(timelist))
                 mstack = ncstepobj.getdates(timelist)
-    
+                logger.info("Get data body...")
+
                 relevantDataFields.append(mstack)
-                
+
         if evapMethod == 'PenmanMonteith':
             # retrieve 3 hourly Temperature and calculate max and min Temperature            
             filename = 'Tair_E2OBS_'
@@ -754,25 +750,32 @@ def main(argv=None):
             PETmm = PenmanMonteith(relevantDataFields, tmax, tmin)
             
         if evapMethod == 'Hargreaves':
-            # retrieve 3 hourly Temperature and calculate max and min Temperature       
+            # retrieve 3 hourly Temperature and calculate max and min Temperature
             filename = 'Tair_E2OBS_'
             standard_name = 'air_temperature'
             timestepSeconds = 10800
 
-
+            logger.info("Get times 3 hr data..")
             tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
+            logger.info("Get actual 3hr data...")
             ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
             #ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
     
-            mstack = ncstepobj.getdates(timelist)   
-            latitude = ncstepobj.lat[:]
-            #assuming a resolution of 0.5 degrees
-            LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
-            for i in range (0,int((2*(lonmax-lonmin)))):
-                LATITUDE[:,i]=LATITUDE[:,i]*latitude
-            tmin = mstack.min(axis=0)            
-            tmax = mstack.max(axis=0)
+            mstack = ncstepobj.getdates(timelist)
 
+            #only needed once..
+            if nrcalls ==0:
+                nrcalls = nrcalls + 1
+                latitude = ncstepobj.lat[:]
+                #assuming a resolution of 0.5 degrees
+                #TODO: Find out what is happening here...
+                LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
+                for i in range (0,int((2*(lonmax-lonmin)))):
+                    LATITUDE[:,i]=LATITUDE[:,i]*latitude
+
+            tmin = mstack.min(axis=0)
+            tmax = mstack.max(axis=0)
+            logger.info("Start hargreaves..")
             PETmm, Ra, dst, angle, dec = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
             dst = dst * 180.0/pi
             save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Ra,int(ncnt),odir,prefix="RA",oformat=oformat)

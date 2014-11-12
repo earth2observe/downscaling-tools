@@ -9,7 +9,8 @@ usage:
     -I inifile - ini file with settings which data to get
 """
 
-#TODO: Make initial version
+#TODO: Add local cache
+#TODO: Fix Hargreaves problem
 
 import getopt, sys, os, netCDF4
 import osgeo.gdal as gdal
@@ -604,7 +605,7 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     test = np.tan(LatRad)
 #    ### water euivalent extraterrestial radiation ###    
 #    # declination (rad)
-    declin = 0.409*((np.sin((2.0*pi/365.0)*JULDAY))-1.39)
+    declin = 0.409*(np.sin(((2.0*pi*JULDAY)/365.0)-1.405))
 #    # sunset hour angle
     arccosInput = (-(np.tan(LatRad))*(np.tan(declin)))
 #    
@@ -612,7 +613,7 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     arccosInput = np.maximum(-1,arccosInput)
     sunangle = np.arccos(arccosInput)
 #    # distance of earth to sun
-    distsun = 1+0.033*(np.cos((2*pi/365)*JULDAY))
+    distsun = 1+0.033*(np.cos((2*pi*JULDAY)/365))
 #    # SO = water equivalent extra terrestiral radiation in mm/day
     Ra = 15.392*distsun*(sunangle*(np.sin(LatRad))*(np.sin(declin))+(np.cos(LatRad))*(np.cos(declin))*(np.sin(sunangle)))
     strDay       = str(JULDAY)

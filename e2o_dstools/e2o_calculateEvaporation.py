@@ -593,7 +593,9 @@ def PenmanMonteith(relevantDataFields, Tmax, Tmin):
     PET     = np.maximum(PETtop/PETbase, 0)
     PETmm   = PET/Lheat*TimeStepSecs
     return PETmm #, Lheat, Rlnet, ea_mean, es_mean, Wsp_2
-    
+
+
+
 def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     
     

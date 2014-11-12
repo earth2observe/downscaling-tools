@@ -73,8 +73,8 @@ def configget(log,config,section,var,default):
     except:
         Def = True
         ret = default
-        log.info( "returning default (" + default + ") for " + section + ":" + var)
-        configset(config,section,var,default, overwrite=False)
+        log.info( "returning default (" + str(default) + ") for " + section + ":" + var)
+        configset(config,section,var,str(default), overwrite=False)
     
     default = Def
     return ret       
@@ -118,7 +118,7 @@ def iniFileSetUp(configfile):
     config.read(configfile)
     return config
 
-def setlogger(logfilename, logReference):
+def setlogger(logfilename, logReference,level=logging.DEBUG):
     """
     Set-up the logging system. Exit if this fails
     input:
@@ -131,7 +131,7 @@ def setlogger(logfilename, logReference):
     try:
         #create logger
         logger = logging.getLogger(logReference)
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(level)
         ch = logging.handlers.RotatingFileHandler(logfilename,maxBytes=10*1024*1024, backupCount=5)
         console = logging.StreamHandler()
         console.setLevel(logging.DEBUG)

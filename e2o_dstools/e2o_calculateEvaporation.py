@@ -19,10 +19,10 @@ from numpy import *
 import numpy as np
 from e2o_utils import *
 import pdb
-import pcraster as pcr
+#import pcraster as pcr
 
 
-pcr.setglobaloption("radians")
+#pcr.setglobaloption("radians")
 
 
 
@@ -56,7 +56,6 @@ class ncdatset():
         self.nc = netCDF4.Dataset(ncurl)
         self.logger = logger
         self.lat = self.getlat(self.nc)
-        print 'getlat'
         if self.lat == None:
             self.logger.error("No lat information found!")
         self.lon = self.getlon(self.nc)
@@ -237,7 +236,7 @@ class getstepdaily():
         
         lastnc = None
         
-        # here we loop over nc files fro speed reasons
+        # here we loop over nc files for speed reasons
         
         for theone in  unique(self.list.values()):
             self.dset = ncdatset(theone,self.logger)
@@ -601,34 +600,34 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     tt  = currentdate.timetuple()
     JULDAY = tt.tm_yday
 #    #Latitude radians
-#    LatRad= lat*pi/180
-#    test = tan(LatRad)
+    LatRad= lat*pi/180.0
+    test = np.tan(LatRad)
 #    ### water euivalent extraterrestial radiation ###    
 #    # declination (rad)
-#    declin = 0.409*((sin((2*pi/365)*JULDAY))-1.39);   
+    declin = 0.409*((np.sin((2.0*pi/365.0)*JULDAY))-1.39)
 #    # sunset hour angle
-#    arccosInput = (-(tan(LatRad))*(tan(declin)));
+    arccosInput = (-(np.tan(LatRad))*(np.tan(declin)))
 #    
-#    arccosInput = np.minimum(1,arccosInput)
-#    arccosInput = np.maximum(-1,arccosInput)
-#    sunangle = arccos(arccosInput)
+    arccosInput = np.minimum(1,arccosInput)
+    arccosInput = np.maximum(-1,arccosInput)
+    sunangle = np.arccos(arccosInput)
 #    # distance of earth to sun
-#    distsun = 1+0.033*(cos((2*pi/365)*JULDAY));      
+    distsun = 1+0.033*(np.cos((2*pi/365)*JULDAY))
 #    # SO = water equivalent extra terrestiral radiation in mm/day
-#    Ra = 15.392*distsun*(sunangle*(sin(LatRad))*(sin(declin))+(cos(LatRad))*(cos(declin))*(sin(sunangle)));  
+    Ra = 15.392*distsun*(sunangle*(np.sin(LatRad))*(np.sin(declin))+(np.cos(LatRad))*(np.cos(declin))*(np.sin(sunangle)))
     strDay       = str(JULDAY)
-    while len(strDay) < 3:
-        strDay  = str(0)+ strDay
-    fileName    = 'so000000.' + strDay
-    RaMap       = pcr.readmap(os.path.join('maps',fileName))    
-    Ra          = np.flipud(pcr.pcr2numpy(RaMap,0))
+#    while len(strDay) < 3:
+#        strDay  = str(0)+ strDay
+#    fileName    = 'so000000.' + strDay
+#    RaMap       = pcr.readmap(os.path.join('maps',fileName))
+#    Ra          = np.flipud(pcr.pcr2numpy(RaMap,0))
     
-    print 'test2'
+    #print 'test2'
         
     airT = relevantDataFields[0]
     PETmm = 0.0023*Ra*((np.maximum(0,(airT-273))) + 17.8)*sqrt(np.maximum(0,(Tmax-Tmin)))
  
-    return PETmm
+    return PETmm, Ra, LatRad, sunangle, declin
 
 #### MAIN ####
 
@@ -663,7 +662,7 @@ def main(argv=None):
     evapMethod = None
     
     
-    argv = ["-I","e2o_getvar.ini"]
+    #argv = ["-I","e2o_getvar.ini"]
     
     if argv is None:
         argv = sys.argv[1:]
@@ -678,7 +677,7 @@ def main(argv=None):
     for o, a in opts:
         if o == '-I': inifile = a
             
-    logger, ch = setlogger("e2o_getvar.log","e2o_getvar")
+    logger, ch = setlogger("e2o_getvar.log","e2o_getvar",level=logging.INFO)
     logger.debug("Reading settings from ini: " + inifile)
     theconf = iniFileSetUp(a)
     
@@ -722,10 +721,12 @@ def main(argv=None):
     currentdate = start
     ncnt = 0
     while currentdate <= end:
+        # Get all daily datafields needed and aad to list
         relevantDataFields = []
         for i in range (0,len(variables)):
             odir = configget(logger,theconf,"output","directory","output/")
             if variables[i] in relevantVars:
+                logger.info("Getting data field: " + filename)
                 filename = filenames[i]
                 standard_name = standard_names[i]
     
@@ -754,8 +755,9 @@ def main(argv=None):
             filename = 'Tair_E2OBS_'
             standard_name = 'air_temperature'
             timestepSeconds = 10800
-            
-            tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )       
+
+
+            tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
             ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
             #ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
     
@@ -768,8 +770,14 @@ def main(argv=None):
             tmin = mstack.min(axis=0)            
             tmax = mstack.max(axis=0)
 
-            PETmm = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
-     
+            PETmm, Ra, dst, angle, dec = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
+            dst = dst * 180.0/pi
+            save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Ra,int(ncnt),odir,prefix="RA",oformat=oformat)
+            save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dst,int(ncnt),odir,prefix="DST",oformat=oformat)
+            save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,angle,int(ncnt),odir,prefix="ANG",oformat=oformat)
+            #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dec,int(ncnt),odir,prefix="DEC",oformat=oformat)
+
+        logger.info("Saving PET data for: " +str(currentdate))
         #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)  
         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)  
         

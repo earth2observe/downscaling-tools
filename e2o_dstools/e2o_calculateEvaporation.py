@@ -54,9 +54,13 @@ class ncdatset():
     4 = T heigth, Lat Lon
     """
     def __init__(self,ncurl,logger):
-
-        self.nc = netCDF4.Dataset(ncurl)
         self.logger = logger
+        try:
+            self.nc = netCDF4.Dataset(ncurl)
+        except:
+            self.logger.error("Failed to open remote file: " + ncurl)
+            sys.exit(12)
+
         self.lat = self.getlat(self.nc)
         if self.lat == None:
             self.logger.error("No lat information found!")
@@ -630,6 +634,8 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
 
 def main(argv=None):
 
+    # Set all sorts of defaults.....
+    serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
     serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
     wrrsetroot = "ecmwf/met_forcing_v0/"
     
@@ -658,6 +664,7 @@ def main(argv=None):
     calculateEvap = False
     evapMethod = None
     nrcalls = 0
+    loglevel=logging.INFO
 
     if argv is None:
         argv = sys.argv[1:]
@@ -672,7 +679,7 @@ def main(argv=None):
     for o, a in opts:
         if o == '-I': inifile = a
             
-    logger, ch = setlogger("e2o_getvar.log","e2o_getvar",level=logging.INFO)
+    logger, ch = setlogger("e2o_getvar.log","e2o_getvar",level=loglevel)
     logger.info("Reading settings from ini: " + inifile)
     theconf = iniFileSetUp(a)
     
@@ -695,10 +702,10 @@ def main(argv=None):
            lon=[ lonmin, lonmax],
            lat= [ latmin, latmax]
            )
-    #serverroot = configget(logger,theconf,"url","serverroot",serverroot)
-    #wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
+    serverroot = configget(logger,theconf,"url","serverroot",serverroot)
+    wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
     oformat = configget(logger,theconf,"output","format","PCRaster")
-    #odir = configget(logger,theconf,"output","directory","output/")
+    odir = configget(logger,theconf,"output","directory","output/")
     oprefix = configget(logger,theconf,"output","prefix","E2O")
        
     # Check whether evaporation should be calculated
@@ -719,7 +726,6 @@ def main(argv=None):
         # Get all daily datafields needed and aad to list
         relevantDataFields = []
         for i in range (0,len(variables)):
-            odir = configget(logger,theconf,"output","directory","output/")
             if variables[i] in relevantVars:
                 logger.info("Getting data field: " + filename)
                 filename = filenames[i]
@@ -729,6 +735,7 @@ def main(argv=None):
                 logger.info("Get dates..")
 
                 ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
+
                 logger.info("Get data...: " + str(timelist))
                 mstack = ncstepobj.getdates(timelist)
                 logger.info("Get data body...")
@@ -763,7 +770,7 @@ def main(argv=None):
     
             mstack = ncstepobj.getdates(timelist)
 
-            #only needed once..
+            #only needed once.. (i think)
             if nrcalls ==0:
                 nrcalls = nrcalls + 1
                 latitude = ncstepobj.lat[:]

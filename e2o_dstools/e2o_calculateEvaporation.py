@@ -785,14 +785,14 @@ def main(argv=None):
             logger.info("Start hargreaves..")
             PETmm, Ra, dst, angle, dec = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
             dst = dst * 180.0/pi
-            save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Ra,int(ncnt),odir,prefix="RA",oformat=oformat)
-            save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dst,int(ncnt),odir,prefix="DST",oformat=oformat)
-            save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,angle,int(ncnt),odir,prefix="ANG",oformat=oformat)
+            #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Ra,int(ncnt),odir,prefix="RA",oformat=oformat)
+            #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dst,int(ncnt),odir,prefix="DST",oformat=oformat)
+            #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,angle,int(ncnt),odir,prefix="ANG",oformat=oformat)
             #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dec,int(ncnt),odir,prefix="DEC",oformat=oformat)
 
         logger.info("Saving PET data for: " +str(currentdate))
         #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)  
-        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)  
+        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt+1),odir,prefix=oprefix,oformat=oformat)
         
 
         currentdate += datetime.timedelta(days=1)

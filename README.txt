@@ -1,4 +1,10 @@
-A set of python tools to download and subsequently downscale the data from the earth2observe data portal
+e2o-downscaling-tools
+=====================
+
+A set of python tools to download and process data from the earth2observe data portal. Processing can include:
+
++ determination of potential evapotranspiration
++ etc.
 
 
 Status

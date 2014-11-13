@@ -477,16 +477,30 @@ class getstep():
                 ret = vstack((ret,window))
         
         return ret
-                         
+
+
+def getmapname(number,prefix):
+    """
+    generate a pcraster type mapname based on timestep and prefix
+    :var number: number of the mape
+    :var prefix: prefix for the map
+
+    :return: Name
+    """
+    print number
+    below_thousand = number % 1000
+    above_thousand = number / 1000
+    mapname = str(prefix + '%0' + str(8-len(prefix)) + '.f.%03.f') % (above_thousand, below_thousand)
+
+    return mapname
+
 def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):        
     
     cnt = 0
     if not os.path.exists(directory):
         os.mkdir(directory)
     for a in times:
-            below_thousand = cnt % 1000
-            above_thousand = cnt / 1000
-            mapname  = str(prefix + '%0' + str(8-len(prefix)) + '.f.%03.f') % (above_thousand, below_thousand)
+            mapname = getmapname(cnt,prefix)
             #print "saving map: " + os.path.join(directory,mapname)
             writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[cnt,:,:]),-999.0)
             cnt = cnt + 1    
@@ -495,9 +509,7 @@ def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="
     
     if not os.path.exists(directory):
         os.mkdir(directory)
-    below_thousand = ncnt % 1000
-    above_thousand = ncnt / 1000
-    mapname  = str(prefix + '%0' + str(8-len(prefix)) + '.f.%03.f') % (above_thousand, below_thousand)
+    mapname = getmapname(ncnt,prefix)
     #print "saving map: " + os.path.join(directory,mapname)
     writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
     
@@ -727,72 +739,89 @@ def main(argv=None):
         relevantDataFields = []
         for i in range (0,len(variables)):
             if variables[i] in relevantVars:
-                logger.info("Getting data field: " + filename)
-                filename = filenames[i]
-                standard_name = standard_names[i]
-                logger.info("Get file list..")
-                tlist, timelist = get_times_daily(currentdate,currentdate,serverroot, wrrsetroot, filename,logger)
-                logger.info("Get dates..")
+                mapname = os.path.join(odir,getmapname(ncnt+1,oprefix))
+                print mapname
+                if os.path.exists(mapname):
+                    logger.info("Skipping map: " + mapname)
+                else:
+                    logger.info("Getting data field: " + filename)
+                    filename = filenames[i]
+                    standard_name = standard_names[i]
+                    logger.info("Get file list..")
+                    tlist, timelist = get_times_daily(currentdate,currentdate,serverroot, wrrsetroot, filename,logger)
+                    logger.info("Get dates..")
 
-                ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
+                    ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
 
-                logger.info("Get data...: " + str(timelist))
-                mstack = ncstepobj.getdates(timelist)
-                logger.info("Get data body...")
+                    logger.info("Get data...: " + str(timelist))
+                    mstack = ncstepobj.getdates(timelist)
+                    logger.info("Get data body...")
 
-                relevantDataFields.append(mstack)
+                    relevantDataFields.append(mstack)
 
         if evapMethod == 'PenmanMonteith':
-            # retrieve 3 hourly Temperature and calculate max and min Temperature            
-            filename = 'Tair_E2OBS_'
-            standard_name = 'air_temperature'
-            timestepSeconds = 10800
+
+            mapname = os.path.join(odir,getmapname(ncnt+1,oprefix))
+            if os.path.exists(mapname):
+                logger.info("Skipping map: " + mapname)
+            else:
+                # retrieve 3 hourly Temperature and calculate max and min Temperature
+                filename = 'Tair_E2OBS_'
+                standard_name = 'air_temperature'
+                timestepSeconds = 10800
             
-            tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )       
-            ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)       
-            mstack = ncstepobj.getdates(timelist)                       
-            tmin = mstack.min(axis=0)            
-            tmax = mstack.max(axis=0)
-            
-            PETmm = PenmanMonteith(relevantDataFields, tmax, tmin)
+                tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
+                ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
+                mstack = ncstepobj.getdates(timelist)
+                tmin = mstack.min(axis=0)
+                tmax = mstack.max(axis=0)
+                PETmm = PenmanMonteith(relevantDataFields, tmax, tmin)
+                logger.info("Saving PM PET data for: " +str(currentdate))
+                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)
+                save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt+1),odir,prefix=oprefix,oformat=oformat)
+
             
         if evapMethod == 'Hargreaves':
-            # retrieve 3 hourly Temperature and calculate max and min Temperature
-            filename = 'Tair_E2OBS_'
-            standard_name = 'air_temperature'
-            timestepSeconds = 10800
+            mapname = os.path.join(odir,getmapname(ncnt+1,oprefix))
+            if os.path.exists(mapname):
+                logger.info("Skipping map: " + mapname)
+            else:
+                # retrieve 3 hourly Temperature and calculate max and min Temperature
+                filename = 'Tair_E2OBS_'
+                standard_name = 'air_temperature'
+                timestepSeconds = 10800
 
-            logger.info("Get times 3 hr data..")
-            tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
-            logger.info("Get actual 3hr data...")
-            ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
-            #ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
-    
-            mstack = ncstepobj.getdates(timelist)
+                logger.info("Get times 3 hr data..")
+                tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
+                logger.info("Get actual 3hr data...")
+                ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
+                #ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
 
-            #only needed once.. (i think)
-            if nrcalls ==0:
-                nrcalls = nrcalls + 1
-                latitude = ncstepobj.lat[:]
-                #assuming a resolution of 0.5 degrees
-                #TODO: Find out what is happening here...
-                LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
-                for i in range (0,int((2*(lonmax-lonmin)))):
-                    LATITUDE[:,i]=LATITUDE[:,i]*latitude
+                mstack = ncstepobj.getdates(timelist)
 
-            tmin = mstack.min(axis=0)
-            tmax = mstack.max(axis=0)
-            logger.info("Start hargreaves..")
-            PETmm, Ra, dst, angle, dec = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
-            dst = dst * 180.0/pi
-            #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Ra,int(ncnt),odir,prefix="RA",oformat=oformat)
-            #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dst,int(ncnt),odir,prefix="DST",oformat=oformat)
-            #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,angle,int(ncnt),odir,prefix="ANG",oformat=oformat)
-            #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dec,int(ncnt),odir,prefix="DEC",oformat=oformat)
+                #only needed once.. (i think)
+                if nrcalls ==0:
+                    nrcalls = nrcalls + 1
+                    latitude = ncstepobj.lat[:]
+                    #assuming a resolution of 0.5 degrees
+                    #TODO: Find out what is happening here...
+                    LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
+                    for i in range (0,int((2*(lonmax-lonmin)))):
+                        LATITUDE[:,i]=LATITUDE[:,i]*latitude
 
-        logger.info("Saving PET data for: " +str(currentdate))
-        #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)  
-        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt+1),odir,prefix=oprefix,oformat=oformat)
+                tmin = mstack.min(axis=0)
+                tmax = mstack.max(axis=0)
+                logger.info("Start hargreaves..")
+                PETmm, Ra, dst, angle, dec = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
+                dst = dst * 180.0/pi
+                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Ra,int(ncnt),odir,prefix="RA",oformat=oformat)
+                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dst,int(ncnt),odir,prefix="DST",oformat=oformat)
+                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,angle,int(ncnt),odir,prefix="ANG",oformat=oformat)
+                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dec,int(ncnt),odir,prefix="DEC",oformat=oformat)
+
+                logger.info("Saving HAR PET data for: " +str(currentdate))
+                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)
+                save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt+1),odir,prefix=oprefix,oformat=oformat)
         
 
         currentdate += datetime.timedelta(days=1)

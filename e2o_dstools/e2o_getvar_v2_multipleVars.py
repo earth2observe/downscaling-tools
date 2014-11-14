@@ -293,7 +293,9 @@ def main(argv=None):
     
     #available variables with corresponding file names and standard_names as in NC files
     variables = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
-                    'NearSurfaceSpecificHumidity','Rainfall','SurfaceIncidentShortwaveRadiation','SnowfallRate','NearSurfaceWindSpeed']
+                    'NearSurfaceSpecificHumidity','Rainfall','SurfaceIncidentShortwaveRadiation','SnowfallRate',
+                    'NearSurfaceWindSpeed']
+    prefix = ["T","DLW","SAP","NSS","P","SIS","SR","NSW"]
     filenames = ["Tair_daily_E2OBS_","LWdown_daily_E2OBS_","PSurf_daily_E2OBS_","Qair_daily_E2OBS_",\
                     "Rainf_daily_E2OBS_","SWdown_daily_E2OBS_","Snowf_daily_E2OBS_","Wind_daily_E2OBS_"]
     standard_names = ['air_temperature','surface_downwelling_longwave_flux_in_air','surface_air_pressure','specific_humidity',\
@@ -331,7 +333,7 @@ def main(argv=None):
 
     logger, ch = setlogger("e2o_getvar.log","e2o_getvar")
     logger.debug("Reading settings from in: " + inifile)
-    theconf = iniFileSetUp("e2o_getvar.ini")
+    theconf = iniFileSetUp(inifile)
     
     #Add options for multiple variables
     for i in range (0,len(variables)):
@@ -344,6 +346,7 @@ def main(argv=None):
         if getDataForVar == 'True':
             filename = filenames[i]
             standard_name = standard_names[i]
+
 
             lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
             lonmin = float(configget(logger,theconf,"selection","lonmin",str(lonmin)))
@@ -359,14 +362,15 @@ def main(argv=None):
             startmonth = int(configget(logger,theconf,"selection","startmonth",str(startmonth)))
             endday = int(configget(logger,theconf,"selection","endday",str(endday)))
             startday = int(configget(logger,theconf,"selection","startday",str(startday)))
-            #serverroot = configget(logger,theconf,"url","serverroot",serverroot)
-            #wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
+            serverroot = configget(logger,theconf,"url","serverroot",serverroot)
+            wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
             #variable = configget(logger,theconf,"url","variable",variable)
             
             oformat = configget(logger,theconf,"output","format","PCRaster")
             odir = configget(logger,theconf,"output","directory","output/")
-            odir = os.path.join(odir,variables[i])
-            oprefix = configget(logger,theconf,"output","prefix","E2O")
+            #odir = os.path.join(odir,variables[i])
+            #oprefix = configget(logger,theconf,"output","prefix","E2O")
+            oprefix = prefix[i]
             logger.debug("Done reading settings.")
         
             start = datetime.datetime(startyear,startmonth,startday)

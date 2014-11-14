@@ -338,8 +338,8 @@ def main(argv=None):
     standard_name = configget(logger,theconf,"selection","standard_name",standard_name)
     endday = int(configget(logger,theconf,"selection","endday",str(endday)))
     startday = int(configget(logger,theconf,"selection","startday",str(startday)))
-    #serverroot = configget(logger,theconf,"url","serverroot",serverroot)
-    #wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
+    serverroot = configget(logger,theconf,"url","serverroot",serverroot)
+    wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
     #variable = configget(logger,theconf,"url","variable",variable)
     
     oformat = configget(logger,theconf,"output","format","PCRaster")

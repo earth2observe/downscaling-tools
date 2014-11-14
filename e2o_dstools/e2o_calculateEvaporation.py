@@ -479,20 +479,6 @@ class getstep():
         return ret
 
 
-def getmapname(number,prefix):
-    """
-    generate a pcraster type mapname based on timestep and prefix
-    :var number: number of the mape
-    :var prefix: prefix for the map
-
-    :return: Name
-    """
-    print number
-    below_thousand = number % 1000
-    above_thousand = number / 1000
-    mapname = str(prefix + '%0' + str(8-len(prefix)) + '.f.%03.f') % (above_thousand, below_thousand)
-
-    return mapname
 
 def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):        
     

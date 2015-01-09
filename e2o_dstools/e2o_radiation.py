@@ -329,7 +329,7 @@ def main(argv=None):
         if o == '-e': ehour = int(a)
 
 
-    logger = e2e_utils.setlogger("wflow_prepare_rad.log","wflow_prepare_rad",thelevel=loglevel)
+    logger = e2o_utils.setlogger("wflow_prepare_rad.log","wflow_prepare_rad",level=loglevel)
     if not os.path.exists(thedem):
         logger.error("Cannot find dem: " + thedem + " exiting.")
         sys.exit(1)

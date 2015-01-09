@@ -132,21 +132,19 @@ def iniFileSetUp(configfile):
     config.read(configfile)
     return config
 
-def setlogger(logfilename, logReference,level=logging.DEBUG):
+def setlogger(logfilename,loggername, level=logging.INFO):
     """
-    Set-up the logging system. Exit if this fails
-    input:
-        logfilename:    string, referring to the logfile
-        logReference:   string, referring to reference used in log lines
-    output:
-        ch:             handle, refer to logging object
-        logger:         logger object
+    Set-up the logging system and return a logger object. Exit if this fails
     """
+
     try:
         #create logger
-        logger = logging.getLogger(logReference)
-        logger.setLevel(level)
-        ch = logging.handlers.RotatingFileHandler(logfilename,maxBytes=10*1024*1024, backupCount=5)
+        logger = logging.getLogger(loggername)
+        if not isinstance(level, int):
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(level)
+        ch = logging.FileHandler(logfilename,mode='w')
         console = logging.StreamHandler()
         console.setLevel(logging.DEBUG)
         ch.setLevel(logging.DEBUG)
@@ -159,7 +157,7 @@ def setlogger(logfilename, logReference,level=logging.DEBUG):
         logger.addHandler(ch)
         logger.addHandler(console)
         logger.debug("File logging to " + logfilename)
-        return logger, ch
+        return logger
     except IOError:
         print "ERROR: Failed to initialize logger with logfile: " + logfilename
         sys.exit(2)

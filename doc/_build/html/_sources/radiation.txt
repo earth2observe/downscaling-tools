@@ -236,7 +236,24 @@ The raster map of Dhs/Ghs can be derived from the point values by spatial interp
 	kbc = Bh/Bhc
 
 
-where subscript s is meant to distinguish data measured on meteorological stations Bhs and Dhs from the estimated values Bh, and Dh.
+where subscript s is meant to distinguish data measured on meteorological stations Bhs
+nd Dhs from the estimated values Bh, and Dh.
+
+
+Example
+=======
+
+
+.. raw:: html
+
+        <object width="480" height="385"><param name="movie"
+        value="http://youtu.be/CEgsx6MPqEM"></param><param
+        name="allowFullScreen" value="true"></param><param
+        name="allowscriptaccess" value="always"></param><embed
+        src="http://youtu.be/CEgsx6MPqEM"
+        type="application/x-shockwave-flash" allowscriptaccess="always"
+        allowfullscreen="true" width="480"
+        height="385"></embed></object>
 
 
 Implementation

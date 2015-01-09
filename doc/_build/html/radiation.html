@@ -1,0 +1,385 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Radiation correction on a digital elevation model &mdash; e2o_dstools Test documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     'Test',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="e2o_dstools Test documentation" href="index.html" />
+    <link rel="prev" title="eartH2Observe Downscaling tools" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="eartH2Observe Downscaling tools"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">e2o_dstools Test documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Radiation correction on a digital elevation model</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements">How to use the maps generated to correct model incoming radiation from models or measurements</a></li>
+<li><a class="reference internal" href="#module-e2o_dstools.e2o_radiation">Implementation</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">eartH2Observe Downscaling tools</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/radiation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="radiation-correction-on-a-digital-elevation-model">
+<h1>Radiation correction on a digital elevation model<a class="headerlink" href="#radiation-correction-on-a-digital-elevation-model" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>In general evaporation amounts are determined for about 90% by
+radiation input. Radiation at the earth’s surface is determined by
+the potential solar radiation at the edge of the earths atmosphere
+and the filtering within the atmosphere. The first component can be
+easily determined from equations. The reduction due to clouds etc
+can be estimated by incorporation short wave measurements but if
+these are not available cloud cover estimates can also be used. By
+combining this with a DEM radiation at the earths surface can be
+determined including the effects of aspect and shading.</p>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Adjusted after van Dam 2000</p>
+<p>This section gives a short description. Another description can
+be found at <a class="reference external" href="http://re.jrc.cec.eu.int/pvgis/pv/solres/solres.htm">http://re.jrc.cec.eu.int/pvgis/pv/solres/solres.htm</a>.</p>
+<p>Potential solar radiation is the radiation of an unobstructed or
+cloudless sky. The magnitude of the potential solar radiation depends
+on the position of the sun the solar altitude or solar angleduring the day,
+the inclination of the solar rays with the earth’s surface, the amount of
+radiation at the outer layer of the earth’s atmosphere, the transmissivity
+of the sky and the altitude of the earth’s surface.</p>
+<p>Solar declination is the annual fluctuation of the sun between the two
+tropics and varies between –23 and +23 degrees latitude. Solar declination is
+calculated per Day (Julian day number):</p>
+<div class="math">
+<p><img src="_images/math/11719324f0dcf973e17f4f79efd879bf5e13b9ec.png" alt="\delta = -23.4 cos(360 (Day + 10 )/365)"/></p>
+</div><p>The hour angle describes the movement of the sun around the earth in 24 hours,
+which  equals 15 degrees longitude per hour (360 <img class="math" src="_images/math/9b249c5e582fcb1d066bffb9018903b68b7776db.png" alt="deg"/> /24h). The hour angle n
+is calculated for each Hour (whole hour of the day):</p>
+<div class="math">
+<p><img src="_images/math/83a5cd3b538cfefdf684fc5f0822704bbafb03c8.png" alt="n = ( 15 \dot Hour - 12)"/></p>
+</div><p>The position or height of the sun above the horizon is called the solar altitude
+or solar angle. Solar altitude <img class="math" src="_images/math/ad59b6e24a4a00ac621801f8d7513d68be654ab5.png" alt="\alpha"/> (deg) is calculated for each location,
+determined by the location’s latitude <img class="math" src="_images/math/1a52481ac36eb889dcbbdcc0783ba2a755ba3547.png" alt="\psi"/> (deg), declination and hour angle:</p>
+<div class="math">
+<p><img src="_images/math/972a29896cc5236c1ce3d364c14bc776983221e3.png" alt="sin(\alpha) = sin(\psi) sin(\delta) + cos(\psi) cos(\delta) cos(n)"/></p>
+</div><p>Solar azimuth is the angle between the solar rays and the North-South axis of the
+earth. Solar azimuth <img class="math" src="_images/math/53c132496628ec502388afacbc734c9e1b0e2129.png" alt="{\beta}_s"/> (deg) is calculated by:</p>
+<div class="math">
+<p><img src="_images/math/ce27bed814a87a0cde454aa2378411fe9d9468da.png" alt="&amp;cos({\beta}_s) = (sin(\delta) cos(\psi) - cos(\delta) sin(\psi) cos(n))/cos(\alpha) \\
+&amp;for Hour \le 12: {\beta}_s = {\beta}_s \\
+&amp;for Hour &gt; 12: {\beta}_s = 360 - {\beta}_s"/></p>
+</div><p>Surface azimuth or aspect <img class="math" src="_images/math/6b99e0a4088c8bcaddd32151511abcb74889f471.png" alt="{\beta}_1"/> (deg) is the orientation of the land
+surface or slope to the North-South axis of the sun. Slope <img class="math" src="_images/math/f943a0eac3e9e9e7ad984e7273d8f2a7aaaa9892.png" alt="\varphi"/> (deg) is
+the maximum rate of change in elevation.</p>
+<p>The angle of incidence is the angle between the perpendicular plane of the
+incoming solar rays and the surface on which they are projected, defined by the
+aspect and slope of that surface. The angle of incidence <img class="math" src="_images/math/fb03977eae15219f179dc917cc8c5ef18a1791bb.png" alt="\vartheta"/> (deg) is
+calculated with the solar angle <img class="math" src="_images/math/ad59b6e24a4a00ac621801f8d7513d68be654ab5.png" alt="\alpha"/> (deg), the slope of the land
+surface <img class="math" src="_images/math/f943a0eac3e9e9e7ad984e7273d8f2a7aaaa9892.png" alt="\varphi"/> (deg), the azimuth of the sun <img class="math" src="_images/math/53c132496628ec502388afacbc734c9e1b0e2129.png" alt="{\beta}_s"/> (deg) and
+azimuth of the land surface  <img class="math" src="_images/math/6b99e0a4088c8bcaddd32151511abcb74889f471.png" alt="{\beta}_1"/> (deg):</p>
+<div class="math">
+<p><img src="_images/math/457e58a5780a0494246dabb0831515ec70073738.png" alt="cos(\vartheta) = cos(\alpha) sin(\varphi) cos({\beta}_s - {\beta}_1) + sin(\alpha) cos(\varphi)"/></p>
+</div><p>The second section of the radiation module calculates the potential solar energy. The
+amount of solar radiation that reaches the outer atmosphere is decreased by the
+travelling distance of the solar rays through the sky to the surface, the transmissivity
+of the sky and the cloud factor.</p>
+<p>Solar energy at the outer layer of the atmosphere <img class="math" src="_images/math/10d81e4cbb6e6859fd49f37d644c09739b6256e8.png" alt="Sout (Wm^2)"/> is
+calculated by (Kreider &amp; Kreith 1975):</p>
+<div class="math">
+<p><img src="_images/math/2e53e374edbceecdae3481794455315a27f27c4c.png" alt="S_{out} = S_c (1 + 0.034 cos(360 Day/365))"/></p>
+</div><p>where <img class="math" src="_images/math/9d436e643c307198857ec9552ca758509ad18cd7.png" alt="S_c  (Wm^2)"/> is the solar constant of 1367 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/> (Duffie &amp; Beckman 1991).
+The solar ‘constant’ is subject to much discussion. Gates (1980) gives a value
+of 1360 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>. The NASA reports a value of 1353 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/> (Jansen 1985),
+while Duncan et al. (1982) give a value of 1367 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>. Monteith and Unsworth (1990)
+measured the highest value of 1373 W.m-2. The World Radiation Centre uses a
+value of 1367 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/> (Duffie &amp; Beckman 1991) and this value is also used in this study.</p>
+<p>The solar radiation energy that reaches the earth’s surface is decreased due to the
+length of the air mass it has to pass through and the transmissivity <img class="math" src="_images/math/d9e99c35d3632bb156b7aca0e93cd78a148a10e8.png" alt="\tau"/>
+(% or fraction) of the sky. The radiation flux through a hypothetical plane
+normal to the beam  (<img class="math" src="_images/math/b3fc9b9ae6df83c3a593a3a12e7f668994f0f403.png" alt="S_{nor} Wm^2"/>) is given by (Gates 1980):</p>
+<div class="math">
+<p><img src="_images/math/3415a877fcc378277853e6116adeba781ef9bf61.png" alt="S_{nor} = S_{out} \tau^{Mh}"/></p>
+</div><p>in which Mh (% or fraction) is the relative path length of the optical air mass at
+altitude h (m). Transmissivity (<img class="math" src="_images/math/d9e99c35d3632bb156b7aca0e93cd78a148a10e8.png" alt="\tau"/>) is usually between 0.5 and 0.8, but can be as low
+as 0.4 in the tropics (Whitmore et al. 1993), but mostly a value of 0.6 is used
+(Gates 1980). To calculate the relative path length of an optical air mass at
+altitude h (m), the relative path length of an optical air mass at sea level M0
+(% or fraction) is corrected for the atmospheric pressure at altitude h. Mh
+(% or fraction) is calculated using (Kreider &amp; Kreith 1975):</p>
+<div class="math">
+<p><img src="_images/math/553f1b2ab17e847837c1f1680d8929a03bb7005f.png" alt="Mh = M_0 P_h/P_0"/></p>
+</div><p>in which <img class="math" src="_images/math/107d9995813cb4e2c2ad9694289c4f8cbbba68ca.png" alt="P_h / P_0"/> (mbar.mbar-1) is an atmospheric pressure correction. The relative path length
+of the optical air mass at sea level M0 is obtained by (Kreider &amp; Kreith 1975):</p>
+<div class="math">
+<p><img src="_images/math/74efd196280ebc060db1a9ece986f3d9b96bc39f.png" alt="M_0 = \sqrt(1299 + (614 sin(\alpha))^2) - 614 sin(\alpha)"/></p>
+</div><p>The atmospheric pressure correction <img class="math" src="_images/math/107d9995813cb4e2c2ad9694289c4f8cbbba68ca.png" alt="P_h / P_0"/> is written as (List 1984):</p>
+<div class="math">
+<p><img src="_images/math/f9f9504007ca2adf387f5c1a28a232b3de3bfb54.png" alt="P_h / P_0 = ((288 0.0065h) / 288)^5.256"/></p>
+</div><p>The incoming radiation normal to the beam Snor must be corrected by the orientation and
+slope of the surface, defined by the angle of incidence <img class="math" src="_images/math/fb03977eae15219f179dc917cc8c5ef18a1791bb.png" alt="\vartheta"/>, to calculate the incoming radiation
+Sdir (<img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>) on the earth’s surface:</p>
+<div class="math">
+<p><img src="_images/math/c26439b8d5db615e778aaab6f4a759631dccd400.png" alt="S_dir = S_nor cos(\vartheta)"/></p>
+</div><p>Direct light is scattered in the atmosphere. This daylight scattering or diffuse radiation is
+approximately 15% of direct radiation (Gates 1980). A more accurate empirical estimation for diffuse
+radiation Sdif (<img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>) in a clear not dust-free sky reads as (Liu and Jordan in Gates 1980):</p>
+<div class="math">
+<p><img src="_images/math/6d7989be907c840a68bdd1ecfefe9d2b9f7f502b.png" alt="S_dif = S_out (0.271 - 0.294 \vartheta^{Mh} sin(\alpha)"/></p>
+</div><p>During daylight when the sun is above the horizon, it is assumed that all cells receive the same amount
+of diffuse radiation. Total incoming radiation Sin (<img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>) is the sum of direct and diffuse radiation:</p>
+<div class="math">
+<p><img src="_images/math/63258b97817d1ed4057f29876875865e1fe452d8.png" alt="S_in = S_dir + S_dif"/></p>
+</div><p>Total incoming radiation Sin as calculated with the above is actually a radiation flux for that moment. In the procedure
+given above, radiation is calculated per time step. If this amount of radiation is used in a water balance model, the amount
+of radiation and therewith the amount of evapotranspiration will be overestimated or under estimated, depending on the
+time of the day and the position of the sun.</p>
+<p>Most of the work done for the shading is implemented in the pcraster horizontan function.</p>
+</div>
+</div>
+<div class="section" id="how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements">
+<h1>How to use the maps generated to correct model incoming radiation from models or measurements<a class="headerlink" href="#how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements" title="Permalink to this headline">¶</a></h1>
+<p>The paragraph below is adapted from the r.sun grass manual:</p>
+<p>The real-sky irradiance/irradiation are calculated from clear-sky raster maps by the
+application of a factor parameterizing the attenuation of cloud cover. Examples of explicit
+calculations of this parameter can be found in Becker (2001), Kitler and Mikler (1986). However, the cloudiness
+observation by a meteorological service routine is usually prone to subjective errors and does
+not describe sufficiently the physical nature and dynamic spatial-temporal pattern of different
+types of cloud cover. Therefore, a simpler parameter has to be used. The solutions for horizontal
+and inclined surfaces are slightly different. For the assessment of global irradiance/irradiation
+on a horizontal surface under overcast conditions Gh the clear-sky values Ghc are multiplied by
+clear-sky index kc (Beyer et al 1996, Hammer et al 1998, Rigollier et al. 2001):</p>
+<div class="math">
+<p><img src="_images/math/051f3311e2ef662e0c39ca8f34106fadb506b115.png" alt="Gh = Ghc kc"/></p>
+</div><p>The index kc represents the atmospheric transmission expressed as a ratio between horizontal
+global radiation under overcast and clear-sky conditions. For a set of ground meteorological
+stations the clear-sky index can be calculated from measured global radiation Ghs and
+computed values of clear-sky global radiation Ghc:</p>
+<div class="math">
+<p><img src="_images/math/5bfa7e9d5549bf64fb073b37374894bf81e1e36b.png" alt="kc = Ghs/Ghc"/></p>
+</div><p>As an alternative the kc can be derived also from other climatologic data
+(e.g. cloudiness, cf. Kasten and Czeplak 1980). The raster maps of kc must be
+then derived by spatial interpolation. The kc can be calculated directly as a raster map from
+short-wave surface irradiance measured by satellites. This method is based on the complementarity
+between the planetary albedo recorded by the radiometer and the surface radiant flux
+(Cano et al 1986, Beyer et al 1996, Hammer et al 1998).
+To compute the overcast global irradiance/irradiation for inclined surfaces, Gi
+the diffuse Dh and beam Bh components of overcast global radiation and of the clear-sky index kc
+have to be treated separately as follows from the following equations:</p>
+<div class="math">
+<p><img src="_images/math/cc4dc4034b12f05def688b6ee4a03eab925d40d9.png" alt="Dh = Dhc kdc
+
+Bh = Bhc kbc"/></p>
+</div><p>The ratio of diffuse to the global radiation Dh/Gh for clear and overcast skies changes
+according to the cloudiness. In Europe the Dh/Gh values are typically in interval 0.3-1.0
+(Kasten and Czeplak 1980). The underlying physical processes are quite complicated and computationally
+represented only by empirical equations (cf. Scharmer and Greif, 2000, Kasten and Czeplak 1980, Hrvoľ 1991).
+However, for many meteorological stations, besides the global horizontal radiation Ghs, the diffuse component
+Dhs is either measured or calculated from cloudiness, sunshine or other climatologic data.
+The raster map of Dhs/Ghs can be derived from the point values by spatial interpolation.</p>
+<blockquote>
+<div>Consecutively, the raster maps of diffuse and beam components of the clear sky index can be computed:</div></blockquote>
+<div class="math">
+<p><img src="_images/math/fe8cb820be217279029848f9b68285b98e82216b.png" alt="Dh = Gh Dhs/Ghs
+
+Bh = Gh – Dh
+
+kdc = Dh/Dh
+
+kbc = Bh/Bhc"/></p>
+</div><p>where subscript s is meant to distinguish data measured on meteorological stations Bhs and Dhs from the estimated values Bh, and Dh.</p>
+</div>
+<div class="section" id="module-e2o_dstools.e2o_radiation">
+<span id="implementation"></span><h1>Implementation<a class="headerlink" href="#module-e2o_dstools.e2o_radiation" title="Permalink to this headline">¶</a></h1>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>e2o_radiation -D DEM [-O outputdir][-S start day][-E end day]
+          [-M][-x lon][-y lat][-h][-l loglevel][-T minutes]
+
+-D DEM Filename of the digital elevation model
+-O outputdir (default is . )
+-S Startday - Start day of the simulation (1 Jan is 1)
+-E EndDay - End day of the simulation
+-T minutes - timeresolution in minutes (60 default is 1 hour)
+-M The DEM xy units are in metres (instead of lat/lon)
+-x longitute of the map left (if map xy in metres)
+-y lattitude of the map bottom (if map xy in metres)
+-l loglevel Set loglevel (DEBUG, INFO, WARNING,ERROR)
+-s start hour (per day) of the calculations (default =1)
+-e end hour (per day) of the calculations (default = 23)
+-h This information
+</pre></div>
+</div>
+<p>The program produces the following map stacks, one for each day of
+the year:</p>
+<div class="highlight-python"><div class="highlight"><pre>COR00000.??? - Total clear sky radiation on DEM
+SUN00000.??? - Nr of time intervals a pixel was in the sun
+FLAT0000.??? - Total clear sky radiation on a flat surface
+CORDIR00.??? - Direct clear sky radiation on DEM
+FLATDIR0.??? - Direct clear sky radiation on a flat surface
+</pre></div>
+</div>
+<dl class="function">
+<dt id="e2o_dstools.e2o_radiation.GenRadMaps">
+<tt class="descclassname">e2o_dstools.e2o_radiation.</tt><tt class="descname">GenRadMaps</tt><big>(</big><em>SaveDir</em>, <em>Lat</em>, <em>Lon</em>, <em>Slope</em>, <em>Aspect</em>, <em>Altitude</em>, <em>DegreeDem</em>, <em>logje</em>, <em>start=1</em>, <em>end=2</em>, <em>interval=60</em>, <em>shour=1</em>, <em>ehour=23</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_radiation.GenRadMaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates daily radiation maps for a whole year.
+It does so by running correctrad for a whole year with hourly
+steps and averaging this per day.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_radiation.correctrad">
+<tt class="descclassname">e2o_dstools.e2o_radiation.</tt><tt class="descname">correctrad</tt><big>(</big><em>Day</em>, <em>Hour</em>, <em>Lat</em>, <em>Lon</em>, <em>Slope</em>, <em>Aspect</em>, <em>Altitude</em>, <em>Altitude_UnitLatLon</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_radiation.correctrad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines radiation over a DEM assuming clear sky for a specified hour of
+a day</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first simple">
+<li><strong>Day</strong> &#8211; Day of the year (1-366)</li>
+<li><strong>Hour</strong> &#8211; Hour of the day (0-23)</li>
+<li><strong>Lat</strong> &#8211; map with latitudes for each grid cell</li>
+<li><strong>Lon</strong> &#8211; map with longitudes for each grid cell</li>
+<li><strong>Slope</strong> &#8211; Slope in degrees</li>
+<li><strong>Aspect</strong> &#8211; Aspect in degrees relative to north for each cell</li>
+<li><strong>Altitude</strong> &#8211; Elevation in metres</li>
+<li><strong>Altitude_Degree</strong> &#8211; Elevation in degrees. If the actual pcraster maps
+are in lat lon this maps should hold the Altitude converted
+to degrees. If the maps are in metres this maps should also
+be in metres</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return Stot:</th><td class="field-body"><p class="first">Total radiation on the dem, shadows not taken into account</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return StotCor:</th><td class="field-body"><p class="first">Total radiation on the dem taking shadows into acount</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return StotFlat:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first">Total radiation on the dem assuming a flat surface</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return Shade:</th><td class="field-body"><p class="first last">Map with shade (0) or no shade (1) pixels</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_radiation.detRealCellLength">
+<tt class="descclassname">e2o_dstools.e2o_radiation.</tt><tt class="descname">detRealCellLength</tt><big>(</big><em>ZeroMap</em>, <em>sizeinmetres</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_radiation.detRealCellLength" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine cellength. Always returns the length
+in meters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_radiation.lattometres">
+<tt class="descclassname">e2o_dstools.e2o_radiation.</tt><tt class="descname">lattometres</tt><big>(</big><em>lat</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_radiation.lattometres" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8221;
+Determines the length of one degree lat/long at a given latitude (in meter).
+Code taken from <a class="reference external" href="http:www.nga.mil/MSISiteContent/StaticFiles/Calculators/degree.html">http:www.nga.mil/MSISiteContent/StaticFiles/Calculators/degree.html</a>
+Input: map with lattitude values for each cell
+Returns: length of a cell lat, length of a cell long</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_radiation.main">
+<tt class="descclassname">e2o_dstools.e2o_radiation.</tt><tt class="descname">main</tt><big>(</big><em>argv=None</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_radiation.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform command line execution of the model.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="eartH2Observe Downscaling tools"
+             >previous</a> |</li>
+        <li><a href="index.html">e2o_dstools Test documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014-2015, Deltares.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

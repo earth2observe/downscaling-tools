@@ -13,20 +13,22 @@ usage:
 #TODO: Add tiling -> get small chunks
 #TODO: add caching
 
-import getopt, sys, os, netCDF4
+import getopt, sys, os, netCDF4, glob
 import osgeo.gdal as gdal
 from osgeo.gdalconst import *
+from osgeo import gdal, gdalconst
 import datetime
 from numpy import *
 import numpy as np
 from e2o_utils import *
 import pdb
-#import pcraster as pcr
-
+import pandas as pd
+import pcraster as pcr
+from scipy import interpolate
+import scipy.ndimage
+import shutil
 
 #pcr.setglobaloption("radians")
-
-
 
 #ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
 
@@ -40,10 +42,6 @@ def usage(*args):
     for msg in args: print msg
     print __doc__
     sys.exit(0)
-
-
-
-
 
 class ncdatset():
     """
@@ -132,9 +130,36 @@ class ncdatset():
 
         return None
 
+def readMap(fileName, fileFormat,logger):
+    """
+    Read geographical file into memory
+    """
+  
+    #Open file for binary-reading
 
-
-
+    mapFormat = gdal.GetDriverByName(fileFormat)
+    mapFormat.Register()
+    ds = gdal.Open(fileName)
+    if ds is None:
+        logger.error('Could not open ' + fileName + '. Something went wrong!! Shutting down')
+        sys.exit(1)
+    # Retrieve geoTransform info
+    geotrans = ds.GetGeoTransform()
+    originX = geotrans[0]
+    originY = geotrans[3]
+    resX    = geotrans[1]
+    resY    = geotrans[5]
+    cols = ds.RasterXSize
+    rows = ds.RasterYSize
+    x = linspace(originX+resX/2,originX+resX/2+resX*(cols-1),cols)
+    y = linspace(originY+resY/2,originY+resY/2+resY*(rows-1),rows)
+    # Retrieve raster
+    RasterBand = ds.GetRasterBand(1) # there's only 1 band, starting from 1
+    data = RasterBand.ReadAsArray(0,0,cols,rows)
+    FillVal = RasterBand.GetNoDataValue()
+    RasterBand = None
+    del ds
+    return resX, resY, cols, rows, x, y, data, FillVal
 
 def get_times_daily(startdate,enddate, serverroot, wrrsetroot, filename,logger):
     """
@@ -479,6 +504,19 @@ class getstep():
         return ret
 
 
+def getmapname(number,prefix):
+    """
+    generate a pcraster type mapname based on timestep and prefix
+    :var number: number of the mape
+    :var prefix: prefix for the map
+
+    :return: Name
+    """
+    below_thousand = number % 1000
+    above_thousand = number / 1000
+    mapname = str(prefix + '%0' + str(8-len(prefix)) + '.f.%03.f') % (above_thousand, below_thousand)
+
+    return mapname
 
 def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):        
     
@@ -498,8 +536,127 @@ def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="
     mapname = getmapname(ncnt,prefix)
     #print "saving map: " + os.path.join(directory,mapname)
     writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
+
+def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):        
     
-def PenmanMonteith(relevantDataFields, Tmax, Tmin):
+    if not os.path.exists(directory):
+        os.mkdir(directory)
+    mapname = prefix + '.tif'
+    #print "saving map: " + os.path.join(directory,mapname)
+    writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
+    
+def resampleDEM(folderHighResDEM, folderLowResDEM,logger):
+    
+    #create temp dir
+    try:
+        os.stat('temp')
+    except:
+        os.mkdir('temp')
+    
+    # Source
+    src_filename    = os.path.join(folderLowResDEM,'DEM.tif')
+    src             = gdal.Open(src_filename, gdalconst.GA_ReadOnly)
+    src_proj        = src.GetProjection()
+    src_geotrans    = src.GetGeoTransform()
+
+    # We want a section of source that matches this:
+    match_filename  = os.path.join(folderHighResDEM,'DEM.tif')
+    match_ds        = gdal.Open(match_filename, gdalconst.GA_ReadOnly)
+    match_proj      = match_ds.GetProjection()
+    match_geotrans  = match_ds.GetGeoTransform()
+    wide            = match_ds.RasterXSize
+    high            = match_ds.RasterYSize
+
+    # Output / destination
+    dst_filename = os.path.join('temp','DEM.tif')
+    dst = gdal.GetDriverByName('GTiff').Create(dst_filename, wide, high, 1, gdalconst.GDT_Float32)
+    dst.SetGeoTransform( match_geotrans )
+    dst.SetProjection( match_proj)
+
+    # Do the work
+    gdal.ReprojectImage(src, dst, src_proj, match_proj, gdalconst.GRA_NearestNeighbour)
+
+    del dst # Flush
+
+    resX, resY, cols, rows, XI, YI, resLowResDEM, FillVal = readMap(dst_filename,'GTiff',logger)
+    resX, resY, cols, rows, XI, YI, highResDEM, FillVal = readMap(match_filename,'GTiff',logger)
+
+    elevationCorrection = highResDEM - resLowResDEM
+       
+    return elevationCorrection
+    
+def resample(highResFolder,prefix,ncnt,logger):
+    
+    #create resample dir
+    try:
+        os.stat('resampled')
+    except:
+        os.mkdir('resampled')    
+    
+    tif_mapname         = prefix+'.tif'
+    pcraster_mapname    = getmapname(ncnt,prefix)
+    
+    tif_filename        = os.path.join('temp',tif_mapname)
+    pcraster_filename   = os.path.join('temp',pcraster_mapname)
+    pcraster_resFilename   = os.path.join('resampled',pcraster_mapname)
+    
+    command= 'gdal_translate -of %s %s %s' % ('GTiff',pcraster_filename,tif_filename)
+    os.system(command)
+      
+    # Source
+    src_filename    = os.path.join('temp',tif_mapname)
+    src             = gdal.Open(src_filename, gdalconst.GA_ReadOnly)
+    src_proj        = src.GetProjection()
+    src_geotrans    = src.GetGeoTransform()
+
+    # We want a section of source that matches this:
+    match_filename  = os.path.join(highResFolder,'DEM.tif')
+    match_ds        = gdal.Open(match_filename, gdalconst.GA_ReadOnly)
+    match_proj      = match_ds.GetProjection()
+    match_geotrans  = match_ds.GetGeoTransform()
+    wide            = match_ds.RasterXSize
+    high            = match_ds.RasterYSize
+
+    # Output / destination
+    dst_filename = os.path.join('resampled',tif_mapname)
+    dst = gdal.GetDriverByName('GTiff').Create(dst_filename, wide, high, 1, gdalconst.GDT_Float32)
+    dst.SetGeoTransform( match_geotrans )
+    dst.SetProjection( match_proj)
+
+    # Do the work
+    gdal.ReprojectImage(src, dst, src_proj, match_proj, gdalconst.GRA_NearestNeighbour)
+
+    del dst # Flush
+       
+    resX, resY, cols, rows, x, y, data, FillVal = readMap(dst_filename,'GTiff',logger)
+
+    # nodig?? data    = np.flipud(dataUD)
+    
+    return data
+
+def correctRsin(Rsin,currentdate,radiationCorDir,logger):
+    #get day of year
+    tt  = currentdate.timetuple()
+    JULDAY = tt.tm_yday
+    #read data from radiation correction files
+    mapname     = getmapname(JULDAY,'FLAT')
+    fileName    = os.path.join(radiationCorDir,mapname)
+    resX, resY, cols, rows, x, y, data, FillVal          = readMap(fileName,'PCRaster',logger)
+    
+    resX, resY, cols, rows, x, y, flat, FillVal            = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'FLAT')))),'PCRaster',logger)   
+    resX, resY, cols, rows, x, y, flatdir, FillVal         = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'FLATDIR')))),'PCRaster',logger)
+    resX, resY, cols, rows, x, y, cor, FillVal             = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'COR')))),'PCRaster',logger)
+    resX, resY, cols, rows, x, y, cordir, FillVal          = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'CORDIR')))),'PCRaster',logger)
+    #ratio direct - diffuse
+    ratio           = flatdir / flat
+    Rsin_dir        = ratio * Rsin
+    #corrected Rsin direct for elevation and slope
+    Rsin_dir_cor    = (cordir/flatdir)*Rsin_dir
+    Rsin_cor        = Rsin_dir_cor + (Rsin - Rsin_dir)
+    
+    return Rsin_cor
+
+def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
     
     """
     relevantDataFields : ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
@@ -536,14 +693,31 @@ def PenmanMonteith(relevantDataFields, Tmax, Tmin):
     rs           = 70           # surface resistance, 70 [s m-1]
     R            = 287.058      # Universal gas constant [J kg-1 K-1]
     convmm       = 1000*TimeStepSecs # conversion from meters to millimeters
-    sigma        = 5.6704e-8    # stephan boltzmann [W m-2 K-4]
+    sigma        = 4.903e-9     # stephan boltzmann [W m-2 K-4]
     eps          = 0.622        # ratio of water vapour/dry air molecular weights [-]
-    # outgoing long-wave [W m-2]: assume that surface temperature is equal to temperature close to the ground. Assume emissivity = 1.
-    # net radiation [W m-2]
-    Rlout = sigma*Tmean**4. # emissivity assumed 1
-    Rlnet = Rlin - Rlout
-    Rnet  = (1-alpha)*Rsin + Rlnet
+
+    #CALCULATE EXTRATERRESTRIAL RADIATION
+    #get day of year
+    tt  = currentdate.timetuple()
+    JULDAY = tt.tm_yday
+#    #Latitude radians
+    LatRad= lat*np.pi/180.0
+    test = np.tan(LatRad)
+#    ### water euivalent extraterrestial radiation ###    
+#    # declination (rad)
+    declin = 0.4093*(np.sin(((2.0*pi*JULDAY)/365.0)-1.405))
+#    # sunset hour angle
+    arccosInput = (-(np.tan(LatRad))*(np.tan(declin)))
+#    
+    arccosInput = np.minimum(1,arccosInput)
+    arccosInput = np.maximum(-1,arccosInput)
+    sunangle = np.arccos(arccosInput)
+#    # distance of earth to sun
+    distsun = 1+0.033*(np.cos((2*pi*JULDAY)/365.0))
+    # Ra = water equivalent extra terrestiral radiation in MJ day-1
+    Ra = ((24 * 60 * 0.082) / 3.14) * distsun * (sunangle*(np.sin(LatRad))*(np.sin(declin))+(np.cos(LatRad))*(np.cos(declin))*(np.sin(sunangle)))
     
+    #CALCULATE ACTUAL VAPOR PRESSURE
     # saturation vapour pressure [Pa]
     es = lambda T:610.8*np.exp((17.27*(Tmean-273.15))/((Tmean-273.15)+237.3))
     es_min  = es(Tmin)
@@ -551,23 +725,20 @@ def PenmanMonteith(relevantDataFields, Tmax, Tmin):
     es_mean = (es_min+es_max)/2.
 
     # actual vapour pressure
-    
-    """
-        eps*ea
-    q = ------
-        P-((1-eps)*ea)
-        
-            q*P    
-    ea =- ---------------
-           (eps-1)*q-eps
-    """
     ea = lambda Pres, Q, eps: -(Q*Pres)/((eps-1)*Q-eps)
     ea_mean = ea(Pres, Q, eps)
+    ea_mean_kPa = ea_mean / 1000
     
-#    ea = lambda rel_hum, es: rel_hum/100.*es
-#    ea_min  = ea(Hr, es_min)
-#    ea_max  = ea(Hr, es_max)
-#    ea_mean = (ea_min + ea_max)/2
+    #clear sky solar radiation
+    Rso = np.maximum(0.1,((0.75+(2*2e-5)) * Ra))
+    
+    Rsin_MJ = 0.086400 * Rsin # * 86400 / 1.000.000
+    
+    Rlnet_MJ = - sigma * ((Tmax**4+Tmin**4)/2) * (0.34 - 0.14 * np.sqrt(np.maximum(0,(ea_mean_kPa)))) * (1.35*np.minimum(1,(Rsin_MJ / Rso))-0.35)
+        
+    Rlnet_Watt = Rlnet_MJ / 0.086400
+    
+    Rnet  = (1-alpha)*Rsin + Rlnet_Watt
     
     # vapour pressure deficit
     vpd = np.maximum(es_mean - ea_mean, 0.)
@@ -595,10 +766,94 @@ def PenmanMonteith(relevantDataFields, Tmax, Tmin):
     PETbase = delta + gamma*(1+rs/ra)
     PET     = np.maximum(PETtop/PETbase, 0)
     PETmm   = PET/Lheat*TimeStepSecs
-    return PETmm #, Lheat, Rlnet, ea_mean, es_mean, Wsp_2
+    
+    return PETmm
 
+def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin,elevationCorrection,downscaling):
+    
+    """
+    relevantDataFields : ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
+                    'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','NearSurfaceWindSpeed']
+    """
+    
+    Tmean   =  relevantDataFields[0]
+    Rlin    =  relevantDataFields[1]
+    Pres    =  relevantDataFields[2]
+    Q       =  relevantDataFields[3]
+    Rsin    =  relevantDataFields[4]             
 
+    alpha        = 0.23         # albedo, 0.23 [-]
+    sigma        = 4.903e-9     # stephan boltzmann [MJ K-4 m-2 day-1]
+    cp_pt        = 0.001013     # specific heat of air 1013 [MJ kg-1 C-1]
+    a            = 1.26         # Priestley-Taylor coefficient [-]
+    eps          = 0.622        # ratio of molecular weight of water to dry air [-]
+    
+    """ http://agsys.cra-cin.it/tools/evapotranspiration/help/Priestley-Taylor.html """
+    if downscaling == 'True':
+        #apply elevation correction
+        Tmean   = Tmean - 0.006 * elevationCorrection
+        Tmin    = Tmin - 0.006 * elevationCorrection
+        Tmax    = Tmax - 0.006 * elevationCorrection
+        Pres    = Pres * ((293-0.006*elevationCorrection)/293)**5.26
+    
+    #CALCULATE EXTRATERRESTRIAL RADIATION
+    #get day of year
+    tt  = currentdate.timetuple()
+    JULDAY = tt.tm_yday
+#    #Latitude radians
+    LatRad= lat*np.pi/180.0
+    test = np.tan(LatRad)
+#    ### water euivalent extraterrestial radiation ###    
+#    # declination (rad)
+    declin = 0.4093*(np.sin(((2.0*pi*JULDAY)/365.0)-1.405))
+#    # sunset hour angle
+    arccosInput = (-(np.tan(LatRad))*(np.tan(declin)))
+#    
+    arccosInput = np.minimum(1,arccosInput)
+    arccosInput = np.maximum(-1,arccosInput)
+    sunangle = np.arccos(arccosInput)
+#    # distance of earth to sun
+    distsun = 1+0.033*(np.cos((2*pi*JULDAY)/365.0))
+    # Ra = water equivalent extra terrestiral radiation in MJ day-1
+    Ra = ((24 * 60 * 0.082) / 3.14) * distsun * (sunangle*(np.sin(LatRad))*(np.sin(declin))+(np.cos(LatRad))*(np.cos(declin))*(np.sin(sunangle)))
+    
+    #CALCULATE ACTUAL VAPOR PRESSURE
+    # saturation vapour pressure [Pa]
+    es = lambda T:610.8*np.exp((17.27*(Tmean-273.15))/((Tmean-273.15)+237.3))
+    es_min  = es(Tmin)
+    es_max  = es(Tmax)
+    es_mean = (es_min+es_max)/2.
 
+    # actual vapour pressure
+    ea = lambda Pres, Q, eps: -(Q*Pres)/((eps-1)*Q-eps)
+    ea_mean = ea(Pres, Q, eps)
+    ea_mean_kPa = ea_mean / 1000
+        
+    #clear sky solar radiation MJ d-1
+    Rso = np.maximum(0.1,((0.75+(2*0.00005)) * Ra))
+    
+    Rsin_MJ = 0.086400 * Rsin # * 86400 / 1.000.000
+    
+    Rlnet_MJ = - sigma * ((Tmax**4+Tmin**4)/2) * (0.34 - 0.14 * np.sqrt(np.maximum(0,(ea_mean_kPa)))) * (1.35*np.minimum(1,(Rsin_MJ / Rso))-0.35)
+    
+    Rlnet_Watt = Rlnet_MJ / 0.086400
+        
+    preskPa     = Pres / 1000 
+    latentHeat  = 2.501 - ( 0.002361 * ( Tmean - 273.15 ) ) # latent heat of vaporization (MJ kg-1)
+
+    slope_exp   = (17.27*(Tmean-273.15)) / ((Tmean - 273.15) + 237.3)
+    slope_div   = ((Tmean - 273.15) + 237.3)**2
+    slope       = 4098 * (0.6108 * (np.exp(slope_exp))) / slope_div
+    
+    psychConst  = cp_pt * ( preskPa ) / (latentHeat * eps ) # psychrometric constant (kPa degreesC-1)
+          
+    # net radiation [MJ m-2]
+    Rnet  = np.maximum(0,((1-alpha) *Rsin_MJ + Rlnet_MJ))
+    
+    PETmm = a * (1 / latentHeat) *( (slope * Rnet ) /  ( slope + psychConst ) )
+    
+    return PETmm, Rlnet_Watt
+    
 def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     
     
@@ -634,7 +889,6 @@ def main(argv=None):
 
     # Set all sorts of defaults.....
     serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
-    serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
     wrrsetroot = "ecmwf/met_forcing_v0/"
     
     #available variables with corresponding file names and standard_names as in NC files
@@ -644,7 +898,11 @@ def main(argv=None):
                     "Rainf_daily_E2OBS_","SWdown_daily_E2OBS_","Snowf_daily_E2OBS_","Wind_daily_E2OBS_"]
     standard_names = ['air_temperature','surface_downwelling_longwave_flux_in_air','surface_air_pressure','specific_humidity',\
                         'rainfal_flux','surface_downwelling_shortwave_flux_in_air','snowfall_flux','wind_speed']
+    prefixes = ["Tmean","LWdown","PSurf","Qair",\
+                    "Rainf","SWdown","Snowf","Wind"]
     
+    #tempdir
+
     #defaults in absence of ini file
     filename = "Tair_daily_E2OBS_"
     standard_name ='air_temperature'
@@ -661,6 +919,7 @@ def main(argv=None):
     getDataForVar = True
     calculateEvap = False
     evapMethod = None
+    downscaling = None
     nrcalls = 0
     loglevel=logging.INFO
 
@@ -677,7 +936,7 @@ def main(argv=None):
     for o, a in opts:
         if o == '-I': inifile = a
             
-    logger, ch = setlogger("e2o_getvar.log","e2o_getvar",level=loglevel)
+    logger, ch = setlogger("e2o_getvar.log","e2o_getvar")#,level=loglevel)
     logger.info("Reading settings from ini: " + inifile)
     theconf = iniFileSetUp(a)
     
@@ -705,8 +964,16 @@ def main(argv=None):
     oformat = configget(logger,theconf,"output","format","PCRaster")
     odir = configget(logger,theconf,"output","directory","output/")
     oprefix = configget(logger,theconf,"output","prefix","E2O")
+
+    # Check whether downscaling should be applied
+    downscaling   = configget(logger,theconf,"selection","downscaling",downscaling)
+    if downscaling == 'True':
+        #get grid info
+        resX, resY, cols, rows, highResLon, highResLat, data, FillVal = readMap((os.path.join('highResDEM','DEM.tif')),'GTiff',logger)
        
-    # Check whether evaporation should be calculated
+        elevationCorrection = resampleDEM('highResDEM','lowResDEM',logger)
+
+    #Check whether evaporation should be calculated
     calculateEvap   = configget(logger,theconf,"selection","calculateEvap",calculateEvap)
     
     if calculateEvap == 'True':
@@ -716,107 +983,181 @@ def main(argv=None):
         relevantVars = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
                     'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','NearSurfaceWindSpeed']        
     elif evapMethod == 'Hargreaves':
-        relevantVars = ['Temperature']        
-    
+        relevantVars = ['Temperature']
+    elif evapMethod == 'PriestleyTaylor':
+        relevantVars = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
+                    'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation']
+        
     currentdate = start
     ncnt = 0
     while currentdate <= end:
-        # Get all daily datafields needed and aad to list
-        relevantDataFields = []
-        for i in range (0,len(variables)):
-            if variables[i] in relevantVars:
-                mapname = os.path.join(odir,getmapname(ncnt+1,oprefix))
-                print mapname
+        ncnt += 1
+        if ncnt > 0:
+            # Get all daily datafields needed and aad to list
+            relevantDataFields = []
+            for i in range (0,len(variables)):
+                if variables[i] in relevantVars:
+                    mapname = os.path.join(odir,getmapname(ncnt,oprefix))
+                    if os.path.exists(mapname):
+                        logger.info("Skipping map: " + mapname)
+                    else:
+                        logger.info("Getting data field: " + filename)
+                        filename = filenames[i]
+                        standard_name = standard_names[i]
+                        logger.info("Get file list..")
+                        tlist, timelist = get_times_daily(currentdate,currentdate,serverroot, wrrsetroot, filename,logger)
+                        logger.info("Get dates..")
+    
+                        ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
+    
+                        logger.info("Get data...: " + str(timelist))
+                        mstack = ncstepobj.getdates(timelist)
+                        mean_as_map = mstack.mean(axis=0)
+                        logger.info("Get data body...")
+                        if downscaling == 'True':
+                            save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,mean_as_map,int(ncnt),'temp',prefixes[i],oformat='GTiff')                     
+                            mean_as_map = resample('highResDEM',prefixes[i],int(ncnt),logger)
+                            if variables[i] == 'SurfaceIncidentShortwaveRadiation':
+                                mean_as_map     = correctRsin(mean_as_map,currentdate,'radiationCor',logger)
+                                
+                                
+                        relevantDataFields.append(mean_as_map)
+                                            
+    
+            if evapMethod == 'PenmanMonteith':
+    
+                mapname = os.path.join(odir,getmapname(ncnt,oprefix))
                 if os.path.exists(mapname):
                     logger.info("Skipping map: " + mapname)
                 else:
-                    logger.info("Getting data field: " + filename)
-                    filename = filenames[i]
-                    standard_name = standard_names[i]
-                    logger.info("Get file list..")
-                    tlist, timelist = get_times_daily(currentdate,currentdate,serverroot, wrrsetroot, filename,logger)
-                    logger.info("Get dates..")
-
-                    ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
-
-                    logger.info("Get data...: " + str(timelist))
+                    # retrieve 3 hourly Temperature and calculate max and min Temperature
+                    filename = 'Tair_E2OBS_'
+                    standard_name = 'air_temperature'
+                    timestepSeconds = 10800
+                
+                    tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
+                    ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
                     mstack = ncstepobj.getdates(timelist)
-                    logger.info("Get data body...")
+                    tmin = mstack.min(axis=0)
+                    tmax = mstack.max(axis=0)
+                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmin,int(ncnt),'temp','tmin',oformat=oformat)                     
+                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)                     
+                    if downscaling == 'True':
+                        tmin = resample('highResDEM','tmin',int(ncnt),logger)
+                        tmax = resample('highResDEM','tmax',int(ncnt),logger)    
+                        
+                    #only needed once
+                    if nrcalls ==0:
+                        nrcalls = nrcalls + 1
+                        latitude = ncstepobj.lat[:]
+                        #assuming a resolution of 0.5 degrees
+                        LATITUDE = np.ones(360,720)
+                        for j in range (0,360):
+                            LATITUDE[:,j]=LATITUDE[:,j]*latitude
+                    
+                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
+                        LATITUDE = resample('highResDEM','lat',int(ncnt),logger)
+                                                       
+                    PETmm = PenmanMonteith(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
+                    logger.info("Saving PM PET data for: " +str(currentdate))
+                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm,int(ncnt),odir,'pet',oformat=oformat)
+                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Rlnet_MJ,int(ncnt),odir,'Rlnet_MJ',oformat=oformat)
+                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Rnet,int(ncnt),odir,'rnet',oformat=oformat)
+                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Rsin,int(ncnt),odir,'rsin',oformat=oformat)
+                   
+            if evapMethod == 'PriestleyTaylor':
+                mapname = os.path.join(odir,getmapname(ncnt,oprefix))
+                if os.path.exists(mapname):
+                    logger.info("Skipping map: " + mapname)
+                else:
+                    # retrieve 3 hourly Temperature and calculate min Temperature
+                    filename = 'Tair_E2OBS_'
+                    standard_name = 'air_temperature'
+                    timestepSeconds = 10800
+                
+                    tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
+                    ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
+                    mstack = ncstepobj.getdates(timelist)
+                    tmin = mstack.min(axis=0)
+                    tmax = mstack.max(axis=0)
+                    if downscaling == 'True':
+                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmin,int(ncnt),'temp','tmin',oformat=oformat)
+                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)
+                        tmin = resample('highResDEM','tmin',int(ncnt),logger)
+                        tmax = resample('highResDEM','tmax',int(ncnt),logger)   
 
-                    relevantDataFields.append(mstack)
+                    #only needed once
+                    if nrcalls ==0:
+                        nrcalls = nrcalls + 1
+                        latitude = ncstepobj.lat[:]
+                        #assuming a resolution of 0.5 degrees
+                        LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
+                        for i in range (0,int((2*(lonmax-lonmin)))):
+                            LATITUDE[:,i]=LATITUDE[:,i]*latitude
+                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
+                        LATITUDE = resample('highResDEM','lat',int(ncnt),logger)
+                   
+                    PETmm, Rlnet_Watt = PriestleyTaylor(LATITUDE, currentdate, relevantDataFields, tmax, tmin,elevationCorrection,downscaling)
+                                   
+                    logger.info("Saving PT PET data for: " +str(currentdate))
 
-        if evapMethod == 'PenmanMonteith':
+                    save_as_mapsstack_per_day(highResLat,highResLon,np.flipud(PETmm),int(ncnt),odir,prefix=oprefix,oformat=oformat)
+                                  
+            if evapMethod == 'Hargreaves':
+                mapname = os.path.join(odir,getmapname(ncnt,oprefix))
+                if os.path.exists(mapname):
+                    logger.info("Skipping map: " + mapname)
+                else:
+                    # retrieve 3 hourly Temperature and calculate max and min Temperature
+                    filename = 'Tair_E2OBS_'
+                    standard_name = 'air_temperature'
+                    timestepSeconds = 10800
+    
+                    logger.info("Get times 3 hr data..")
+                    tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
+                    logger.info("Get actual 3hr data...")
+                    ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
+                    #ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
+    
+                    mstack = ncstepobj.getdates(timelist)
+    
+                    #only needed once.. (i think)
+                    LATITUDE = []
+                    if nrcalls ==0:
+                        nrcalls = nrcalls + 1
+                        latitude = ncstepobj.lat[:]
+                        #assuming a resolution of 0.5 degrees
+                        #TODO: Find out what is happening here...
+                        LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
+                        for i in range (0,int((2*(lonmax-lonmin)))):
+                            LATITUDE[:,i]=LATITUDE[:,i]*latitude
+                    
+                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
+                        LATITUDE = resample('highResDEM','lat',int(ncnt),logger)
 
-            mapname = os.path.join(odir,getmapname(ncnt+1,oprefix))
-            if os.path.exists(mapname):
-                logger.info("Skipping map: " + mapname)
-            else:
-                # retrieve 3 hourly Temperature and calculate max and min Temperature
-                filename = 'Tair_E2OBS_'
-                standard_name = 'air_temperature'
-                timestepSeconds = 10800
+                    tmin = mstack.min(axis=0)
+                    tmax = mstack.max(axis=0)
+                    logger.info("Start hargreaves..")
+                    PETmm, Ra, dst, angle, dec = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
+                    #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Ra,int(ncnt),odir,prefix="RA",oformat=oformat)
+    
+                    logger.info("Saving HAR PET data for: " +str(currentdate))
+                    #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)
+                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
             
-                tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
-                ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
-                mstack = ncstepobj.getdates(timelist)
-                tmin = mstack.min(axis=0)
-                tmax = mstack.max(axis=0)
-                PETmm = PenmanMonteith(relevantDataFields, tmax, tmin)
-                logger.info("Saving PM PET data for: " +str(currentdate))
-                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)
-                save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt+1),odir,prefix=oprefix,oformat=oformat)
-
-            
-        if evapMethod == 'Hargreaves':
-            mapname = os.path.join(odir,getmapname(ncnt+1,oprefix))
-            if os.path.exists(mapname):
-                logger.info("Skipping map: " + mapname)
-            else:
-                # retrieve 3 hourly Temperature and calculate max and min Temperature
-                filename = 'Tair_E2OBS_'
-                standard_name = 'air_temperature'
-                timestepSeconds = 10800
-
-                logger.info("Get times 3 hr data..")
-                tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
-                logger.info("Get actual 3hr data...")
-                ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
-                #ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
-
-                mstack = ncstepobj.getdates(timelist)
-
-                #only needed once.. (i think)
-                if nrcalls ==0:
-                    nrcalls = nrcalls + 1
-                    latitude = ncstepobj.lat[:]
-                    #assuming a resolution of 0.5 degrees
-                    #TODO: Find out what is happening here...
-                    LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
-                    for i in range (0,int((2*(lonmax-lonmin)))):
-                        LATITUDE[:,i]=LATITUDE[:,i]*latitude
-
-                tmin = mstack.min(axis=0)
-                tmax = mstack.max(axis=0)
-                logger.info("Start hargreaves..")
-                PETmm, Ra, dst, angle, dec = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
-                dst = dst * 180.0/pi
-                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Ra,int(ncnt),odir,prefix="RA",oformat=oformat)
-                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dst,int(ncnt),odir,prefix="DST",oformat=oformat)
-                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,angle,int(ncnt),odir,prefix="ANG",oformat=oformat)
-                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,dec,int(ncnt),odir,prefix="DEC",oformat=oformat)
-
-                logger.info("Saving HAR PET data for: " +str(currentdate))
-                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)
-                save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt+1),odir,prefix=oprefix,oformat=oformat)
+#            #cleaning temp and resample directory
+#            dirs = ['temp','resampled']
+#            for directory in dirs:
+#                fileList = os.listdir(directory)
+#                for fileName in fileList:
+#                    os.remove(directory+"/"+fileName)
         
-
-        currentdate += datetime.timedelta(days=1)
-        ncnt +=1        
+        else:
+            pass
+        
+        currentdate += datetime.timedelta(days=1)       
     
     logger.info("Done.")
 
 if __name__ == "__main__":
     main()
-
-
-

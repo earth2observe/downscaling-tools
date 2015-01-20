@@ -290,6 +290,16 @@ def main(argv=None):
     serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
     wrrsetroot = "ecmwf/met_forcing_v0/"
     variable = "Tair_daily_E2OBS_"
+    
+    #available variables with corresponding file names and standard_names as in NC files
+    variables = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
+                    'NearSurfaceSpecificHumidity','Rainfall','SurfaceIncidentShortwaveRadiation','SnowfallRate','NearSurfaceWindSpeed']
+    filenames = ["Tair_daily_E2OBS_","LWdown_daily_E2OBS_","PSurf_daily_E2OBS_","Qair_daily_E2OBS_",\
+                    "Rainf_daily_E2OBS_","SWdown_daily_E2OBS_","Snowf_daily_E2OBS_","Wind_daily_E2OBS_"]
+    standard_names = ['air_temperature','surface_downwelling_longwave_flux_in_air','surface_air_pressure','specific_humidity',\
+                        'rainfal_flux','surface_downwelling_shortwave_flux_in_air','snowfall_flux','wind_speed']
+    
+    # defaults, overwritten by info from ini file
     standard_name ='air_temperature'
     startyear = 1979
     endyear= 1980
@@ -301,6 +311,7 @@ def main(argv=None):
     lonmax = 5.75
     startday = 1
     endday = 1
+    getDataForVar = False
     
 
     if argv is None:
@@ -308,7 +319,6 @@ def main(argv=None):
         if len(argv) == 0:
             usage()
             return
-
 
     try:
         opts, args = getopt.getopt(argv, 'I:')
@@ -322,6 +332,18 @@ def main(argv=None):
     logger, ch = setlogger("e2o_getvar.log","e2o_getvar")
     logger.debug("Reading settings from in: " + inifile)
     theconf = iniFileSetUp("e2o_getvar.ini")
+    
+    #Add options for multiple variables
+    for i in range (0,len(variables)):
+        getDataForVar = False
+        print variables[i]
+        # Check whether variable exists in ini file
+        getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
+       
+        # If variable is True read timeseries from file
+        if getDataForVar == 'True':
+            filename = filenames[i]
+            standard_name = standard_names[i]
 
     lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
     lonmin = float(configget(logger,theconf,"selection","lonmin",str(lonmin)))
@@ -341,29 +363,61 @@ def main(argv=None):
     serverroot = configget(logger,theconf,"url","serverroot",serverroot)
     wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
     #variable = configget(logger,theconf,"url","variable",variable)
+
     
-    oformat = configget(logger,theconf,"output","format","PCRaster")
-    odir = configget(logger,theconf,"output","directory","output/")
-    oprefix = configget(logger,theconf,"output","prefix","E2O")
-    logger.debug("Done reading settings.")
+    #Add options for multiple variables
+    for i in range (0,len(variables)):
+        getDataForVar = False
+        print variables[i]
+        # Check whether variable exists in ini file
+        getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
+       
+        # If variable is True read timeseries from file
+        if getDataForVar == 'True':
+            filename = filenames[i]
+            standard_name = standard_names[i]
 
-    start = datetime.datetime(startyear,startmonth,startday)
-    end = datetime.datetime(endyear,endmonth,endday)
+            lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
+            lonmin = float(configget(logger,theconf,"selection","lonmin",str(lonmin)))
+            latmax = float(configget(logger,theconf,"selection","latmax",str(latmax)))
+            latmin = float(configget(logger,theconf,"selection","latmin",str(latmin)))
+            BB = dict(
+                   lon=[ lonmin, lonmax],
+                   lat= [ latmin, latmax]
+                   )
+            startyear = int(configget(logger,theconf,"selection","startyear",str(startyear)))
+            endyear = int(configget(logger,theconf,"selection","endyear",str(endyear)))
+            endmonth = int(configget(logger,theconf,"selection","endmonth",str(endmonth)))
+            startmonth = int(configget(logger,theconf,"selection","startmonth",str(startmonth)))
+            endday = int(configget(logger,theconf,"selection","endday",str(endday)))
+            startday = int(configget(logger,theconf,"selection","startday",str(startday)))
+            #serverroot = configget(logger,theconf,"url","serverroot",serverroot)
+            #wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
+            #variable = configget(logger,theconf,"url","variable",variable)
+            
+            oformat = configget(logger,theconf,"output","format","PCRaster")
+            odir = configget(logger,theconf,"output","directory","output/")
+            odir = os.path.join(odir,variables[i])
+            oprefix = configget(logger,theconf,"output","prefix","E2O")
+            logger.debug("Done reading settings.")
+        
+            start = datetime.datetime(startyear,startmonth,startday)
+            end = datetime.datetime(endyear,endmonth,endday)
+           
+        
+            tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot, filename,logger )       
+            
+            ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
+        
+            #print unique(tlist.values())
+            mstack = ncstepobj.getdates(timelist)
+        
+            mean_as_series = (mstack.mean(axis=1).mean(axis=1))
+            mean_as_map = mstack.mean(axis=0)
+            
+            logger.info("Saving " + ncstepobj.varname + " to mapstack " + odir + oprefix)
+            save_as_mapsstack(ncstepobj.lat,ncstepobj.lon,mstack,timelist,odir,prefix=oprefix,oformat=oformat)  
 
-
-    tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot,  variable ,logger )
-    ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
-
-    #print unique(tlist.values())
-
-    mstack = ncstepobj.getdates(timelist)
-
-
-    mean_as_series = (mstack.mean(axis=1).mean(axis=1))
-    mean_as_map = mstack.mean(axis=0)
-    
-    logger.info("Saving " + ncstepobj.varname + " to mapstack " + odir + oprefix)
-    save_as_mapsstack(ncstepobj.lat,ncstepobj.lon,mstack,timelist,odir,prefix=oprefix,oformat=oformat)  
     logger.info("Done.")
 
 

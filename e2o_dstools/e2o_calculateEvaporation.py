@@ -936,7 +936,8 @@ def main(argv=None):
     for o, a in opts:
         if o == '-I': inifile = a
             
-    logger, ch = setlogger("e2o_getvar.log","e2o_getvar")#,level=loglevel)
+    logger = setlogger("e2o_calculateEvap.log","e2o_calculateEvaporation",level=loglevel)
+    #logger, ch = setlogger("e2o_getvar.log","e2o_getvar",level=loglevel)
     logger.info("Reading settings from ini: " + inifile)
     theconf = iniFileSetUp(a)
     
@@ -1161,3 +1162,6 @@ def main(argv=None):
 
 if __name__ == "__main__":
     main()
+
+
+

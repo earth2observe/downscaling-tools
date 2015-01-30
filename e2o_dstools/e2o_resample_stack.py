@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 # $Rev:: 904           $:  Revision of last commit
 # $Author:: schelle    $:  Author of last commit
 # $Date:: 2014-01-13 1#$:  Date of last commit
@@ -28,7 +26,7 @@ e2o_resample_stack -- resample a stack of pcraster maps
 
 Usage::
 
-    -D dirname
+    -D dirname (contains one or more pcraster stacks)
     -O output dir name
     -C clone map (map to interpolate to)
     -M maxcpu
@@ -37,27 +35,25 @@ Usage::
 The script uses the pcraster resample program to resample the maps.
 """
 
-
-
-
-
-import os, sys, shlex, time
+import os
+import sys
+import shlex
+import time
 import os.path
 import glob
 import getopt
 import subprocess
 
 
-
 def usage(*args):
     sys.stdout = sys.stderr
-    for msg in args: print msg
+    for msg in args:
+        print msg
     print __doc__
     sys.exit(0)
 
 
-
-def runCommands(commands, maxCpu):
+def runcommands(commands, maxCpu):
     """
     Runs a list of processes dividing
     over maxCpu number of cores.
@@ -70,10 +66,10 @@ def runCommands(commands, maxCpu):
         newProcs = []
         for pollCmd, pollProc in processes:
             retCode = pollProc.poll()
-            if retCode==None:
+            if retCode == None:
                 # still running
                 newProcs.append((pollCmd, pollProc))
-            elif retCode!=0:
+            elif retCode != 0:
                 # failed
                 raise Exception("Command %s failed" % pollCmd)
             else:
@@ -82,8 +78,8 @@ def runCommands(commands, maxCpu):
 
     processes = []
     for command in commands:
-        command = command.replace('\\','/') # otherwise shlex.split removes all path separators
-        proc =  subprocess.Popen(shlex.split(command))
+        command = command.replace('\\', '/')  # otherwise shlex.split removes all path separators
+        proc = subprocess.Popen(shlex.split(command))
         procTuple = (command, proc)
         processes.append(procTuple)
         while len(processes) >= maxCpu:
@@ -91,51 +87,47 @@ def runCommands(commands, maxCpu):
             processes = removeFinishedProcesses(processes)
 
     # wait for all processes
-    while len(processes)>0:
+    while len(processes) > 0:
         time.sleep(0.5)
         processes = removeFinishedProcesses(processes)
     print "All processes in que (" + str(len(commands)) + ") completed."
 
 
 def main():
-
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'D:O:C:M:Nf')
+        opts, args = getopt.getopt(sys.argv[1:], 'D:O:C:M')
     except getopt.error, msg:
         usage(msg)
 
     clone = "clone.map"
-    Verbose=1
+    Verbose = 1
     inputdir = "inmaps"
     outputdir = "outmaps"
     mapstack = []
     maxcpu = 4
-    force = False
     dirs = []
 
     for o, a in opts:
-        if o == '-C': clone = a
-        if o == '-D': inputdir = a
-        if o == '-O': outputdir = a
-        if o == '-f': force = False
-        if o == '-M': maxcpu = int(a)
-
+        if o == '-C':
+            clone = a
+        if o == '-D':
+            inputdir = a
+        if o == '-O':
+            outputdir = a
+        if o == '-M':
+            maxcpu = int(a)
 
     if not os.path.isdir(outputdir):
         os.makedirs(outputdir)
 
-
-
     allcmd = []
     for mfile in glob.glob(inputdir + '/*.[0-9][0-9][0-9]'):
-        mstr = "resample --clone " + str(clone) + ' ' + mfile + " " + mfile.replace(inputdir,outputdir)
-        if not os.path.exists(mfile.replace(inputdir,outputdir)):
+        mstr = "resample --clone " + str(clone) + ' ' + mfile + " " + mfile.replace(inputdir, outputdir)
+        if not os.path.exists(mfile.replace(inputdir, outputdir)):
             allcmd.append(mstr)
         else:
-            print "skipping existing file: " + mfile.replace(inputdir,outputdir)
-    runCommands(allcmd,maxcpu)
-
-
+            print "skipping existing file: " + mfile.replace(inputdir, outputdir)
+    runcommands(allcmd, maxcpu)
 
 
 if __name__ == "__main__":

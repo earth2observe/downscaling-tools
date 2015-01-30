@@ -245,37 +245,42 @@ def GenRadMaps(SaveDir,Lat,Lon,Slope,Aspect,Altitude,DegreeDem,logje,start=1,end
     calchours = np.arange(Starthour,EndHour,24/Intperday)
 
     for Day in range(start,end+1):
-        avgrad = 0.0 * Altitude
-
-        _flat = 0.0 * Altitude
-        avshade = 0.0 * Altitude
-
-        cordir = 0.0 * Altitude
-        flatdir = 0.0 * Altitude
-        id = 1
-        logje.info("Calulations for day: " + str(Day))
-        for Hour in calchours:
-            logje.info("Hour: " + str(Hour))
-            crad,  flat, shade, craddir, craddirflat = correctrad(Day,float(Hour),Lat,Lon,Slope,Aspect,Altitude,DegreeDem)
-            avgrad=avgrad + crad
-            _flat = _flat + flat
-            avshade=avshade + scalar(shade)
-            cordir = cordir + craddir
-            flatdir = flatdir + craddirflat
-
-            nrr = "%03d" % id
-            #report(crad,"tt000000." + nrr)
-            #report(shade,"sh000000." + nrr)
-            #report(cradnodem,"ttr00000." + nrr)
-            id = id + 1
-        
         nr = "%0.3d" % Day
-        report(avgrad/Calcsteps,SaveDir + "/COR00000." + nr)
-        report(avshade,SaveDir + "/SHADE000." + nr)
-        report(_flat/Calcsteps,SaveDir + "/FLAT0000." + nr)
-        report(cordir/Calcsteps,SaveDir + "/CORDIR00." + nr)
-        report(flatdir/Calcsteps,SaveDir + "/FLATDIR0." + nr)
-        #report(ifthen((Altitude + 300) > 0.0, cover(avgrad/_flat,1.0)),SaveDir + "/RATI0000." + nr)
+        # check if step already existst
+        ckfile = SaveDir + "/COR00000." + nr
+        if os.path.exists(ckfile):
+            logging.warn(ckfile + " exists, skipping this step...")
+        else:
+            avgrad = 0.0 * Altitude
+            _flat = 0.0 * Altitude
+            avshade = 0.0 * Altitude
+
+            cordir = 0.0 * Altitude
+            flatdir = 0.0 * Altitude
+            id = 1
+            logje.info("Calulations for day: " + str(Day))
+            for Hour in calchours:
+                logje.info("Hour: " + str(Hour))
+                crad,  flat, shade, craddir, craddirflat = correctrad(Day,float(Hour),Lat,Lon,Slope,Aspect,Altitude,DegreeDem)
+                avgrad=avgrad + crad
+                _flat = _flat + flat
+                avshade=avshade + scalar(shade)
+                cordir = cordir + craddir
+                flatdir = flatdir + craddirflat
+
+                nrr = "%03d" % id
+                #report(crad,"tt000000." + nrr)
+                #report(shade,"sh000000." + nrr)
+                #report(cradnodem,"ttr00000." + nrr)
+                id = id + 1
+
+
+            report(avgrad/Calcsteps,SaveDir + "/COR00000." + nr)
+            report(avshade,SaveDir + "/SHADE000." + nr)
+            report(_flat/Calcsteps,SaveDir + "/FLAT0000." + nr)
+            report(cordir/Calcsteps,SaveDir + "/CORDIR00." + nr)
+            report(flatdir/Calcsteps,SaveDir + "/FLATDIR0." + nr)
+            #report(ifthen((Altitude + 300) > 0.0, cover(avgrad/_flat,1.0)),SaveDir + "/RATI0000." + nr)
 
 def usage(*args):
     sys.stdout = sys.stderr

@@ -26,13 +26,22 @@ e2o_resample_stack -- resample a stack of pcraster maps
 
 Usage::
 
+e2o_resample_stack -D dirname -O outputdirname -C clone_map [-M maxcpu] [-h]
+
     -D dirname (contains one or more pcraster stacks)
     -O output dir name
     -C clone map (map to interpolate to)
     -M maxcpu
        maximum number of cpu's/cores to use (default = 4)
+    -h show this infotmation
 
-The script uses the pcraster resample program to resample the maps.
+The script uses the pcraster resample.exe program to resample the maps. This must be
+present in the search path.
+
+.. todo::
+
+    Convert to use gdal and also support tiffs
+
 """
 
 import os
@@ -95,7 +104,7 @@ def runcommands(commands, maxCpu):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'D:O:C:M:')
+        opts, args = getopt.getopt(sys.argv[1:], 'D:O:C:M:h')
     except getopt.error, msg:
         usage(msg)
 
@@ -116,6 +125,8 @@ def main():
             outputdir = a
         if o == '-M':
             maxcpu = int(a)
+        if o == '-h':
+            usage()
 
     if not os.path.isdir(outputdir):
         os.makedirs(outputdir)
@@ -128,7 +139,6 @@ def main():
         else:
             print "skipping existing file: " + mfile.replace(inputdir, outputdir)
     runcommands(allcmd, maxcpu)
-
 
 if __name__ == "__main__":
     main()

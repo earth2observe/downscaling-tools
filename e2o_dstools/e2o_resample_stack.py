@@ -95,7 +95,7 @@ def runcommands(commands, maxCpu):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'D:O:C:M')
+        opts, args = getopt.getopt(sys.argv[1:], 'D:O:C:M:')
     except getopt.error, msg:
         usage(msg)
 

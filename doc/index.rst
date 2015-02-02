@@ -12,7 +12,9 @@ Introduction
 e2o_downscaling-tools consists of a number of python programs and procedures that facilitate local
 application of the earth2observe global water resources reanalysis. The tools
 can connect directly to the project's data server and save (resampled) data to a local computer
-for further analysis or direct application :cite:`pozzitoward2013` . 
+for further analysis or direct application. The current first versions
+of the tool focusses on downscaling the global forcing dataset used in
+the project :cite:`weedonwfdei2014`.
 
 
 The radiation module
@@ -21,6 +23,13 @@ The radiation module
    :maxdepth: 2
 
    radiation
+
+The evaporation module
+======================
+.. toctree::
+   :maxdepth: 2
+
+   evaporation
 
    
 Examples and tests
@@ -42,7 +51,7 @@ Release notes
 .. toctree::
    :maxdepth: 2
 
-   release_notes
+   release-notes
 
 
 Indices and tables
@@ -53,14 +62,6 @@ Indices and tables
 * :ref:`search`
 
 
-References
-==========
-
-.. [CQFLOW] Köhler, L., Mulligan, M., Schellekens, J., Schmid, S. and
-    Tobón, C.: Final Technical Report DFID-FRP Project no. R7991 Hydrological
-    impacts of converting tropical montane cloud forest to pasture, with
-    initial reference to northern Costa Rica.,, 2006.
-
 
 TODO
 ====
@@ -68,6 +69,7 @@ TODO
 .. todolist::
 
 
-
-.. bibliography:: e2o
+References
+==========
+.. bibliography:: e2o.bib
    :style: plain

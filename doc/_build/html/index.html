@@ -23,6 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="e2o_dstools 2015 documentation" href="#" />
     <link rel="next" title="Radiation correction on a digital elevation model" href="radiation.html" /> 
   </head>
@@ -52,12 +53,13 @@
 <li><a class="reference internal" href="#">eartH2Observe Downscaling tools</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
 <li><a class="reference internal" href="#the-radiation-module">The radiation module</a></li>
+<li><a class="reference internal" href="#the-evaporation-module">The evaporation module</a></li>
 <li><a class="reference internal" href="#examples-and-tests">Examples and tests</a></li>
 <li><a class="reference internal" href="#faq">FAQ</a></li>
 <li><a class="reference internal" href="#release-notes">Release notes</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
-<li><a class="reference internal" href="#references">References</a></li>
 <li><a class="reference internal" href="#todo">TODO</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 </ul>
@@ -100,10 +102,10 @@ This documentation was generated February 02, 2015</p>
 </div>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>e2o_downscaling-tools- consists of a number of python programs and procedures that facilitate local
+<p>e2o_downscaling-tools consists of a number of python programs and procedures that facilitate local
 application of the earth2observe global water resources reanalysis. The tools
 can connect directly to the project&#8217;s data server and save (resampled) data to a local computer
-for further analysis or direct application.</p>
+for further analysis or direct application <a class="reference internal" href="#pozzitoward2013" id="id1">[1]</a> .</p>
 </div>
 <div class="section" id="the-radiation-module">
 <h2>The radiation module<a class="headerlink" href="#the-radiation-module" title="Permalink to this headline">¶</a></h2>
@@ -120,6 +122,18 @@ for further analysis or direct application.</p>
 </ul>
 </div>
 </div>
+<div class="section" id="the-evaporation-module">
+<h2>The evaporation module<a class="headerlink" href="#the-evaporation-module" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="evaporation.html">Potential evaporation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="evaporation.html#introduction">Introduction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="evaporation.html#module-e2o_dstools.e2o_calculateEvaporation">Implementation</a></li>
+</ul>
+</div>
+</div>
 <div class="section" id="examples-and-tests">
 <h2>Examples and tests<a class="headerlink" href="#examples-and-tests" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
@@ -130,14 +144,19 @@ for further analysis or direct application.</p>
 <div class="section" id="faq">
 <h2>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
-<ul class="simple">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Questions and answers</a></li>
 </ul>
 </div>
 </div>
 <div class="section" id="release-notes">
 <h2>Release notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
-<ul class="simple">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="release-notes.html">Release notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#v0-1">V0.1</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -149,20 +168,18 @@ for further analysis or direct application.</p>
 <li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
 </ul>
 </div>
-<div class="section" id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<table class="docutils citation" frame="void" id="cqflow" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[CQFLOW]</td><td>Köhler, L., Mulligan, M., Schellekens, J., Schmid, S. and
-Tobón, C.: Final Technical Report DFID-FRP Project no. R7991 Hydrological
-impacts of converting tropical montane cloud forest to pasture, with
-initial reference to northern Costa Rica.,, 2006.</td></tr>
-</tbody>
-</table>
-</div>
 <div class="section" id="todo">
 <h2>TODO<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p id="bibtex-bibliography-index-0"><table class="docutils citation" frame="void" id="pozzitoward2013" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Will Pozzi, Justin Sheffield, Robert Stefanski, Douglas Cripe, Roger Pulwarty, Jürgen&nbsp;V. Vogt, Richard&nbsp;R. Heim&nbsp;Jr, Michael&nbsp;J. Brewer, Mark Svoboda, Rogier Westerhoff, and others. Toward global drought early warning capability: expanding international cooperation for the development of a framework for monitoring and forecasting. <em>Bulletin of the American Meteorological Society</em>, 94(6):776–785, 2013. <a class="reference external" href="http://journals.ametsoc.org/doi/abs/10.1175/BAMS-D-11-00176.1">URL: http://journals.ametsoc.org/doi/abs/10.1175/BAMS-D-11-00176.1</a>.</td></tr>
+</tbody>
+</table>
+</p>
 </div>
 </div>
 

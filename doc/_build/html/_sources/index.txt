@@ -9,10 +9,10 @@ eartH2Observe Downscaling tools
 Introduction
 ============
 
-e2o_downscaling-tools- consists of a number of python programs and procedures that facilitate local
+e2o_downscaling-tools consists of a number of python programs and procedures that facilitate local
 application of the earth2observe global water resources reanalysis. The tools
 can connect directly to the project's data server and save (resampled) data to a local computer
-for further analysis or direct application.
+for further analysis or direct application :cite:`pozzitoward2013` . 
 
 
 The radiation module
@@ -22,15 +22,19 @@ The radiation module
 
    radiation
 
+The evaporation module
+======================
+.. toctree::
+   :maxdepth: 2
+
+   evaporation
+
    
 Examples and tests
 ==================
 .. toctree::
    :maxdepth: 2
    
-   testrunner_wflowhbv
-   calib_report
-
 
 FAQ
 ===
@@ -45,7 +49,7 @@ Release notes
 .. toctree::
    :maxdepth: 2
 
-   release_notes
+   release-notes
 
 
 Indices and tables
@@ -56,16 +60,14 @@ Indices and tables
 * :ref:`search`
 
 
-References
-==========
-
-.. [CQFLOW] Köhler, L., Mulligan, M., Schellekens, J., Schmid, S. and
-    Tobón, C.: Final Technical Report DFID-FRP Project no. R7991 Hydrological
-    impacts of converting tropical montane cloud forest to pasture, with
-    initial reference to northern Costa Rica.,, 2006.
-
 
 TODO
 ====
 
 .. todolist::
+
+
+References
+==========
+.. bibliography:: e2o.bib
+   :style: plain

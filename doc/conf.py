@@ -24,7 +24,7 @@ html_theme_path = ["."]
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
-
+sys.path.insert(0, os.path.abspath('ext'))
 import e2o_dstools
 # -- General configuration -----------------------------------------------------
 
@@ -38,7 +38,7 @@ extensions = ['sphinx.ext.todo','sphinx.ext.pngmath' ,
           'matplotlib.sphinxext.plot_directive',
           'sphinx.ext.autodoc',
           'sphinx.ext.graphviz',
-          'sphinx.ext.doctest']
+          'sphinx.ext.doctest','bibcite']
 
 todo_include_todos=True
 # Add any paths that contain templates here, relative to this directory.

@@ -4,6 +4,9 @@ Radiation correction on a digital elevation model
 
 Introduction
 ------------
+The radiation module can be used to adjust radiation estimates
+using a (high resolution) digital elevation model. In turn, these results can be used
+by the evaporation module to bettes estimate local evaporation.
 
 In general evaporation amounts are determined for about 90% by
 radiation input. Radiation at the earth’s surface is determined by
@@ -223,7 +226,7 @@ represented only by empirical equations (cf. Scharmer and Greif, 2000, Kasten an
 However, for many meteorological stations, besides the global horizontal radiation Ghs, the diffuse component
 Dhs is either measured or calculated from cloudiness, sunshine or other climatologic data.
 The raster map of Dhs/Ghs can be derived from the point values by spatial interpolation.
- Consecutively, the raster maps of diffuse and beam components of the clear sky index can be computed:
+Consecutively, the raster maps of diffuse and beam components of the clear sky index can be computed:
 
 .. math::
 

@@ -9,17 +9,10 @@ eartH2Observe Downscaling tools
 Introduction
 ============
 
-
-.. only:: html
-
-    .. note::  A pdf version of this version of the documentation can be
-               found at
-               (https://drive.google.com/folderview?id=0B-lQGXSOhXJRc1d0YW82Q21hdEk&usp=sharing)
-
-.. only:: latex
-
-    .. note::  A html version of this version of the documentation can be
-               found at (http://wflow.googlecode.com/svn/tags/1.0RC6/doc/_build/html/index.html).
+e2o_downscaling-tools consists of a number of python programs and procedures that facilitate local
+application of the earth2observe global water resources reanalysis. The tools
+can connect directly to the project's data server and save (resampled) data to a local computer
+for further analysis or direct application :cite:`pozzitoward2013` . 
 
 
 The radiation module
@@ -35,9 +28,6 @@ Examples and tests
 .. toctree::
    :maxdepth: 2
    
-   testrunner_wflowhbv
-   calib_report
-
 
 FAQ
 ===
@@ -76,3 +66,8 @@ TODO
 ====
 
 .. todolist::
+
+
+
+.. bibliography:: e2o
+   :style: plain

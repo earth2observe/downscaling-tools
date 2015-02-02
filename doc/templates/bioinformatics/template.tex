@@ -1,0 +1,76 @@
+\documentclass{bioinfo}
+\copyrightyear{2005}
+\pubyear{2005}
+
+\begin{document}
+\firstpage{1}
+
+\title[ {{- shortTitle -}} ]{ {{- title -}} }
+\author[ {{- shortAuthors -}} ]{
+{% for author in authors -%}
+   {{- author.name -}} \,$^{ {{- author.get_affiliations() -}} }$
+   {{- author.get_marker('corresponding', '\\footnote{to whom correspondence should be addressed}') -}}
+   {%- if not loop.last -%}
+      ,
+   {%- endif -%}
+{%- endfor -%}
+}
+\address{
+{%- for aff in affiliations -%}
+   {{- '$^{%d}$%s' % (aff.id, aff.label) -}}
+   {%- if not loop.last -%}
+      \\
+   {%- endif %}
+{% endfor -%}
+}
+
+\history{Received on XXXXX; revised on XXXXX; accepted on XXXXX}
+
+\editor{Associate Editor: XXXXXXX}
+
+\maketitle
+
+\begin{abstract}
+{{ section['Abstract'] }}
+
+\section{Contact:} \href{ {{- emailAddress -}} }{ {{- emailAddress -}} }
+\end{abstract}
+
+\section{Introduction}
+
+{{ section['Introduction'] }}
+
+{% if 'Methods' in section %}
+\begin{methods}
+\section{Methods}
+
+{{ section['Methods'] }}
+
+\end{methods}
+{% endif %}
+
+\section{Results}
+
+{{ section['Results'] }}
+
+
+
+\section*{Acknowledgement}
+
+{% if 'Acknowledgements' in section %}
+{{ section['Acknowledgements'] }}
+{% endif %}
+
+\paragraph{Funding\textcolon} {{ fundingText }}
+
+{% if thebibliography %}
+\begin{thebibliography}{}
+{{ thebibliography }}
+
+\end{thebibliography}
+{% else %}
+\bibliographystyle{natbib}
+\bibliography{ {{- bibname -}} }
+{% endif %}
+
+\end{document}

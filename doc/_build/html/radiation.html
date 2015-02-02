@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Radiation correction on a digital elevation model &mdash; e2o_dstools Test documentation</title>
+    <title>Radiation correction on a digital elevation model &mdash; e2o_dstools 2015 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     'Test',
+        VERSION:     '2015',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="e2o_dstools Test documentation" href="index.html" />
+    <link rel="top" title="e2o_dstools 2015 documentation" href="index.html" />
     <link rel="prev" title="eartH2Observe Downscaling tools" href="index.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="index.html" title="eartH2Observe Downscaling tools"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">e2o_dstools Test documentation</a> &raquo;</li> 
+        <li><a href="index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -92,6 +92,9 @@
 <h1>Radiation correction on a digital elevation model<a class="headerlink" href="#radiation-correction-on-a-digital-elevation-model" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The radiation module can be used to adjust radiation estimates
+using a (high resolution) digital elevation model. In turn, these results can be used
+by the evaporation module to bettes estimate local evaporation.</p>
 <p>In general evaporation amounts are determined for about 90% by
 radiation input. Radiation at the earth’s surface is determined by
 the potential solar radiation at the edge of the earths atmosphere
@@ -241,9 +244,8 @@ according to the cloudiness. In Europe the Dh/Gh values are typically in interva
 represented only by empirical equations (cf. Scharmer and Greif, 2000, Kasten and Czeplak 1980, Hrvoľ 1991).
 However, for many meteorological stations, besides the global horizontal radiation Ghs, the diffuse component
 Dhs is either measured or calculated from cloudiness, sunshine or other climatologic data.
-The raster map of Dhs/Ghs can be derived from the point values by spatial interpolation.</p>
-<blockquote>
-<div>Consecutively, the raster maps of diffuse and beam components of the clear sky index can be computed:</div></blockquote>
+The raster map of Dhs/Ghs can be derived from the point values by spatial interpolation.
+Consecutively, the raster maps of diffuse and beam components of the clear sky index can be computed:</p>
 <div class="math">
 <p><img src="_images/math/fe8cb820be217279029848f9b68285b98e82216b.png" alt="Dh = Gh Dhs/Ghs
 
@@ -386,7 +388,7 @@ Returns: length of a cell lat, length of a cell long</p>
         <li class="right" >
           <a href="index.html" title="eartH2Observe Downscaling tools"
              >previous</a> |</li>
-        <li><a href="index.html">e2o_dstools Test documentation</a> &raquo;</li> 
+        <li><a href="index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

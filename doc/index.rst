@@ -69,7 +69,9 @@ TODO
 .. todolist::
 
 
-References
-==========
+.. only:: html
+
+   .. rubric:: References
+
 .. bibliography:: e2o.bib
-   :style: plain
+   :style: alpha

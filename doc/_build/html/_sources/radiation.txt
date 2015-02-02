@@ -29,7 +29,7 @@ be found at http://re.jrc.cec.eu.int/pvgis/pv/solres/solres.htm.
 
 Potential solar radiation is the radiation of an unobstructed or
 cloudless sky. The magnitude of the potential solar radiation depends
-on the position of the sun the solar altitude or solar angleduring the day,
+on the position of the sun the solar altitude or solar angle during the day,
 the inclination of the solar rays with the earth’s surface, the amount of
 radiation at the outer layer of the earth’s atmosphere, the transmissivity
 of the sky and the altitude of the earth’s surface.
@@ -114,7 +114,7 @@ normal to the beam  (:math:`S_{nor} Wm^2`) is given by (Gates 1980):
     S_{nor} = S_{out} \tau^{Mh}
 
 in which Mh (% or fraction) is the relative path length of the optical air mass at
-altitude h (m). Transmissivity (:math:`\tau`) is usually between 0.5 and 0.8, but can be as low
+altitude h (m). Transmissivity (:math:`\tau`) is usually between 0.5 and 0.8, but can be as low
 as 0.4 in the tropics (Whitmore et al. 1993), but mostly a value of 0.6 is used
 (Gates 1980). To calculate the relative path length of an optical air mass at
 altitude h (m), the relative path length of an optical air mass at sea level M0

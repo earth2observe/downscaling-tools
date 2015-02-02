@@ -12,7 +12,9 @@ Introduction
 e2o_downscaling-tools consists of a number of python programs and procedures that facilitate local
 application of the earth2observe global water resources reanalysis. The tools
 can connect directly to the project's data server and save (resampled) data to a local computer
-for further analysis or direct application :cite:`pozzitoward2013` . 
+for further analysis or direct application. The current first versions
+of the tool focusses on downscaling the global forcing dataset used in
+the project :cite:`weedonwfdei2014`.
 
 
 The radiation module
@@ -67,7 +69,9 @@ TODO
 .. todolist::
 
 
-References
-==========
+.. only:: html
+
+   .. rubric:: References
+
 .. bibliography:: e2o.bib
-   :style: plain
+   :style: alpha

@@ -17,6 +17,13 @@ of the tool focusses on downscaling the global forcing dataset used in
 the project :cite:`weedonwfdei2014`.
 
 
+.. digraph:: steps
+
+    e2o_radiation -> Generate_exposure maps [shape=square];
+    e2o_calculateEvaporation -> Generate PET maps
+    dpi=69;
+
+
 The radiation module
 ====================
 .. toctree::

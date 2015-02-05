@@ -37,7 +37,7 @@ extensions = ['sphinx.ext.todo','sphinx.ext.pngmath' ,
           'matplotlib.sphinxext.only_directives',
           'matplotlib.sphinxext.plot_directive',
           'sphinx.ext.autodoc','sphinxcontrib.bibtex',
-          'sphinx.ext.graphviz','sphinx.ext.mathjax',
+          'sphinx.ext.graphviz',
           'sphinx.ext.doctest']
 
 todo_include_todos=True

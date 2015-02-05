@@ -17,10 +17,16 @@ of the tool focusses on downscaling the global forcing dataset used in
 the project :cite:`weedonwfdei2014`.
 
 
+The figure below shows the steps used to generated down-scale reference evaporation.
+
 .. digraph:: steps
 
-    e2o_radiation -> Generate_exposure maps [shape=square];
-    e2o_calculateEvaporation -> Generate PET maps
+    "Clear sky radiation maps" [shape=box];    
+    "Reference evaporation" [shape=box];    
+    "e2o_radiation.py" -> "Clear sky radiation maps" [label =" Correct for aspect and slope with DEM"];
+     "e2o_calculateEvaporation.py" -> "Reference evaporation" [label =" Downscale using DEM and clear-sky maps"]
+    "Clear sky radiation maps" -> "e2o_calculateEvaporation.py"
+
     dpi=69;
 
 

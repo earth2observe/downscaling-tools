@@ -106,6 +106,18 @@ can connect directly to the project&#8217;s data server and save (resampled) dat
 for further analysis or direct application. The current first versions
 of the tool focusses on downscaling the global forcing dataset used in
 the project <a class="reference internal" href="#weedonwfdei2014" id="id1">[WBB+14]</a>.</p>
+<p>The figure below shows the steps used to generated down-scale reference evaporation.</p>
+<p class="graphviz">
+<img src="_images/graphviz-67ae8ed1ed2f76e46d72b8f60540290d4d7df18e.png" alt="digraph steps {
+&quot;Clear sky radiation maps&quot; [shape=box];
+&quot;Reference evaporation&quot; [shape=box];
+&quot;e2o_radiation.py&quot; -&gt; &quot;Clear sky radiation maps&quot; [label =&quot; Correct for aspect and slope with DEM&quot;];
+ &quot;e2o_calculateEvaporation.py&quot; -&gt; &quot;Reference evaporation&quot; [label =&quot; Downscale using DEM and clear-sky maps&quot;]
+&quot;Clear sky radiation maps&quot; -&gt; &quot;e2o_calculateEvaporation.py&quot;
+
+dpi=69;
+}" />
+</p>
 </div>
 <div class="section" id="the-radiation-module">
 <h2>The radiation module<a class="headerlink" href="#the-radiation-module" title="Permalink to this headline">¶</a></h2>

@@ -1,2 +1,2 @@
-python ..\..\e2o_dstools\e2o_caculateEvaporation.py -I e2o_calculateEvaporation.ini
+python ..\..\e2o_dstools\e2o_calculateEvaporation.py -I e2o_calculateEvaporation.ini
 

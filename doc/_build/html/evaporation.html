@@ -23,7 +23,6 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="e2o_dstools 2015 documentation" href="index.html" />
     <link rel="next" title="Questions and answers" href="faq.html" />
     <link rel="prev" title="Radiation correction on a digital elevation model" href="radiation.html" /> 
@@ -109,13 +108,13 @@
 </div></blockquote>
 <dl class="function">
 <dt id="e2o_dstools.e2o_calculateEvaporation.PenmanMonteith">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PenmanMonteith</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PenmanMonteith" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PenmanMonteith</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em>, <em>elevationCorrection</em>, <em>highResDEM</em>, <em>resLowResDEM</em>, <em>downscaling</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PenmanMonteith" title="Permalink to this definition">¶</a></dt>
 <dd><p>relevantDataFields : [&#8216;Temperature&#8217;,&#8217;DownwellingLongWaveRadiation&#8217;,&#8217;SurfaceAtmosphericPressure&#8217;,                    &#8216;NearSurfaceSpecificHumidity&#8217;,&#8217;SurfaceIncidentShortwaveRadiation&#8217;,&#8217;NearSurfaceWindSpeed&#8217;]</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="e2o_dstools.e2o_calculateEvaporation.PriestleyTaylor">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PriestleyTaylor</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em>, <em>elevationCorrection</em>, <em>downscaling</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PriestleyTaylor" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PriestleyTaylor</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em>, <em>elevationCorrection</em>, <em>highResDEM</em>, <em>resLowResDEM</em>, <em>downscaling</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PriestleyTaylor" title="Permalink to this definition">¶</a></dt>
 <dd><p>relevantDataFields : [&#8216;Temperature&#8217;,&#8217;DownwellingLongWaveRadiation&#8217;,&#8217;SurfaceAtmosphericPressure&#8217;,                    &#8216;NearSurfaceSpecificHumidity&#8217;,&#8217;SurfaceIncidentShortwaveRadiation&#8217;,&#8217;NearSurfaceWindSpeed&#8217;]</p>
 </dd></dl>
 
@@ -256,7 +255,7 @@ Initialise with a list of netcdf files and a variable name (standard_name)</p>
     </div>
     <div class="footer">
         &copy; Copyright 2014-2015, Deltares.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

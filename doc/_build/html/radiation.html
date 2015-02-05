@@ -23,7 +23,6 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="e2o_dstools 2015 documentation" href="index.html" />
     <link rel="next" title="Potential evaporation" href="evaporation.html" />
     <link rel="prev" title="eartH2Observe Downscaling tools" href="index.html" /> 
@@ -128,85 +127,85 @@ of the sky and the altitude of the earth’s surface.</p>
 tropics and varies between –23 and +23 degrees latitude. Solar declination is
 calculated per Day (Julian day number):</p>
 <div class="math">
-\[\delta = -23.4 cos(360 (Day + 10 )/365)\]</div>
-<p>The hour angle describes the movement of the sun around the earth in 24 hours,
-which  equals 15 degrees longitude per hour (360 <span class="math">\(deg\)</span> /24h). The hour angle n
+<p><img src="_images/math/11719324f0dcf973e17f4f79efd879bf5e13b9ec.png" alt="\delta = -23.4 cos(360 (Day + 10 )/365)"/></p>
+</div><p>The hour angle describes the movement of the sun around the earth in 24 hours,
+which  equals 15 degrees longitude per hour (360 <img class="math" src="_images/math/9b249c5e582fcb1d066bffb9018903b68b7776db.png" alt="deg"/> /24h). The hour angle n
 is calculated for each Hour (whole hour of the day):</p>
 <div class="math">
-\[n = ( 15 \dot Hour - 12)\]</div>
-<p>The position or height of the sun above the horizon is called the solar altitude
-or solar angle. Solar altitude <span class="math">\(\alpha\)</span> (deg) is calculated for each location,
-determined by the location’s latitude <span class="math">\(\psi\)</span> (deg), declination and hour angle:</p>
+<p><img src="_images/math/83a5cd3b538cfefdf684fc5f0822704bbafb03c8.png" alt="n = ( 15 \dot Hour - 12)"/></p>
+</div><p>The position or height of the sun above the horizon is called the solar altitude
+or solar angle. Solar altitude <img class="math" src="_images/math/ad59b6e24a4a00ac621801f8d7513d68be654ab5.png" alt="\alpha"/> (deg) is calculated for each location,
+determined by the location’s latitude <img class="math" src="_images/math/1a52481ac36eb889dcbbdcc0783ba2a755ba3547.png" alt="\psi"/> (deg), declination and hour angle:</p>
 <div class="math">
-\[sin(\alpha) = sin(\psi) sin(\delta) + cos(\psi) cos(\delta) cos(n)\]</div>
-<p>Solar azimuth is the angle between the solar rays and the North-South axis of the
-earth. Solar azimuth <span class="math">\({\beta}_s\)</span> (deg) is calculated by:</p>
+<p><img src="_images/math/972a29896cc5236c1ce3d364c14bc776983221e3.png" alt="sin(\alpha) = sin(\psi) sin(\delta) + cos(\psi) cos(\delta) cos(n)"/></p>
+</div><p>Solar azimuth is the angle between the solar rays and the North-South axis of the
+earth. Solar azimuth <img class="math" src="_images/math/53c132496628ec502388afacbc734c9e1b0e2129.png" alt="{\beta}_s"/> (deg) is calculated by:</p>
 <div class="math">
-\[\begin{split}&amp;cos({\beta}_s) = (sin(\delta) cos(\psi) - cos(\delta) sin(\psi) cos(n))/cos(\alpha) \\
+<p><img src="_images/math/ce27bed814a87a0cde454aa2378411fe9d9468da.png" alt="&amp;cos({\beta}_s) = (sin(\delta) cos(\psi) - cos(\delta) sin(\psi) cos(n))/cos(\alpha) \\
 &amp;for Hour \le 12: {\beta}_s = {\beta}_s \\
-&amp;for Hour &gt; 12: {\beta}_s = 360 - {\beta}_s\end{split}\]</div>
-<p>Surface azimuth or aspect <span class="math">\({\beta}_1\)</span> (deg) is the orientation of the land
-surface or slope to the North-South axis of the sun. Slope <span class="math">\(\varphi\)</span> (deg) is
+&amp;for Hour &gt; 12: {\beta}_s = 360 - {\beta}_s"/></p>
+</div><p>Surface azimuth or aspect <img class="math" src="_images/math/6b99e0a4088c8bcaddd32151511abcb74889f471.png" alt="{\beta}_1"/> (deg) is the orientation of the land
+surface or slope to the North-South axis of the sun. Slope <img class="math" src="_images/math/f943a0eac3e9e9e7ad984e7273d8f2a7aaaa9892.png" alt="\varphi"/> (deg) is
 the maximum rate of change in elevation.</p>
 <p>The angle of incidence is the angle between the perpendicular plane of the
 incoming solar rays and the surface on which they are projected, defined by the
-aspect and slope of that surface. The angle of incidence <span class="math">\(\vartheta\)</span> (deg) is
-calculated with the solar angle <span class="math">\(\alpha\)</span> (deg), the slope of the land
-surface <span class="math">\(\varphi\)</span> (deg), the azimuth of the sun <span class="math">\({\beta}_s\)</span> (deg) and
-azimuth of the land surface  <span class="math">\({\beta}_1\)</span> (deg):</p>
+aspect and slope of that surface. The angle of incidence <img class="math" src="_images/math/fb03977eae15219f179dc917cc8c5ef18a1791bb.png" alt="\vartheta"/> (deg) is
+calculated with the solar angle <img class="math" src="_images/math/ad59b6e24a4a00ac621801f8d7513d68be654ab5.png" alt="\alpha"/> (deg), the slope of the land
+surface <img class="math" src="_images/math/f943a0eac3e9e9e7ad984e7273d8f2a7aaaa9892.png" alt="\varphi"/> (deg), the azimuth of the sun <img class="math" src="_images/math/53c132496628ec502388afacbc734c9e1b0e2129.png" alt="{\beta}_s"/> (deg) and
+azimuth of the land surface  <img class="math" src="_images/math/6b99e0a4088c8bcaddd32151511abcb74889f471.png" alt="{\beta}_1"/> (deg):</p>
 <div class="math">
-\[cos(\vartheta) = cos(\alpha) sin(\varphi) cos({\beta}_s - {\beta}_1) + sin(\alpha) cos(\varphi)\]</div>
-<p>The second section of the radiation module calculates the potential solar energy. The
+<p><img src="_images/math/457e58a5780a0494246dabb0831515ec70073738.png" alt="cos(\vartheta) = cos(\alpha) sin(\varphi) cos({\beta}_s - {\beta}_1) + sin(\alpha) cos(\varphi)"/></p>
+</div><p>The second section of the radiation module calculates the potential solar energy. The
 amount of solar radiation that reaches the outer atmosphere is decreased by the
 travelling distance of the solar rays through the sky to the surface, the transmissivity
 of the sky and the cloud factor.</p>
-<p>Solar energy at the outer layer of the atmosphere <span class="math">\(Sout (Wm^2)\)</span> is
+<p>Solar energy at the outer layer of the atmosphere <img class="math" src="_images/math/10d81e4cbb6e6859fd49f37d644c09739b6256e8.png" alt="Sout (Wm^2)"/> is
 calculated by (Kreider &amp; Kreith 1975):</p>
 <div class="math">
-\[S_{out} = S_c (1 + 0.034 cos(360 Day/365))\]</div>
-<p>where <span class="math">\(S_c  (Wm^2)\)</span> is the solar constant of 1367 <span class="math">\(Wm^2\)</span> (Duffie &amp; Beckman 1991).
+<p><img src="_images/math/2e53e374edbceecdae3481794455315a27f27c4c.png" alt="S_{out} = S_c (1 + 0.034 cos(360 Day/365))"/></p>
+</div><p>where <img class="math" src="_images/math/9d436e643c307198857ec9552ca758509ad18cd7.png" alt="S_c  (Wm^2)"/> is the solar constant of 1367 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/> (Duffie &amp; Beckman 1991).
 The solar ‘constant’ is subject to much discussion. Gates (1980) gives a value
-of 1360 <span class="math">\(Wm^2\)</span>. The NASA reports a value of 1353 <span class="math">\(Wm^2\)</span> (Jansen 1985),
-while Duncan et al. (1982) give a value of 1367 <span class="math">\(Wm^2\)</span>. Monteith and Unsworth (1990)
+of 1360 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>. The NASA reports a value of 1353 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/> (Jansen 1985),
+while Duncan et al. (1982) give a value of 1367 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>. Monteith and Unsworth (1990)
 measured the highest value of 1373 W.m-2. The World Radiation Centre uses a
-value of 1367 <span class="math">\(Wm^2\)</span> (Duffie &amp; Beckman 1991) and this value is also used in this study.</p>
+value of 1367 <img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/> (Duffie &amp; Beckman 1991) and this value is also used in this study.</p>
 <p>The solar radiation energy that reaches the earth’s surface is decreased due to the
-length of the air mass it has to pass through and the transmissivity <span class="math">\(\tau\)</span>
+length of the air mass it has to pass through and the transmissivity <img class="math" src="_images/math/d9e99c35d3632bb156b7aca0e93cd78a148a10e8.png" alt="\tau"/>
 (% or fraction) of the sky. The radiation flux through a hypothetical plane
-normal to the beam  (<span class="math">\(S_{nor} Wm^2\)</span>) is given by (Gates 1980):</p>
+normal to the beam  (<img class="math" src="_images/math/b3fc9b9ae6df83c3a593a3a12e7f668994f0f403.png" alt="S_{nor} Wm^2"/>) is given by (Gates 1980):</p>
 <div class="math">
-\[S_{nor} = S_{out} \tau^{Mh}\]</div>
-<p>in which Mh (% or fraction) is the relative path length of the optical air mass at
-altitude h (m). Transmissivity (<span class="math">\(\tau\)</span>) is usually between 0.5 and 0.8, but can be as low
+<p><img src="_images/math/3415a877fcc378277853e6116adeba781ef9bf61.png" alt="S_{nor} = S_{out} \tau^{Mh}"/></p>
+</div><p>in which Mh (% or fraction) is the relative path length of the optical air mass at
+altitude h (m). Transmissivity (<img class="math" src="_images/math/d9e99c35d3632bb156b7aca0e93cd78a148a10e8.png" alt="\tau"/>) is usually between 0.5 and 0.8, but can be as low
 as 0.4 in the tropics (Whitmore et al. 1993), but mostly a value of 0.6 is used
 (Gates 1980). To calculate the relative path length of an optical air mass at
 altitude h (m), the relative path length of an optical air mass at sea level M0
 (% or fraction) is corrected for the atmospheric pressure at altitude h. Mh
 (% or fraction) is calculated using (Kreider &amp; Kreith 1975):</p>
 <div class="math">
-\[Mh = M_0 P_h/P_0\]</div>
-<p>in which <span class="math">\(P_h / P_0\)</span> (mbar.mbar-1) is an atmospheric pressure correction. The relative path length
+<p><img src="_images/math/553f1b2ab17e847837c1f1680d8929a03bb7005f.png" alt="Mh = M_0 P_h/P_0"/></p>
+</div><p>in which <img class="math" src="_images/math/107d9995813cb4e2c2ad9694289c4f8cbbba68ca.png" alt="P_h / P_0"/> (mbar.mbar-1) is an atmospheric pressure correction. The relative path length
 of the optical air mass at sea level M0 is obtained by (Kreider &amp; Kreith 1975):</p>
 <div class="math">
-\[M_0 = \sqrt(1299 + (614 sin(\alpha))^2) - 614 sin(\alpha)\]</div>
-<p>The atmospheric pressure correction <span class="math">\(P_h / P_0\)</span> is written as (List 1984):</p>
+<p><img src="_images/math/74efd196280ebc060db1a9ece986f3d9b96bc39f.png" alt="M_0 = \sqrt(1299 + (614 sin(\alpha))^2) - 614 sin(\alpha)"/></p>
+</div><p>The atmospheric pressure correction <img class="math" src="_images/math/107d9995813cb4e2c2ad9694289c4f8cbbba68ca.png" alt="P_h / P_0"/> is written as (List 1984):</p>
 <div class="math">
-\[P_h / P_0 = ((288 0.0065h) / 288)^5.256\]</div>
-<p>The incoming radiation normal to the beam Snor must be corrected by the orientation and
-slope of the surface, defined by the angle of incidence <span class="math">\(\vartheta\)</span>, to calculate the incoming radiation
-Sdir (<span class="math">\(Wm^2\)</span>) on the earth’s surface:</p>
+<p><img src="_images/math/f9f9504007ca2adf387f5c1a28a232b3de3bfb54.png" alt="P_h / P_0 = ((288 0.0065h) / 288)^5.256"/></p>
+</div><p>The incoming radiation normal to the beam Snor must be corrected by the orientation and
+slope of the surface, defined by the angle of incidence <img class="math" src="_images/math/fb03977eae15219f179dc917cc8c5ef18a1791bb.png" alt="\vartheta"/>, to calculate the incoming radiation
+Sdir (<img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>) on the earth’s surface:</p>
 <div class="math">
-\[S_dir = S_nor cos(\vartheta)\]</div>
-<p>Direct light is scattered in the atmosphere. This daylight scattering or diffuse radiation is
+<p><img src="_images/math/c26439b8d5db615e778aaab6f4a759631dccd400.png" alt="S_dir = S_nor cos(\vartheta)"/></p>
+</div><p>Direct light is scattered in the atmosphere. This daylight scattering or diffuse radiation is
 approximately 15% of direct radiation (Gates 1980). A more accurate empirical estimation for diffuse
-radiation Sdif (<span class="math">\(Wm^2\)</span>) in a clear not dust-free sky reads as (Liu and Jordan in Gates 1980):</p>
+radiation Sdif (<img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>) in a clear not dust-free sky reads as (Liu and Jordan in Gates 1980):</p>
 <div class="math">
-\[S_dif = S_out (0.271 - 0.294 \vartheta^{Mh} sin(\alpha)\]</div>
-<p>During daylight when the sun is above the horizon, it is assumed that all cells receive the same amount
-of diffuse radiation. Total incoming radiation Sin (<span class="math">\(Wm^2\)</span>) is the sum of direct and diffuse radiation:</p>
+<p><img src="_images/math/6d7989be907c840a68bdd1ecfefe9d2b9f7f502b.png" alt="S_dif = S_out (0.271 - 0.294 \vartheta^{Mh} sin(\alpha)"/></p>
+</div><p>During daylight when the sun is above the horizon, it is assumed that all cells receive the same amount
+of diffuse radiation. Total incoming radiation Sin (<img class="math" src="_images/math/4e5eaf745e0736acdc16149a7dd83dce9de3a196.png" alt="Wm^2"/>) is the sum of direct and diffuse radiation:</p>
 <div class="math">
-\[S_in = S_dir + S_dif\]</div>
-<p>Total incoming radiation Sin as calculated with the above is actually a radiation flux for that moment. In the procedure
+<p><img src="_images/math/63258b97817d1ed4057f29876875865e1fe452d8.png" alt="S_in = S_dir + S_dif"/></p>
+</div><p>Total incoming radiation Sin as calculated with the above is actually a radiation flux for that moment. In the procedure
 given above, radiation is calculated per time step. If this amount of radiation is used in a water balance model, the amount
 of radiation and therewith the amount of evapotranspiration will be overestimated or under estimated, depending on the
 time of the day and the position of the sun.</p>
@@ -226,14 +225,14 @@ and inclined surfaces are slightly different. For the assessment of global irrad
 on a horizontal surface under overcast conditions Gh the clear-sky values Ghc are multiplied by
 clear-sky index kc (Beyer et al 1996, Hammer et al 1998, Rigollier et al. 2001):</p>
 <div class="math">
-\[Gh = Ghc kc\]</div>
-<p>The index kc represents the atmospheric transmission expressed as a ratio between horizontal
+<p><img src="_images/math/051f3311e2ef662e0c39ca8f34106fadb506b115.png" alt="Gh = Ghc kc"/></p>
+</div><p>The index kc represents the atmospheric transmission expressed as a ratio between horizontal
 global radiation under overcast and clear-sky conditions. For a set of ground meteorological
 stations the clear-sky index can be calculated from measured global radiation Ghs and
 computed values of clear-sky global radiation Ghc:</p>
 <div class="math">
-\[kc = Ghs/Ghc\]</div>
-<p>As an alternative the kc can be derived also from other climatologic data
+<p><img src="_images/math/5bfa7e9d5549bf64fb073b37374894bf81e1e36b.png" alt="kc = Ghs/Ghc"/></p>
+</div><p>As an alternative the kc can be derived also from other climatologic data
 (e.g. cloudiness, cf. Kasten and Czeplak 1980). The raster maps of kc must be
 then derived by spatial interpolation. The kc can be calculated directly as a raster map from
 short-wave surface irradiance measured by satellites. This method is based on the complementarity
@@ -243,8 +242,10 @@ To compute the overcast global irradiance/irradiation for inclined surfaces, Gi
 the diffuse Dh and beam Bh components of overcast global radiation and of the clear-sky index kc
 have to be treated separately as follows from the following equations:</p>
 <div class="math">
-\[Dh = Dhc kdc\]\[Bh = Bhc kbc\]</div>
-<p>The ratio of diffuse to the global radiation Dh/Gh for clear and overcast skies changes
+<p><img src="_images/math/cc4dc4034b12f05def688b6ee4a03eab925d40d9.png" alt="Dh = Dhc kdc
+
+Bh = Bhc kbc"/></p>
+</div><p>The ratio of diffuse to the global radiation Dh/Gh for clear and overcast skies changes
 according to the cloudiness. In Europe the Dh/Gh values are typically in interval 0.3-1.0
 (Kasten and Czeplak 1980). The underlying physical processes are quite complicated and computationally
 represented only by empirical equations (cf. Scharmer and Greif, 2000, Kasten and Czeplak 1980, Hrvoľ 1991).
@@ -253,8 +254,14 @@ Dhs is either measured or calculated from cloudiness, sunshine or other climatol
 The raster map of Dhs/Ghs can be derived from the point values by spatial interpolation.
 Consecutively, the raster maps of diffuse and beam components of the clear sky index can be computed:</p>
 <div class="math">
-\[Dh = Gh Dhs/Ghs\]\[Bh = Gh – Dh\]\[kdc = Dh/Dh\]\[kbc = Bh/Bhc\]</div>
-<p>where subscript s is meant to distinguish data measured on meteorological stations Bhs
+<p><img src="_images/math/fe8cb820be217279029848f9b68285b98e82216b.png" alt="Dh = Gh Dhs/Ghs
+
+Bh = Gh – Dh
+
+kdc = Dh/Dh
+
+kbc = Bh/Bhc"/></p>
+</div><p>where subscript s is meant to distinguish data measured on meteorological stations Bhs
 nd Dhs from the estimated values Bh, and Dh.</p>
 </div>
 <div class="section" id="example">
@@ -262,10 +269,10 @@ nd Dhs from the estimated values Bh, and Dh.</p>
 <p>The image below show the difference between the average daily clear sky radiation on
 a flat surface compared to the actual radiation received by each grid cell for
 julian day 180. IN the steep terrain of the Snowy Mountains of the mUrumbidgee catchment
-differences can be up to 30 <span class="math">\(W/m^2\)</span> on this 1x1km DEM.</p>
+differences can be up to 30 <img class="math" src="_images/math/afff3ec6de103ace6e4f4c0934fe0765478e2fac.png" alt="W/m^2"/> on this 1x1km DEM.</p>
 <div class="figure align-center">
 <a class="reference internal image-reference" href="_images/murumbidgee.png"><img alt="_images/murumbidgee.png" src="_images/murumbidgee.png" style="width: 640px;" /></a>
-<p class="caption">Difference in <span class="math">\(W/m^2\)</span> between horizontal surface radiation and
+<p class="caption">Difference in <img class="math" src="_images/math/afff3ec6de103ace6e4f4c0934fe0765478e2fac.png" alt="W/m^2"/> between horizontal surface radiation and
 inclined surface radiation</p>
 </div>
 </div>
@@ -398,7 +405,7 @@ Returns: length of a cell lat, length of a cell long</p>
     </div>
     <div class="footer">
         &copy; Copyright 2014-2015, Deltares.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

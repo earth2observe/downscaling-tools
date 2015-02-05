@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Testing the bibliography directive &mdash; e2o_dstools 2015 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2015',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="e2o_dstools 2015 documentation" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Testing the bibliography directive</a><ul>
+<li><a class="reference internal" href="#text">Text</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../../_sources/sphinxcontrib-bibtex-develop/test/sphinx/zbibliography.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="testing-the-bibliography-directive">
+<h1>Testing the bibliography directive<a class="headerlink" href="#testing-the-bibliography-directive" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="text">
+<h2>Text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h2>
+<p>Huyghens <a href="#id1"><span class="problematic" id="id2">:cite:`1657:huygens`</span></a> wrote one of the first books on
+probability theory.</p>
+<p>Mix with a footnote <a class="footnote-reference" href="#note" id="id3">[1]</a> and a regular citation <a class="reference internal" href="#test01" id="id4">[Test01]</a>.</p>
+<p>Another citation <a href="#id5"><span class="problematic" id="id6">:cite:`dreze:2000`</span></a>.</p>
+<p>Another reference to footnotes <a class="footnote-reference" href="#note" id="id7">[1]</a> and <a class="footnote-reference" href="#note2" id="id8">[2]</a>.
+More regular citations <a class="reference internal" href="#test01" id="id9">[Test01]</a> and <a class="reference internal" href="#test02" id="id10">[Test02]</a>.</p>
+<p>Extra reference to a footnote <a class="footnote-reference" href="#footnote-walley2004" id="id11">[3]</a>.</p>
+<p>Extra reference to a citation <a class="reference internal" href="#wa04" id="id12">[Wa04]</a>.</p>
+<p>Another few citations: <a href="#id13"><span class="problematic" id="id14">:cite:`rockafellar:1970,1972:savage`</span></a>.</p>
+<p>More citations:</p>
+<p class="rubric">References</p>
+<p class="rubric">References (Cited Test)</p>
+<p class="rubric">References (Not Cited Test)</p>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="note" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id7">2</a>)</em> A footnote.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="note2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id8">[2]</a></td><td>Another footnote.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="footnote-walley2004" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id11">[3]</a></td><td>Peter Walley, Renato Pelessoni, and Paolo Vicig. Journal of
+Statistical Planning and Inference, 126(1):119-151, November 2004.</td></tr>
+</tbody>
+</table>
+<p class="rubric">Citations</p>
+<table class="docutils citation" frame="void" id="test01" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[Test01]</td><td><em>(<a class="fn-backref" href="#id4">1</a>, <a class="fn-backref" href="#id9">2</a>)</em> A regular citation.</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="test02" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id10">[Test02]</a></td><td>Another regular citation.</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="wa04" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id12">[Wa04]</a></td><td>Peter Walley, Renato Pelessoni, and Paolo Vicig. Journal of
+Statistical Planning and Inference, 126(1):119-151, November 2004.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014-2015, Deltares.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

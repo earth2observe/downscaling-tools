@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>New Doctree Transforms &mdash; e2o_dstools 2015 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2015',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="e2o_dstools 2015 documentation" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../../_sources/sphinxcontrib-bibtex-develop/doc/api/transforms.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-sphinxcontrib.bibtex.transforms"></span><div class="section" id="new-doctree-transforms">
+<h1>New Doctree Transforms<a class="headerlink" href="#new-doctree-transforms" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="sphinxcontrib.bibtex.transforms.BibliographyTransform">
+<em class="property">class </em><tt class="descclassname">sphinxcontrib.bibtex.transforms.</tt><tt class="descname">BibliographyTransform</tt><big>(</big><em>document</em>, <em>startnode=None</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.transforms.BibliographyTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">docutils.transforms.Transform</span></tt></p>
+<p>A docutils transform to generate citation entries for
+bibliography nodes.</p>
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.transforms.BibliographyTransform.default_priority">
+<tt class="descname">default_priority</tt><em class="property"> = 10</em><a class="headerlink" href="#sphinxcontrib.bibtex.transforms.BibliographyTransform.default_priority" title="Permalink to this definition">¶</a></dt>
+<dd><p>Priority of the transform. See
+<a class="reference external" href="http://docutils.sourceforge.net/docs/ref/transforms.html">http://docutils.sourceforge.net/docs/ref/transforms.html</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.transforms.BibliographyTransform.apply">
+<tt class="descname">apply</tt><big>(</big><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.transforms.BibliographyTransform.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform each
+<a class="reference internal" href="nodes.html#sphinxcontrib.bibtex.nodes.bibliography" title="sphinxcontrib.bibtex.nodes.bibliography"><tt class="xref py py-class docutils literal"><span class="pre">bibliography</span></tt></a> node into a
+list of citations.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="sphinxcontrib.bibtex.transforms.node_text_transform">
+<tt class="descclassname">sphinxcontrib.bibtex.transforms.</tt><tt class="descname">node_text_transform</tt><big>(</big><em>node</em>, <em>transform</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.transforms.node_text_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply transformation to all Text nodes within node.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sphinxcontrib.bibtex.transforms.transform_curly_bracket_strip">
+<tt class="descclassname">sphinxcontrib.bibtex.transforms.</tt><tt class="descname">transform_curly_bracket_strip</tt><big>(</big><em>textnode</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.transforms.transform_curly_bracket_strip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Strip curly brackets from text.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sphinxcontrib.bibtex.transforms.transform_url_command">
+<tt class="descclassname">sphinxcontrib.bibtex.transforms.</tt><tt class="descname">transform_url_command</tt><big>(</big><em>textnode</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.transforms.transform_url_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert &#8216;\url{...}&#8217; into a proper docutils hyperlink.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014-2015, Deltares.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

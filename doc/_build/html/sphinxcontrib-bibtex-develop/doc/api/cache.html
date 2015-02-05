@@ -1,0 +1,296 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Cached Information &mdash; e2o_dstools 2015 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2015',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="e2o_dstools 2015 documentation" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../../_sources/sphinxcontrib-bibtex-develop/doc/api/cache.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-sphinxcontrib.bibtex.cache"></span><div class="section" id="cached-information">
+<h1>Cached Information<a class="headerlink" href="#cached-information" title="Permalink to this headline">¶</a></h1>
+<p>Classes and methods to maintain any information that is stored
+outside the doctree.</p>
+<dl class="class">
+<dt id="sphinxcontrib.bibtex.cache.Cache">
+<em class="property">class </em><tt class="descclassname">sphinxcontrib.bibtex.cache.</tt><tt class="descname">Cache</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global bibtex extension information cache. Stored in
+<tt class="docutils literal"><span class="pre">app.env.bibtex_cache</span></tt>, so must be picklable.</p>
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.add_cited">
+<tt class="descname">add_cited</tt><big>(</big><em>key</em>, <em>docname</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.add_cited" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the given <em>key</em> to the set of cited keys for
+<em>docname</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> (<tt class="xref py py-class docutils literal"><span class="pre">str</span></tt>) &#8211; The citation key.</li>
+<li><strong>docname</strong> (<tt class="xref py py-class docutils literal"><span class="pre">str</span></tt>) &#8211; The document name.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.Cache.bibfiles">
+<tt class="descname">bibfiles</tt><em class="property"> = None</em><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.bibfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt> mapping .bib file names (relative to the top
+source folder) to <a class="reference internal" href="#sphinxcontrib.bibtex.cache.BibfileCache" title="sphinxcontrib.bibtex.cache.BibfileCache"><tt class="xref py py-class docutils literal"><span class="pre">BibfileCache</span></tt></a> instances.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.get_all_bibliography_caches">
+<tt class="descname">get_all_bibliography_caches</tt><big>(</big><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.get_all_bibliography_caches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all bibliography caches.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.get_all_cited_keys">
+<tt class="descname">get_all_cited_keys</tt><big>(</big><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.get_all_cited_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield all citation keys, sorted first by document
+(alphabetical), then by citation order in the document.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.get_bibliography_cache">
+<tt class="descname">get_bibliography_cache</tt><big>(</big><em>docname</em>, <em>id_</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.get_bibliography_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <a class="reference internal" href="#sphinxcontrib.bibtex.cache.BibliographyCache" title="sphinxcontrib.bibtex.cache.BibliographyCache"><tt class="xref py py-class docutils literal"><span class="pre">BibliographyCache</span></tt></a> with id <em>id_</em> in
+document <em>docname</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.get_bibliography_entries">
+<tt class="descname">get_bibliography_entries</tt><big>(</big><em>docname</em>, <em>id_</em>, <em>warn</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.get_bibliography_entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return filtered bibliography entries, sorted by citation order.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.get_cited_docnames">
+<tt class="descname">get_cited_docnames</tt><big>(</big><em>key</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.get_cited_docnames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <em>docnames</em> from which the given <em>key</em> is cited.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> (<tt class="xref py py-class docutils literal"><span class="pre">str</span></tt>) &#8211; The citation key.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.get_enum_count">
+<tt class="descname">get_enum_count</tt><big>(</big><em>docname</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.get_enum_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get enumeration list counter for document <em>docname</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.get_label_from_key">
+<tt class="descname">get_label_from_key</tt><big>(</big><em>key</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.get_label_from_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return label for the given key.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.inc_enum_count">
+<tt class="descname">inc_enum_count</tt><big>(</big><em>docname</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.inc_enum_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increment enumeration list counter for document <em>docname</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.purge">
+<tt class="descname">purge</tt><big>(</big><em>docname</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.purge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove  all information related to <em>docname</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>docname</strong> (<tt class="xref py py-class docutils literal"><span class="pre">str</span></tt>) &#8211; The document name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.set_bibliography_cache">
+<tt class="descname">set_bibliography_cache</tt><big>(</big><em>docname</em>, <em>id_</em>, <em>bibcache</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.set_bibliography_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register <em>bibcache</em> (<a class="reference internal" href="#sphinxcontrib.bibtex.cache.BibliographyCache" title="sphinxcontrib.bibtex.cache.BibliographyCache"><tt class="xref py py-class docutils literal"><span class="pre">BibliographyCache</span></tt></a>)
+with id <em>id_</em> for document <em>docname</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sphinxcontrib.bibtex.cache.Cache.set_enum_count">
+<tt class="descname">set_enum_count</tt><big>(</big><em>docname</em>, <em>value</em><big>)</big><a class="headerlink" href="#sphinxcontrib.bibtex.cache.Cache.set_enum_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set enumeration list counter for document <em>docname</em> to <em>value</em>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sphinxcontrib.bibtex.cache.BibfileCache">
+<em class="property">class </em><tt class="descclassname">sphinxcontrib.bibtex.cache.</tt><tt class="descname">BibfileCache</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibfileCache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contains information about a parsed .bib file.</p>
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibfileCache.mtime">
+<tt class="descname">mtime</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibfileCache.mtime" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="xref py py-class docutils literal"><span class="pre">float</span></tt> representing the modification time of the .bib
+file when it was last parsed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibfileCache.data">
+<tt class="descname">data</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibfileCache.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="xref py py-class docutils literal"><span class="pre">pybtex.database.BibliographyData</span></tt> containing the
+parsed .bib file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sphinxcontrib.bibtex.cache.BibliographyCache">
+<em class="property">class </em><tt class="descclassname">sphinxcontrib.bibtex.cache.</tt><tt class="descname">BibliographyCache</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibliographyCache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contains information about a bibliography directive.</p>
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibliographyCache.bibfiles">
+<tt class="descname">bibfiles</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibliographyCache.bibfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="xref py py-class docutils literal"><span class="pre">list</span></tt> of <tt class="xref py py-class docutils literal"><span class="pre">str</span></tt>s containing the .bib file
+names (relative to the top source folder) that contain the
+references.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibliographyCache.style">
+<tt class="descname">style</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibliographyCache.style" title="Permalink to this definition">¶</a></dt>
+<dd><p>The bibtex style.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibliographyCache.list_">
+<tt class="descname">list_</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibliographyCache.list_" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list type.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibliographyCache.enumtype">
+<tt class="descname">enumtype</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibliographyCache.enumtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sequence type (only used for enumerated lists).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibliographyCache.start">
+<tt class="descname">start</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibliographyCache.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>The first ordinal of the sequence (only used for enumerated lists).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibliographyCache.labels">
+<tt class="descname">labels</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibliographyCache.labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maps citation keys to their final labels.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibliographyCache.labelprefix">
+<tt class="descname">labelprefix</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibliographyCache.labelprefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>This bibliography&#8217;s string prefix for pybtex generated labels.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sphinxcontrib.bibtex.cache.BibliographyCache.filter_">
+<tt class="descname">filter_</tt><a class="headerlink" href="#sphinxcontrib.bibtex.cache.BibliographyCache.filter_" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <tt class="xref py py-class docutils literal"><span class="pre">ast.AST</span></tt> node, containing the parsed filter expression.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014-2015, Deltares.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

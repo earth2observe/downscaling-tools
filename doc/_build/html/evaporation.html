@@ -1,0 +1,262 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Potential evaporation &mdash; e2o_dstools 2015 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2015',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="e2o_dstools 2015 documentation" href="index.html" />
+    <link rel="next" title="Questions and answers" href="faq.html" />
+    <link rel="prev" title="Radiation correction on a digital elevation model" href="radiation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="faq.html" title="Questions and answers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="radiation.html" title="Radiation correction on a digital elevation model"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Potential evaporation</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-e2o_dstools.e2o_calculateEvaporation">Implementation</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="radiation.html"
+                        title="previous chapter">Radiation correction on a digital elevation model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="faq.html"
+                        title="next chapter">Questions and answers</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/evaporation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="potential-evaporation">
+<h1>Potential evaporation<a class="headerlink" href="#potential-evaporation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+<div class="section" id="module-e2o_dstools.e2o_calculateEvaporation">
+<span id="implementation"></span><h1>Implementation<a class="headerlink" href="#module-e2o_dstools.e2o_calculateEvaporation" title="Permalink to this headline">¶</a></h1>
+<p>Get a variable from the forcing data from the e2o server for a specific region and time range</p>
+<p>usage:</p>
+<blockquote>
+<div><p>e2o_getvar.py -I inifile</p>
+<p>-I inifile - ini file with settings which data to get</p>
+</div></blockquote>
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.PenmanMonteith">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PenmanMonteith</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PenmanMonteith" title="Permalink to this definition">¶</a></dt>
+<dd><p>relevantDataFields : [&#8216;Temperature&#8217;,&#8217;DownwellingLongWaveRadiation&#8217;,&#8217;SurfaceAtmosphericPressure&#8217;,                    &#8216;NearSurfaceSpecificHumidity&#8217;,&#8217;SurfaceIncidentShortwaveRadiation&#8217;,&#8217;NearSurfaceWindSpeed&#8217;]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.PriestleyTaylor">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PriestleyTaylor</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em>, <em>elevationCorrection</em>, <em>downscaling</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PriestleyTaylor" title="Permalink to this definition">¶</a></dt>
+<dd><p>relevantDataFields : [&#8216;Temperature&#8217;,&#8217;DownwellingLongWaveRadiation&#8217;,&#8217;SurfaceAtmosphericPressure&#8217;,                    &#8216;NearSurfaceSpecificHumidity&#8217;,&#8217;SurfaceIncidentShortwaveRadiation&#8217;,&#8217;NearSurfaceWindSpeed&#8217;]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.get_times">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">get_times</tt><big>(</big><em>startdate</em>, <em>enddate</em>, <em>serverroot</em>, <em>wrrsetroot</em>, <em>filename</em>, <em>timestepSeconds</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.get_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate a dictionary with date/times and the NC files in which the data resides for flexible timestep</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.get_times_daily">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">get_times_daily</tt><big>(</big><em>startdate</em>, <em>enddate</em>, <em>serverroot</em>, <em>wrrsetroot</em>, <em>filename</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.get_times_daily" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate a dictionary with date/times and the NC files in which the data resides</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.getmapname">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">getmapname</tt><big>(</big><em>number</em>, <em>prefix</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getmapname" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate a pcraster type mapname based on timestep and prefix
+:var number: number of the mape
+:var prefix: prefix for the map</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="e2o_dstools.e2o_calculateEvaporation.getstep">
+<em class="property">class </em><tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">getstep</tt><big>(</big><em>nclist</em>, <em>BB</em>, <em>varname</em>, <em>timestepSeconds</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstep" title="Permalink to this definition">¶</a></dt>
+<dd><p>class to get data from a set of NC files for user defined timestep in seconds
+Initialise with a list of netcdf files and a variable name (standard_name)</p>
+<dl class="method">
+<dt id="e2o_dstools.e2o_calculateEvaporation.getstep.getdates">
+<tt class="descname">getdates</tt><big>(</big><em>alldates</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstep.getdates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does not work yet</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="e2o_dstools.e2o_calculateEvaporation.getstepdaily">
+<em class="property">class </em><tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">getstepdaily</tt><big>(</big><em>nclist</em>, <em>BB</em>, <em>varname</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstepdaily" title="Permalink to this definition">¶</a></dt>
+<dd><p>class to get data from a set of NC files
+Initialise with a list of netcdf files and a variable name (standard_name)</p>
+<dl class="method">
+<dt id="e2o_dstools.e2o_calculateEvaporation.getstepdaily.getdates">
+<tt class="descname">getdates</tt><big>(</big><em>alldates</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstepdaily.getdates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does not work yet</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="e2o_dstools.e2o_calculateEvaporation.getstepdaily.getdates_seconds">
+<tt class="descname">getdates_seconds</tt><big>(</big><em>alldates</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstepdaily.getdates_seconds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does not work yet</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset">
+<em class="property">class </em><tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">ncdatset</tt><big>(</big><em>ncurl</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around the nc object to simplify things</p>
+<p>Opens the dataset and determines the number of dimensions
+3 = T, Lat Lon
+4 = T heigth, Lat Lon</p>
+<dl class="method">
+<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.getheigth">
+<tt class="descname">getheigth</tt><big>(</big><em>ncdataset</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.getheigth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.getlat">
+<tt class="descname">getlat</tt><big>(</big><em>ncdataset</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.getlat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.getlon">
+<tt class="descname">getlon</tt><big>(</big><em>ncdataset</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.getlon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.gettime">
+<tt class="descname">gettime</tt><big>(</big><em>ncdataset</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.gettime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.getvarbyname">
+<tt class="descname">getvarbyname</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.getvarbyname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.readMap">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">readMap</tt><big>(</big><em>fileName</em>, <em>fileFormat</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.readMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read geographical file into memory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.usage">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">usage</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.usage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print usage information</p>
+<ul class="simple">
+<li><a href="#id1"><span class="problematic" id="id2">*</span></a>args: command line arguments given</li>
+</ul>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="faq.html" title="Questions and answers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="radiation.html" title="Radiation correction on a digital elevation model"
+             >previous</a> |</li>
+        <li><a href="index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014-2015, Deltares.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

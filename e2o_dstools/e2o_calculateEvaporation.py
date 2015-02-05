@@ -713,7 +713,7 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCo
         
         highResDEM  = np.maximum(0,highResDEM)
         
-        Pres_cor    = Pres *( (Tmean / ( Tmean + lapse_rate * (highResDEM - resLowResDEM))) ** (g * Mo / (R * lapse_rate) ))
+        Pres_cor    = Pres *( (Tmean / ( Tmean + lapse_rate * (highResDEM - resLowResDEM))) ** (g * Mo / (R_air * lapse_rate)))
 
     #CALCULATE EXTRATERRESTRIAL RADIATION
     #get day of year
@@ -748,16 +748,17 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCo
     ea_mean = ea(Pres_cor, Q, eps)
     ea_mean_kPa = ea_mean / 1000
     
-    #clear sky solar radiation
-    Rso = np.maximum(0.1,((0.75+(2*2e-5)) * Ra))
+    #clear sky solar radiation MJ d-1
+    Rso = np.maximum(0.1,((0.75+(2*0.00005)) * Ra))
     
     Rsin_MJ = 0.086400 * Rsin # * 86400 / 1.000.000
     
+    # !! VECTOR T TOO LONG
     Rlnet_MJ = - sigma * ((Tmax_cor**4+Tmin_cor**4)/2) * (0.34 - 0.14 * np.sqrt(np.maximum(0,(ea_mean_kPa)))) * (1.35*np.minimum(1,(Rsin_MJ / Rso))-0.35)
-        
+    
     Rlnet_Watt = Rlnet_MJ / 0.086400
     
-    Rnet  = (1-alpha)*Rsin + Rlnet_Watt
+    Rnet  = np.maximum(0,((1-alpha)*Rsin + Rlnet_Watt))
     
     # vapour pressure deficit
     vpd = np.maximum(es_mean - ea_mean, 0.)
@@ -781,13 +782,13 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCo
     Wsp_2 = Wsp*4.87/(np.log(67.8*z-5.42))
     ra = 208./Wsp_2
     
-    PETtop  = delta*Rnet + rho*cp*vpd/ra
-    PETbase = delta + gamma*(1+rs/ra)
+    PETtop  = np.maximum((delta*Rnet + rho*cp*vpd/ra),1)
+    PETbase = np.maximum((delta + gamma*(1+rs/ra)),1)
     PET     = np.maximum(PETtop/PETbase, 0)
-    PETmm   = PET/Lheat*TimeStepSecs
+    PETmm   = np.maximum((PET/Lheat*TimeStepSecs),0)
     
     return PETmm
-
+    
 def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCorrection, highResDEM, resLowResDEM, downscaling):
     
     """
@@ -1100,7 +1101,7 @@ def main(argv=None):
                                                        
                     PETmm = PenmanMonteith(LATITUDE, currentdate, relevantDataFields, tmax, tmin, elevationCorrection, highResDEM, resLowResDEM, downscaling)
                     logger.info("Saving PM PET data for: " +str(currentdate))
-                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,np.flipud(PETmm),int(ncnt),odir,'pet',oformat=oformat)
+                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,np.flipud(PETmm),int(ncnt),odir,prefix=oprefix,oformat=oformat)
                   
             if evapMethod == 'PriestleyTaylor':
                 mapname = os.path.join(odir,getmapname(ncnt,oprefix))

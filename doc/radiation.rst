@@ -246,17 +246,17 @@ nd Dhs from the estimated values Bh, and Dh.
 Example
 =======
 
+The image below show the difference between the average daily clear sky radiation on
+a flat surface compared to the actual radiation received by each grid cell for
+julian day 180. IN the steep terrain of the Snowy Mountains of the mUrumbidgee catchment
+differences can be up to 30 :math:`W/m^2` on this 1x1km DEM.
 
-.. raw:: html
+.. figure:: _static/murumbidgee.png
+    :width: 640px
+    :align: center
 
-        <object width="480" height="385"><param name="movie"
-        value="http://youtu.be/CEgsx6MPqEM"></param><param
-        name="allowFullScreen" value="true"></param><param
-        name="allowscriptaccess" value="always"></param><embed
-        src="http://youtu.be/CEgsx6MPqEM"
-        type="application/x-shockwave-flash" allowscriptaccess="always"
-        allowfullscreen="true" width="480"
-        height="385"></embed></object>
+    Difference in :math:`W/m^2` between horizontal surface radiation and
+    inclined surface radiation
 
 
 Implementation

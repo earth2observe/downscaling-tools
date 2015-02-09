@@ -81,16 +81,16 @@ def configget(log,config,section,var,default):
         - string - either the value from the config file or the default value
     """
     
-    Def = False
+
+    print var
     try:
-        ret = config.get(section,var)
+        ret = config.get(section, var)
     except:
-        Def = True
         ret = default
         log.info( "returning default (" + str(default) + ") for " + section + ":" + var)
         configset(config,section,var,str(default), overwrite=False)
     
-    default = Def
+
     return ret       
 
 def configset(config,section,var,value, overwrite=False):

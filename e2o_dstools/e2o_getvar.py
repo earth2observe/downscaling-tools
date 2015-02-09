@@ -329,14 +329,12 @@ def main(argv=None):
         if o == '-I': inifile = a
 
 
-    logger, ch = setlogger("e2o_getvar.log","e2o_getvar")
+    logger = setlogger("e2o_getvar.log","e2o_getvar")
     logger.debug("Reading settings from in: " + inifile)
     theconf = iniFileSetUp("e2o_getvar.ini")
     
     #Add options for multiple variables
     for i in range (0,len(variables)):
-        getDataForVar = False
-        print variables[i]
         # Check whether variable exists in ini file
         getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
        
@@ -408,6 +406,7 @@ def main(argv=None):
             tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot, filename,logger )       
             
             ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
+
         
             #print unique(tlist.values())
             mstack = ncstepobj.getdates(timelist)

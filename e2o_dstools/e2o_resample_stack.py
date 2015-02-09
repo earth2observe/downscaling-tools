@@ -35,6 +35,7 @@ e2o_resample_stack -D dirname -O outputdirname -C clone_map [-M maxcpu] [-h]
        maximum number of cpu's/cores to use (default = 4)
     -h show this infotmation
 
+
 The script uses the pcraster resample.exe program to resample the maps. This must be
 present in the search path.
 
@@ -104,7 +105,7 @@ def runcommands(commands, maxCpu):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'D:O:C:M:h')
+        opts, args = getopt.getopt(sys.argv[1:], 'D:O:C:M:hm:')
     except getopt.error, msg:
         usage(msg)
 
@@ -115,6 +116,7 @@ def main():
     mapstack = []
     maxcpu = 4
     dirs = []
+
 
     for o, a in opts:
         if o == '-C':

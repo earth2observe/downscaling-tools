@@ -292,8 +292,8 @@ def main(argv=None):
     filename = "Tair_E2OBS_"
     
     #available variables with corresponding file names and standard_names as in NC files
-    variables = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
-                    'NearSurfaceSpecificHumidity','Rainfall','SurfaceIncidentShortwaveRadiation','SnowfallRate',
+    variables = ['Rainfall','Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
+                    'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','SnowfallRate',
                     'NearSurfaceWindSpeed']
     prefix = ["T","DLW","SAP","NSS","P","SIS","SR","NSW"]
     filenames = ["Tair_daily_E2OBS_","LWdown_daily_E2OBS_","PSurf_daily_E2OBS_","Qair_daily_E2OBS_",\
@@ -331,17 +331,17 @@ def main(argv=None):
         if o == '-I': inifile = a
 
 
-    logger, ch = setlogger("e2o_getvar.log","e2o_getvar")
-    logger.debug("Reading settings from in: " + inifile)
+    logger = setlogger("e2o_getvar.log","e2o_getvar")
+    logger.info("Reading settings from in: " + inifile)
     theconf = iniFileSetUp(inifile)
     
     #Add options for multiple variables
     for i in range (0,len(variables)):
-        getDataForVar = False
+
         print variables[i]
         # Check whether variable exists in ini file
         getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
-       
+        print "===" + variables[i] + "==="
         # If variable is True read timeseries from file
         if getDataForVar == 'True':
             filename = filenames[i]

@@ -581,6 +581,7 @@ def resampleDEM(folderHighResDEM, folderLowResDEM,logger):
     resX, resY, cols, rows, XI, YI, resLowResDEM, FillVal = readMap(dst_filename,'GTiff',logger)
     resX, resY, cols, rows, XI, YI, highResDEM, FillVal = readMap(match_filename,'GTiff',logger)
 
+    highResDEM  = np.maximum(0,highResDEM)
     elevationCorrection = highResDEM - resLowResDEM
        
     return elevationCorrection, highResDEM, resLowResDEM
@@ -634,6 +635,15 @@ def resample(highResFolder,prefix,ncnt,logger):
     
     return data
 
+def correctTemp(Temp,elevationCorrection):
+
+    lapse_rate = 0.006 # [ K m-1 ]
+    
+    #apply elevation correction
+    Temp_cor   = Temp - lapse_rate * elevationCorrection    
+    
+    return Temp_cor 
+
 def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     #get day of year
     tt  = currentdate.timetuple()
@@ -656,7 +666,30 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     
     return Rsin_cor
 
-def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCorrection, highResDEM, resLowResDEM, downscaling):
+def correctPres(relevantDataFields, Pressure, highResDEM, resLowResDEM):
+    
+    """
+    relevantDataFields : ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
+                    'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','NearSurfaceWindSpeed']
+    """
+    Tmean   =  relevantDataFields[0]
+              
+    """
+    Correction of air pressure for DEM based altitude correction based on barometric formula
+    """
+
+    g            = 9.81         # gravitational constant [m s-2]
+    R_air        = 8.3144621    # specific gas constant for dry air [J mol-1 K-1]
+    Mo           = 0.0289644    # molecular weight of gas [g / mol]
+    lapse_rate   = 0.006        # lapse rate [K m-1]
+          
+    highResDEM  = np.maximum(0,highResDEM)
+        
+    Pres_cor    = Pressure *( (Tmean / ( Tmean + lapse_rate * (highResDEM - resLowResDEM))) ** (g * Mo / (R_air * lapse_rate)))
+
+    return Pres_cor
+
+def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
     
     """
     relevantDataFields : ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
@@ -700,21 +733,6 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCo
     Mo           = 0.0289644    # molecular weight of gas [g / mol]
     lapse_rate   = 0.006        # lapse rate [K m-1]
     
-    if downscaling == 'True':
-        #apply elevation correction
-        Tmean_cor   = Tmean - lapse_rate * elevationCorrection
-        Tmin_cor    = Tmin - lapse_rate * elevationCorrection
-        Tmax_cor    = Tmax - lapse_rate * elevationCorrection
-        
-        """
-        Correction of air pressure for DEM based altitude correction:          
-        barometric formula
-        """
-        
-        highResDEM  = np.maximum(0,highResDEM)
-        
-        Pres_cor    = Pres *( (Tmean / ( Tmean + lapse_rate * (highResDEM - resLowResDEM))) ** (g * Mo / (R_air * lapse_rate)))
-
     #CALCULATE EXTRATERRESTRIAL RADIATION
     #get day of year
     tt  = currentdate.timetuple()
@@ -738,23 +756,22 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCo
     
     #CALCULATE ACTUAL VAPOR PRESSURE
     # saturation vapour pressure [Pa]
-    es = lambda T:610.8*np.exp((17.27*(Tmean_cor-273.15))/((Tmean_cor-273.15)+237.3))
-    es_min  = es(Tmin_cor)
-    es_max  = es(Tmax_cor)
+    es = lambda T:610.8*np.exp((17.27*(Tmean-273.15))/((Tmean-273.15)+237.3))
+    es_min  = es(Tmin)
+    es_max  = es(Tmax)
     es_mean = (es_min+es_max)/2.
 
     # actual vapour pressure
-    ea = lambda Pres_cor, Q, eps: -(Q*Pres_cor)/((eps-1)*Q-eps)
-    ea_mean = ea(Pres_cor, Q, eps)
+    ea = lambda Pres, Q, eps: -(Q*Pres)/((eps-1)*Q-eps)
+    ea_mean = ea(Pres, Q, eps)
     ea_mean_kPa = ea_mean / 1000
     
     #clear sky solar radiation MJ d-1
     Rso = np.maximum(0.1,((0.75+(2*0.00005)) * Ra))
     
-    Rsin_MJ = 0.086400 * Rsin # * 86400 / 1.000.000
+    Rsin_MJ = 0.086400 * Rsin   
     
-    # !! VECTOR T TOO LONG
-    Rlnet_MJ = - sigma * ((Tmax_cor**4+Tmin_cor**4)/2) * (0.34 - 0.14 * np.sqrt(np.maximum(0,(ea_mean_kPa)))) * (1.35*np.minimum(1,(Rsin_MJ / Rso))-0.35)
+    Rlnet_MJ = - sigma * ((Tmax**4+Tmin**4)/2) * (0.34 - 0.14 * np.sqrt(np.maximum(0,(ea_mean_kPa)))) * (1.35*np.minimum(1,(Rsin_MJ / Rso))-0.35)
     
     Rlnet_Watt = Rlnet_MJ / 0.086400
     
@@ -764,18 +781,18 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCo
     vpd = np.maximum(es_mean - ea_mean, 0.)
     
     # density of air [kg m-3]
-    rho = Pres_cor/(Tmean_cor*R)
+    rho = Pres/(Tmean*R)
     
     # Latent heat [J kg-1]
-    Lheat = (2.501-(0.002361*(Tmean_cor-273.15)))*1e6
+    Lheat = (2.501-(0.002361*(Tmean-273.15)))*1e6
 
     # slope of vapour pressure [Pa K-1]
-    deltop  = 4098. *(610.8*np.exp((17.27*(Tmean_cor-273.15))/((Tmean_cor-273.15)+237.3)))
-    delbase = ((Tmean_cor-273.15)+237.3)**2
+    deltop  = 4098. *(610.8*np.exp((17.27*(Tmean-273.15))/((Tmean-273.15)+237.3)))
+    delbase = ((Tmean-273.15)+237.3)**2
     delta   = deltop/delbase
 
     # psychrometric constant
-    gamma   = cp*Pres_cor/(eps*Lheat)
+    gamma   = cp*Pres/(eps*Lheat)
     
     # aerodynamic resistance
     z = 10 # height of wind speed variable (10 meters above surface)
@@ -786,10 +803,15 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCo
     PETbase = np.maximum((delta + gamma*(1+rs/ra)),1)
     PET     = np.maximum(PETtop/PETbase, 0)
     PETmm   = np.maximum((PET/Lheat*TimeStepSecs),0)
+
+    if PET.any() == float("inf"):
+        sys.exit("Value infinity found")
+    else:
+        pass
     
     return PETmm
     
-def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCorrection, highResDEM, resLowResDEM, downscaling):
+def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin):
     
     """
     relevantDataFields : ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
@@ -813,20 +835,6 @@ def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationC
     lapse_rate   = 0.006        # lapse rate [K m-1]
     
     """ http://agsys.cra-cin.it/tools/evapotranspiration/help/Priestley-Taylor.html """
-    if downscaling == 'True':
-        lapse_rate = 0.006 # [ K m-1 ]
-        #apply elevation correction
-        Tmean_cor   = Tmean - lapse_rate * elevationCorrection
-        Tmin_cor    = Tmin - lapse_rate * elevationCorrection
-        Tmax_cor    = Tmax - lapse_rate * elevationCorrection
-        """
-        Correction of air pressure for DEM based altitude correction:          
-        Barometric formula
-        """
-
-        highResDEM  = np.maximum(0,highResDEM)
-        
-        Pres_cor    = Pres *( (Tmean / ( Tmean + lapse_rate * (highResDEM - resLowResDEM))) ** (g * Mo / (R_air * lapse_rate)))
     
     #CALCULATE EXTRATERRESTRIAL RADIATION
     #get day of year
@@ -851,30 +859,30 @@ def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationC
     
     #CALCULATE ACTUAL VAPOR PRESSURE
     # saturation vapour pressure [Pa]
-    es = lambda T:610.8*np.exp((17.27*(Tmean_cor-273.15))/((Tmean_cor-273.15)+237.3))
-    es_min  = es(Tmin_cor)
-    es_max  = es(Tmax_cor)
+    es = lambda T:610.8*np.exp((17.27*(Tmean-273.15))/((Tmean-273.15)+237.3))
+    es_min  = es(Tmin)
+    es_max  = es(Tmax)
     es_mean = (es_min+es_max)/2.
 
     # actual vapour pressure
-    ea = lambda Pres_cor, Q, eps: -(Q*Pres_cor)/((eps-1)*Q-eps)
-    ea_mean = ea(Pres_cor, Q, eps)
+    ea = lambda Pres, Q, eps: -(Q*Pres)/((eps-1)*Q-eps)
+    ea_mean = ea(Pres, Q, eps)
     ea_mean_kPa = ea_mean / 1000
         
     #clear sky solar radiation MJ d-1
     Rso = np.maximum(0.1,((0.75+(2*0.00005)) * Ra))
     
-    Rsin_MJ = 0.086400 * Rsin # * 86400 / 1.000.000
+    Rsin_MJ = 0.086400 * Rsin 
     
-    Rlnet_MJ = - sigma * ((Tmax_cor**4+Tmin_cor**4)/2) * (0.34 - 0.14 * np.sqrt(np.maximum(0,(ea_mean_kPa)))) * (1.35*np.minimum(1,(Rsin_MJ / Rso))-0.35)
+    Rlnet_MJ = - sigma * ((Tmax**4+Tmin**4)/2) * (0.34 - 0.14 * np.sqrt(np.maximum(0,(ea_mean_kPa)))) * (1.35*np.minimum(1,(Rsin_MJ / Rso))-0.35)
     
     Rlnet_Watt = Rlnet_MJ / 0.086400
         
-    preskPa     = Pres_cor / 1000 
-    latentHeat  = 2.501 - ( 0.002361 * ( Tmean_cor - 273.15 ) ) # latent heat of vaporization (MJ kg-1)
+    preskPa     = Pres / 1000 
+    latentHeat  = 2.501 - ( 0.002361 * ( Tmean - 273.15 ) ) # latent heat of vaporization (MJ kg-1)
 
-    slope_exp   = (17.27*(Tmean_cor - 273.15)) / ((Tmean_cor - 273.15) + 237.3)
-    slope_div   = ((Tmean_cor - 273.15) + 237.3)**2
+    slope_exp   = (17.27*(Tmean - 273.15)) / ((Tmean - 273.15) + 237.3)
+    slope_div   = ((Tmean - 273.15) + 237.3)**2
     slope       = 4098 * (0.6108 * (np.exp(slope_exp))) / slope_div
     
     psychConst  = cp_pt * ( preskPa ) / (latentHeat * eps ) # psychrometric constant (kPa degreesC-1)
@@ -886,17 +894,10 @@ def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationC
     
     return PETmm
     
-def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCorrection, downscaling):
+def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     
     Tmean = relevantDataFields[0]
 
-    if downscaling == 'True':
-        lapse_rate = 0.006 # [ K m-1 ]
-        #apply elevation correction
-        Tmean_cor   = Tmean - lapse_rate * elevationCorrection
-        Tmin_cor    = Tmin - lapse_rate * elevationCorrection
-        Tmax_cor    = Tmax - lapse_rate * elevationCorrection
-        
     #get day of year
     tt  = currentdate.timetuple()
     JULDAY = tt.tm_yday
@@ -919,9 +920,9 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin, elevationCorrec
     strDay       = str(JULDAY)
 
     airT = relevantDataFields[0]
-    PETmm = 0.0023*Ra*((np.maximum(0,(Tmean_cor-273.0))) + 17.8)*sqrt(np.maximum(0,(Tmax_cor-Tmin_cor)))
+    PETmm = 0.0023*Ra*((np.maximum(0,(Tmean-273.0))) + 17.8)*sqrt(np.maximum(0,(Tmax-Tmin)))
  
-    return PETmm, Ra, LatRad, sunangle, declin
+    return Tmean
 
 #### MAIN ####
 
@@ -1058,12 +1059,34 @@ def main(argv=None):
                         if downscaling == 'True':
                             save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,mean_as_map,int(ncnt),'temp',prefixes[i],oformat='GTiff')                     
                             mean_as_map = resample('highResDEM',prefixes[i],int(ncnt),logger)
-                            if variables[i] == 'SurfaceIncidentShortwaveRadiation':
+                            if variables[i]     == 'Temperature':
+                                mean_as_map     = correctTemp(mean_as_map,elevationCorrection)
+                            if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
                                 mean_as_map     = correctRsin(mean_as_map,currentdate,'radiationCor',logger)
-                                
+                            if variables[i]     == 'SurfaceAtmosphericPressure':
+                                mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEM)
                                 
                         relevantDataFields.append(mean_as_map)
                                             
+                        #only needed once
+                        if nrcalls ==0:
+                            nrcalls = nrcalls + 1
+                            latitude = ncstepobj.lat[:]
+                            #assuming a resolution of 0.5 degrees
+                            LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
+                            for i in range (0,int((2*(lonmax-lonmin)))):
+                                LATITUDE[:,i]=LATITUDE[:,i]*latitude
+                            if downscaling == 'True':    
+                                save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
+                                LATITUDE = resample('highResDEM','lat',int(ncnt),logger)
+                    
+                            #assign longitudes and lattitudes grids
+                            if downscaling == 'True':  
+                                lons = highResLon
+                                lats = highResLat
+                            else:
+                                lons = ncstepobj.lon
+                                lats = ncstepobj.lat
     
             if evapMethod == 'PenmanMonteith':
     
@@ -1086,22 +1109,16 @@ def main(argv=None):
                         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)                     
                         tmin = resample('highResDEM','tmin',int(ncnt),logger)
                         tmax = resample('highResDEM','tmax',int(ncnt),logger)    
-                        
-                    #only needed once
-                    if nrcalls ==0:
-                        nrcalls = nrcalls + 1
-                        latitude = ncstepobj.lat[:]
-                        #assuming a resolution of 0.5 degrees
-                        LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
-                        for i in range (0,int((2*(lonmax-lonmin)))):
-                            LATITUDE[:,i]=LATITUDE[:,i]*latitude
-                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
-                        LATITUDE = resample('highResDEM','lat',int(ncnt),logger)
-                   
+                        tmin     = correctTemp(tmin,elevationCorrection)
+                        tmax     = correctTemp(tmax,elevationCorrection)
                                                        
-                    PETmm = PenmanMonteith(LATITUDE, currentdate, relevantDataFields, tmax, tmin, elevationCorrection, highResDEM, resLowResDEM, downscaling)
+                    PETmm = PenmanMonteith(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
+                                        
+                    if downscaling == 'True':
+                        PETmm = np.flipud(PETmm)
+                        
                     logger.info("Saving PM PET data for: " +str(currentdate))
-                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,np.flipud(PETmm),int(ncnt),odir,prefix=oprefix,oformat=oformat)
+                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
                   
             if evapMethod == 'PriestleyTaylor':
                 mapname = os.path.join(odir,getmapname(ncnt,oprefix))
@@ -1123,23 +1140,17 @@ def main(argv=None):
                         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)
                         tmin = resample('highResDEM','tmin',int(ncnt),logger)
                         tmax = resample('highResDEM','tmax',int(ncnt),logger)   
-
-                    #only needed once
-                    if nrcalls ==0:
-                        nrcalls = nrcalls + 1
-                        latitude = ncstepobj.lat[:]
-                        #assuming a resolution of 0.5 degrees
-                        LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
-                        for i in range (0,int((2*(lonmax-lonmin)))):
-                            LATITUDE[:,i]=LATITUDE[:,i]*latitude
-                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
-                        LATITUDE = resample('highResDEM','lat',int(ncnt),logger)
+                        tmin     = correctTemp(tmin,elevationCorrection)
+                        tmax     = correctTemp(tmax,elevationCorrection)
                    
-                    PETmm = PriestleyTaylor(LATITUDE, currentdate, relevantDataFields, tmax, tmin,elevationCorrection,highResDEM,resLowResDEM,downscaling)
+                    PETmm = PriestleyTaylor(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
                                    
                     logger.info("Saving PT PET data for: " +str(currentdate))
 
-                    save_as_mapsstack_per_day(highResLat,highResLon,np.flipud(PETmm),int(ncnt),odir,prefix=oprefix,oformat=oformat)
+                    if downscaling == 'True':
+                        PETmm = np.flipud(PETmm)
+                        
+                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
                                   
             if evapMethod == 'Hargreaves':
                 mapname = os.path.join(odir,getmapname(ncnt,oprefix))
@@ -1155,21 +1166,7 @@ def main(argv=None):
                     tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
                     logger.info("Get actual 3hr data...")
                     ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
-                    #ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
-    
                     mstack = ncstepobj.getdates(timelist)
-    
-                    #only needed once
-                    if nrcalls ==0:
-                        nrcalls = nrcalls + 1
-                        latitude = ncstepobj.lat[:]
-                        #assuming a resolution of 0.5 degrees
-                        LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
-                        for i in range (0,int((2*(lonmax-lonmin)))):
-                            LATITUDE[:,i]=LATITUDE[:,i]*latitude
-                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
-                        LATITUDE = resample('highResDEM','lat',int(ncnt),logger)
-
                     tmin = mstack.min(axis=0)
                     tmax = mstack.max(axis=0)
                     if downscaling == 'True':
@@ -1177,21 +1174,26 @@ def main(argv=None):
                         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)
                         tmin = resample('highResDEM','tmin',int(ncnt),logger)
                         tmax = resample('highResDEM','tmax',int(ncnt),logger)  
+                        tmin     = correctTemp(tmin,elevationCorrection)
+                        tmax     = correctTemp(tmax,elevationCorrection)
                         
                     logger.info("Start hargreaves..")
-                    PETmm, Ra, dst, angle, dec = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin, elevationCorrection, downscaling)
-                    #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,Ra,int(ncnt),odir,prefix="RA",oformat=oformat)
+                    PETmm = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
+                    
+                    if downscaling == 'True':
+                        PETmm = np.flipud(PETmm)
     
                     logger.info("Saving HAR PET data for: " +str(currentdate))
-                    #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,PETmm[0],int(ncnt),odir,prefix=oprefix,oformat=oformat)
-                    save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,np.flipud(PETmm),int(ncnt),odir,prefix=oprefix,oformat=oformat)
+                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
             
-#            #cleaning temp and resample directory
-#            dirs = ['temp','resampled']
-#            for directory in dirs:
-#                fileList = os.listdir(directory)
-#                for fileName in fileList:
-#                    os.remove(directory+"/"+fileName)
+            
+            #cleaning temp and resample directory
+            if downscaling == 'True': 
+                dirs = ['temp','resampled']
+                for directory in dirs:
+                    fileList = os.listdir(directory)
+                    for fileName in fileList:
+                        os.remove(directory+"/"+fileName)
         
         else:
             pass

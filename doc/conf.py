@@ -55,10 +55,11 @@ import e2o_dstools
 extensions = ['sphinx.ext.todo','sphinx.ext.pngmath' ,
           'matplotlib.sphinxext.only_directives',
           'matplotlib.sphinxext.plot_directive',
-          'sphinx.ext.autodoc','sphinxcontrib.bibtex',
+          'sphinx.ext.autodoc',
           'sphinx.ext.graphviz',
           'sphinx.ext.doctest']
-
+		  
+#'sphinxcontrib.bibtex',
 todo_include_todos=True
 # Add any paths that contain templates here, relative to this directory.
 #templates_path = ['_templates']

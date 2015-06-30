@@ -25,10 +25,10 @@ The steps below should allow you to run the examples on a windows computer.
 Linux instructions are missing at the moment but in principle just running "python setup.py install" should get you started.
 
 1. Download the release: https://github.com/earth2observe/downscaling-tools/releases/download/20015.1/e2o_dstools-64-bit-2015.1.zip
-2. Download the examples: https://github.com/earth2observe/downscaling-tools/releases/download/20015.1/examples.zip
-3. Unzip both files into an empty directory
-4. Goto the examples\\getvar directory and run the examplerun1.bat file
-5. the result are stored as PCRaster maps in the output directory. These can be opened in QGIS or aguila
+2. Unzip the file into an empty directory
+3. Goto the examples\\getvar directory and run the examplerun1.bat file
+4. the result are stored as PCRaster maps in the output directory. These can be opened in QGIS or aguila
+
 
 
 

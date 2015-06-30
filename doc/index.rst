@@ -18,13 +18,23 @@ the project :cite:`weedonwfdei2014`.
 
 
 
-Usage
-=====
+Quick start using the examples
+==============================
+
+The steps below should allow you to run the examples on a windows computer.
+Linux instructions are missing at the moment but in principle just running "python setup.py install" should get you started.
+
+1. Download the release: https://github.com/earth2observe/downscaling-tools/releases/download/20015.1/e2o_dstools-64-bit-2015.1.zip
+2. Download the examples: https://github.com/earth2observe/downscaling-tools/releases/download/20015.1/examples.zip
+3. Unzip both files into an empty directory
+4. Goto the examples\getvar directory and run the examplerun1.bat file
+5. the result are stored as PCRaster maps in the output directory. These can be opened in QGIS or aguila
+
 
 PET Determination and downscaling
 ---------------------------------
 
-The tools assume you have a digital elevation model fo3 your area. This file should be in
+The tools assume you have a digital elevation model for your area. This file should be in
 a GDAL supported format (preferably GTiff).
 
 + Optionally, first run the e2o_radiation script. This will generate Clear-Sky radiation maps for each day of the
@@ -36,10 +46,13 @@ a GDAL supported format (preferably GTiff).
 See the documentation per module for more information.
 
 
-Retrieving variables
---------------------
-The e2o_getvar script allows you to retrieve single or multiple variable from the e2o server fro
-a specified region and timespan.
+
+The e2o_getvar script
+=====================
+.. toctree::
+   :maxdepth: 2
+
+   e2o_getvar
 
 The radiation module
 ====================
@@ -56,12 +69,7 @@ The evaporation module
    evaporation
 
 
-The e2o_getvar script
-=====================
-.. toctree::
-   :maxdepth: 2
 
-   e2o_getvar
 
 Examples and tests
 ==================

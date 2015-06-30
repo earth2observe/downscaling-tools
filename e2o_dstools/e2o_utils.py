@@ -13,6 +13,9 @@ import os
 from numpy import *
 import sys
 import datetime
+import scipy.interpolate
+import scipy.ndimage
+
 
 class ncdatset():
     """
@@ -712,7 +715,7 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
     :return: datablock of new grid.
     """
     
-    from scipy import interpolate, ndimage
+
     # we need to sort the y data (must be ascending)
     # and thus flip the image
     Ysrt = sort(Yin)
@@ -722,10 +725,10 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
     outsize = min(diff(Xout))
     #if insize < outsize:
     #    xsize = outsize/insize
-    #    gridZ_in = ndimage.filters.percentile_filter(gridZ_in,50,size=xsize)
+    #    gridZ_in = scipy.ndimage.filters.percentile_filter(gridZ_in,50,size=xsize)
 
     if method in 'nearest linear':
-        interobj = interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(FillVal))
+        interobj = scipy.interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(FillVal))
         _x, _y = meshgrid(Xout, Yout)
         yx_outpoints = transpose([_y.flatten(), _x.flatten()])
 

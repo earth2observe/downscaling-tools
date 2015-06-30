@@ -11,9 +11,7 @@ usage:
 """
 
 
-import getopt, sys, os, netCDF4
-import osgeo.gdal as gdal
-from osgeo.gdalconst import *
+import getopt, sys, os
 import datetime
 from numpy import *
 from e2o_dstools.e2o_utils import *

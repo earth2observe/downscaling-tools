@@ -33,7 +33,7 @@ Usage::
               [-t transmissivity]
 
     -D DEM Filename of the digital elevation model
-    -d DEM option loc resolution dem to determien heigth correction for
+    -d DEM option low resolution dem to determine height correction for
     -O outputdir (default is . )
     -S Startday - Start day of the simulation (1 Jan is 1)
     -E EndDay - End day of the simulation
@@ -67,11 +67,12 @@ the year:
 
 
 from pcraster import *
-import sys
+import sys,os
 import logging
 import e2o_utils
 import getopt
 import numpy as np
+
 
 
 def lattometres(lat):

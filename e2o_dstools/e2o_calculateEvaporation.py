@@ -11,20 +11,11 @@ usage:
     -l loglevel - DEBUG, INFO, WARN, ERROR
 """
 
-import getopt, sys, os, glob
-import osgeo.gdal as gdal
-from osgeo.gdalconst import *
-from osgeo import gdal, gdalconst
+import getopt, sys, os
 import datetime
 from numpy import *
 import numpy as np
 from e2o_utils import *
-import pdb
-import pandas as pd
-import pcraster as pcr
-from scipy import interpolate
-import scipy.ndimage
-import shutil
 
 
 

@@ -27,23 +27,9 @@ Linux instructions are missing at the moment but in principle just running "pyth
 1. Download the release: https://github.com/earth2observe/downscaling-tools/releases/download/20015.1/e2o_dstools-64-bit-2015.1.zip
 2. Download the examples: https://github.com/earth2observe/downscaling-tools/releases/download/20015.1/examples.zip
 3. Unzip both files into an empty directory
-4. Goto the examples\getvar directory and run the examplerun1.bat file
+4. Goto the examples\\getvar directory and run the examplerun1.bat file
 5. the result are stored as PCRaster maps in the output directory. These can be opened in QGIS or aguila
 
-
-PET Determination and downscaling
----------------------------------
-
-The tools assume you have a digital elevation model for your area. This file should be in
-a GDAL supported format (preferably GTiff).
-
-+ Optionally, first run the e2o_radiation script. This will generate Clear-Sky radiation maps for each day of the
-  year (four maps per day). These maps can be used by the e2o_calculateEvaportion script to downscalle
-  reference ET
-+ Next run the e2o_calculateEvaporation script. This will calculate downscaled ET based on a local DEM for
-  the priod you specify in the .ini file
-
-See the documentation per module for more information.
 
 
 

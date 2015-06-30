@@ -2,10 +2,20 @@ Potential evaporation
 =====================
 
 
+The tools assume you have a digital elevation model for your area. This file should be in
+a GDAL supported format (preferably GTiff).
+
++ Optionally, first run the e2o_radiation script. This will generate Clear-Sky radiation maps for each day of the
+  year (four maps per day). These maps can be used by the e2o_calculateEvaportion script to downscalle
+  reference ET
++ Next run the e2o_calculateEvaporation script. This will calculate downscaled ET based on a local DEM for
+  the priod you specify in the .ini file
+
+See the documentation per module for more information.
+
 
 Introduction
 ------------
-
 
 In general evaporation amounts are determined for about 90% by
 radiation input. Radiation at the earth’s surface is determined by

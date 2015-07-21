@@ -1,7 +1,7 @@
 e2o_getvar - retrieve variables
 ===============================
 
-e2o_getval gett variables from the server for a specific region (specified in the ini file)
+e2o_getval gets variables from the server for a specific region (specified in the ini file)
 and optionally resamples those to a specified Digital Elevation Model (DEM).
 
 Usage:

@@ -1,6 +1,17 @@
 Potential evaporation
 =====================
 
+The tool / script described here allows a user to derive daily high-resolution maps of reference evaporation for a
+specific river catchment or other area of interest. The only input the user needs to supply is a high-resolution
+regular DEM in GEOTiff format of the area he/she is interested in. Reference evaporation will be calculated from the
+eartH2Observe dataset which is based on the WFDEI dataset that is corrected following the method developed in the EU
+FP6 project WATCH. In this method ERA-interim re-analysis data is corrected with the observation based GPCP dataset
+(Weedon et al., 2014). The dataset covers the period 1979-2012 and contains the required 3-hourly gridded data fields:
+
+-	Air temperature, rainfall rate, air pressure at surface, longwave downward radiation, shortwave downward
+ radiation, air humidity and wind speed. Daily values are derived by calculating the daily average of the 3-hourly
+ values.
+
 
 The tools assume you have a digital elevation model for your area. This file should be in
 a GDAL supported format (preferably GTiff).
@@ -14,18 +25,6 @@ a GDAL supported format (preferably GTiff).
 See the documentation per module for more information.
 
 
-Introduction
-------------
-
-In general evaporation amounts are determined for about 90% by
-radiation input. Radiation at the earth’s surface is determined by
-the potential solar radiation at the edge of the earths atmosphere
-and the filtering within the atmosphere. The first component can be
-easily determined from equations. The reduction due to clouds etc
-can be estimated by incorporation short wave measurements but if
-these are not available cloud cover estimates can also be used. By
-combining this with a DEM radiation at the earths surface can be
-determined including the effects of aspect and shading.
 
 The figure below shows the steps used to generate down-scaled reference evaporation
 in the scripts.
@@ -122,12 +121,79 @@ nd Dhs from the estimated values Bh, and Dh.
 Temperature
 -----------
 
-Temperature is downscaled using a fixed laps-rate.
+Temperature is downscaled using a laps-rate which is fixed at 0.006 K m-1. The down-scaling is based on the
+difference in elevation between (1) the global low-resolution DEM belonging to the eartH2Observe dataset and (2) the
+local high resolution DEM. The down-scaled temperature is calculated for each grid cell of the high resolution DEM.
+Min and max temperature: Daily minimum and maximum temperature are calculated by taking the daily minimum and maximum
+ values from the 3-hourly temperature time-series.
+
 
 Pressure
 --------
 
-Pressure is downscaled .... PM
+Pressure is down-scaled with the barometric formula. The barometric formula gives the pressure in the atmosphere as a
+ function of height. Since temperature and the composition of the atmosphere are complicated functions of height, and
+  because gravitation is an inverse function of the distance to the centre of the planet, three simplifications have
+  been made within the version of the equation we apply:
+
+- temperature, gravitation, and composition are assumed constant throughout the atmosphere;
+- the atmosphere is assumed an ideal gas;
+- temperature is assumed to decrease linearly with height with a slope L, the atmospheric lapse rate.
+
+The downscaling is based on the difference (ΔH [m]) between the low resolution global and the high resolution local
+DEM according to the following equation:
+
+.. math::
+
+        P_{cor} = P \left(\frac{\bar{T}}{\bar{T} + L \Delta H}^\frac{g M_0}{L R} \right)
+
+
+
+Where P = uncorrected pressure from the eartH2Observe dataset [Pa], $\bar{T}$  = the daily average temperature from the
+eartH2Observe dataset [K], g = 9.81 - gravitational constant [m s-2], R = 8.3144621 - specific gas constant for dry
+air [J mol-1 K-1], Mo = 0.0289644 - molecular weight of gas [g / mol] and L = 0.006 - lapse rate [K m-1].
+
+
+
+Evaporation methods
+===================
+
+The following reference evaporation equations have been implemented:
+
+- Hargreaves - temperature based
+- Priestley-Taylor - temperature and radiation based
+- Penman-Monteith – fully physically based
+
+
+These are defined as follows:
+
+Hargreaves:
+.. math::
+
+    \[E{T_o} = 0.0023 \cdot {R_a} \cdot (\overline T  + 17.8) \cdot {(TR)^{0.50}}\]
+
+Priestley-Taylor:
+.. math::
+
+    \[E{T_o} = \alpha \frac{{\Delta {R_n}}}{{{\lambda _v}(\Delta  + \gamma )}}\]
+
+
+Penman-Monteith (at z= 10m):
+.. math::
+
+    \[E{T_o} = \frac{{\Delta ({R_n} - G) + {\rho _a}{c_p}\frac{{({e_s} - {e_a})}}{{{r_a}}}}}{{{\lambda _v}\Delta  + \gamma (1 + \frac{{{r_s}}}{{{r_a}}})}}\]
+
+
+
+
+Where λv = Latent heat of vaporization (J/g), Δ = the slope
+of the saturation vapour pressure temperature relationship (Pa K-1), Rn = Net radiation (W m-2), G = Soil heat flux
+(W m-2), cp = specific heat of the air (J kg-1 K-1), ρa = mean air density at constant pressure (kg m-3), es - ea =
+vapor pressure deficit (Pa), rs = surface resistances (m s-1), ra = aerodynamic resistances (m s-1), γ =
+Psychrometric constant (66 Pa K-1), Ra = extraterrestrial radiation (MJ m-2 day-1), = mean daily temperature (°C),
+TR= temperature range (°C), α = empirical multiplier (-;1.26),
+
+
 
 
 Implementation

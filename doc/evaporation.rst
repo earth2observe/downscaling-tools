@@ -39,14 +39,6 @@ in the scripts.
 
     dpi=69;
 
-ini file configuration
-----------------------
-
-The .ini file below shows the available options
-
-.. literalinclude:: _download/e2o_calculateEvaporation.ini
-
-The file can be downloaded here: :download:`here. <_download/e2o_calculateEvaporation.ini>`
 
 
 Downscaling
@@ -132,9 +124,9 @@ Pressure
 --------
 
 Pressure is down-scaled with the barometric formula. The barometric formula gives the pressure in the atmosphere as a
- function of height. Since temperature and the composition of the atmosphere are complicated functions of height, and
-  because gravitation is an inverse function of the distance to the centre of the planet, three simplifications have
-  been made within the version of the equation we apply:
+function of height. Since temperature and the composition of the atmosphere are complicated functions of height, and
+because gravitation is an inverse function of the distance to the centre of the planet, three simplifications have
+been made within the version of the equation we apply:
 
 - temperature, gravitation, and composition are assumed constant throughout the atmosphere;
 - the atmosphere is assumed an ideal gas;
@@ -168,20 +160,23 @@ The following reference evaporation equations have been implemented:
 These are defined as follows:
 
 Hargreaves:
+
 .. math::
 
-    \[E{T_o} = 0.0023 \cdot {R_a} \cdot (\overline T  + 17.8) \cdot {(TR)^{0.50}}\]
+    E{T_o} = 0.0023 \cdot {R_a} \cdot (\overline T  + 17.8) \cdot {(TR)^{0.50}}
 
 Priestley-Taylor:
+
 .. math::
 
-    \[E{T_o} = \alpha \frac{{\Delta {R_n}}}{{{\lambda _v}(\Delta  + \gamma )}}\]
+    E{T_o} = \alpha \frac{{\Delta {R_n}}}{{{\lambda _v}(\Delta  + \gamma )}}
 
 
 Penman-Monteith (at z= 10m):
+
 .. math::
 
-    \[E{T_o} = \frac{{\Delta ({R_n} - G) + {\rho _a}{c_p}\frac{{({e_s} - {e_a})}}{{{r_a}}}}}{{{\lambda _v}\Delta  + \gamma (1 + \frac{{{r_s}}}{{{r_a}}})}}\]
+    E{T_o} = \frac{{\Delta ({R_n} - G) + {\rho _a}{c_p}\frac{{({e_s} - {e_a})}}{{{r_a}}}}}{{{\lambda _v}\Delta  + \gamma (1 + \frac{{{r_s}}}{{{r_a}}})}}
 
 
 
@@ -199,9 +194,19 @@ TR= temperature range (°C), α = empirical multiplier (-;1.26),
 Implementation
 ==============
 
+ini file configuration
+----------------------
+
+The .ini file below shows the available options
+
+.. literalinclude:: _download/e2o_calculateEvaporation.ini
+
+The file can be downloaded here: :download:`here. <_download/e2o_calculateEvaporation.ini>`
 
 
 
+Code description
+----------------
 
 .. automodule:: e2o_dstools.e2o_calculateEvaporation
     :members:

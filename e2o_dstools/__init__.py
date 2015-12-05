@@ -7,7 +7,6 @@ __release__ = "2015"
 
 import osgeo.gdal as gdal
 import netCDF4
-import netCDF4_utils
 import netcdftime
 import scipy
 import scipy.interpolate

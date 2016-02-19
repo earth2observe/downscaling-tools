@@ -608,9 +608,14 @@ def main(argv=None):
                             nrcalls = nrcalls + 1
                             latitude = ncstepobj.lat[:]
                             #assuming a resolution of 0.5 degrees
-                            LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
-                            for i in range (0,int((2*(lonmax-lonmin)))):
-                                LATITUDE[:,i]=LATITUDE[:,i]*latitude
+                            #LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
+                            #for i in range (0,int((2*(lonmax-lonmin)))):
+                            #    print i
+                            #    print latitude
+                            #    print shape(latitude)
+                            #    print LATITUDE[:,i]
+                            #    print shape(LATITUDE[:,i])
+                            #    LATITUDE[:,i]=LATITUDE[:,i]*latitude
                             if downscaling == 'True' or resampling == "True":
                                 #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
                                 #LATITUDE = resample(FNhighResDEM,'lat',int(ncnt),logger)

@@ -77,7 +77,7 @@ class ncdatset():
         """
 
         for a in ncdataset.variables:
-            if  ncdataset.variables[a].standard_name == 'time':
+            if 'time' in ncdataset.variables[a].standard_name:
                 return ncdataset.variables[a]
 
         return None

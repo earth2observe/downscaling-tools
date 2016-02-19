@@ -53,43 +53,63 @@ class ncdatset():
 
     def getlat(self,ncdataset):
         """
+        Check for standard name latitude. If that is not present assume the variable name
         """
 
-        for a in ncdataset.variables:
-            if  ncdataset.variables[a].standard_name == 'latitude':
-                return ncdataset.variables[a]
+        for a in self.nc.variables:
+            if hasattr(self.nc.variables[a],'standard_name'):
+                if  self.nc.variables[a].standard_name == 'latitude':
+                    return self.nc.variables[a]
+            else:
+                if a == 'latitude':
+                    return self.nc.variables[a]
 
         return None
 
     def getvarbyname(self,name):
         """
+        Check for standard name. If that is not present assume the variable name
         """
 
-
         for a in self.nc.variables:
-            if  self.nc.variables[a].standard_name == name:
-                return self.nc.variables[a]
+            if hasattr(self.nc.variables[a],'standard_name'):
+                if  self.nc.variables[a].standard_name == name:
+                    return self.nc.variables[a]
+            else:
+                if  a  == name:
+                    return self.nc.variables[a]
+
 
         return None
 
     def gettime(self,ncdataset):
         """
+        Check for standard name. If that is not present assume the variable name
         """
 
         for a in ncdataset.variables:
-            if 'time' in ncdataset.variables[a].standard_name:
-                return ncdataset.variables[a]
+            if hasattr(self.nc.variables[a],'standard_name'):
+                if 'time' in ncdataset.variables[a].standard_name:
+                    return ncdataset.variables[a]
+            else:
+                if a == 'time':
+                    return self.nc.variables[a]
 
         return None
 
 
     def getlon(self,ncdataset):
         """
+        Check for standard name. If that is not present assume the variable name
         """
 
-        for a in ncdataset.variables:
-            if  ncdataset.variables[a].standard_name == 'longitude':
-                return ncdataset.variables[a]
+        for a in self.nc.variables:
+            if hasattr(self.nc.variables[a],'standard_name'):
+                if  self.nc.variables[a].standard_name == 'longitude':
+                    return self.nc.variables[a]
+            else:
+                if a == 'longitude':
+                    return self.nc.variables[a]
 
         return None
 
@@ -98,9 +118,13 @@ class ncdatset():
         """
         """
 
-        for a in ncdataset.variables:
-            if  ncdataset.variables[a].standard_name == 'height':
-                return ncdataset.variables[a]
+        for a in self.nc.variables:
+            if hasattr(self.nc.variables[a],'standard_name'):
+                if  self.nc.variables[a].standard_name == 'height':
+                    return self.nc.variables[a]
+            else:
+                if a == 'height':
+                    return self.nc.variables[a]
 
         return None
 

@@ -13,9 +13,9 @@ import os
 from numpy import *
 import sys
 import datetime
-import scipy.interpolate
-import scipy.ndimage
-
+from scipy import interpolate, ndimage
+#import scipy.interpolate
+#import scipy.ndimage
 
 class ncdatset():
     """
@@ -43,7 +43,7 @@ class ncdatset():
         self.heigth = self.getheigth(self.nc)
         self.dimensions = 3 if self.heigth == None else 4
         self.time =   self.gettime(self.nc)
-        self.timesteps = self.time.shape[0]
+        #self.timesteps = self.time.shape[0]
         self.logger.debug(self.nc)
 
 
@@ -91,9 +91,9 @@ class ncdatset():
             if hasattr(self.nc.variables[a],'standard_name'):
                 if 'time' in ncdataset.variables[a].standard_name:
                     return ncdataset.variables[a]
-            else:
-                if a == 'time':
-                    return self.nc.variables[a]
+            elif hasattr(self.nc.variables[a],'units'):
+                if 'since' in ncdataset.variables[a].units:
+                    return ncdataset.variables[a]
 
         return None
 
@@ -202,7 +202,10 @@ class getstepdaily():
 
             time = self.dset.time
             tar = time[:]
-            timeObj = netCDF4.num2date(tar, units=time.units, calendar=time.calendar)
+            try:
+                timeObj = netCDF4.num2date(tar, units=time.units, calendar=time.calendar)
+            except:
+                timeObj = netCDF4.num2date(tar, units=time.units, calendar='standard')
             #print timeObj
             spos = nonzero(timeObj == alldates[0])[0]
             if len(spos) != 1:
@@ -443,7 +446,10 @@ def get_times_daily(startdate,enddate, serverroot, wrrsetroot, filename,logger):
         dateList.append(startdate + datetime.timedelta(days = x))
 
     for thedate in dateList:
-        ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
+        if 'ecmwf/met_forcing' in wrrsetroot:
+            ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
+        elif '3b42' in wrrsetroot:
+            ncfile = serverroot + wrrsetroot + "/" + "%d" % (thedate.year) + "/" + "%02d" % (thedate.month) + "/"+ filename
         filelist[str(thedate)] = ncfile
 
     return filelist, dateList
@@ -739,7 +745,6 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
     :return: datablock of new grid.
     """
     
-
     # we need to sort the y data (must be ascending)
     # and thus flip the image
     Ysrt = sort(Yin)
@@ -749,10 +754,10 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
     outsize = min(diff(Xout))
     #if insize < outsize:
     #    xsize = outsize/insize
-    #    gridZ_in = scipy.ndimage.filters.percentile_filter(gridZ_in,50,size=xsize)
+    #    gridZ_in = ndimage.filters.percentile_filter(gridZ_in,50,size=xsize)
 
     if method in 'nearest linear':
-        interobj = scipy.interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(FillVal))
+        interobj = interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(FillVal))
         _x, _y = meshgrid(Xout, Yout)
         yx_outpoints = transpose([_y.flatten(), _x.flatten()])
 

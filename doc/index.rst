@@ -1,13 +1,11 @@
-===============================
-eartH2Observe Downscaling tools
-===============================
+============================================
+eartH2Observe Downscaling tools Introduction
+============================================
 
 .. note::
       This documentation is for version |version| of e2o_dstools, release |release|
       This documentation was generated |today|
 
-Introduction
-============
 
 e2o_downscaling-tools consists of a number of python programs and procedures that facilitate local
 application of the earth2observe global water resources reanalysis. The tools
@@ -103,7 +101,7 @@ This well give you a lot of output, ending with something similar to what is sho
     Processing dependencies for e2o-dstoools==0.1
     Finished processing dependencies for e2o-dstoools==0.1
 
-
+===========
 User manual
 ===========
 .. toctree::
@@ -112,7 +110,9 @@ User manual
    manual.rst
 
 
-
+================
+Reference manual
+================
 
 The e2o_getvar script
 =====================

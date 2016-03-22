@@ -218,7 +218,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'e2o_dstools.tex', u'e2o\_dstools Documentation',
-   u'Jaap Schellekens', 'manual'),
+   u'Jaap Schellekens, Frederiek Sperna Weiland', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

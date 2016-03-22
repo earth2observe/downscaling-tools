@@ -33,7 +33,7 @@ e2o_resample_stack -D dirname -O outputdirname -C clone_map [-M maxcpu] [-h]
     -C clone map (map to interpolate to)
     -M maxcpu
        maximum number of cpu's/cores to use (default = 4)
-    -h show this infotmation
+    -h show this information
 
 
 The script uses the pcraster resample.exe program to resample the maps. This must be

@@ -227,52 +227,58 @@ If all other meteorological variables need to be saved the “saveall” option 
 
     # If saveall is true all variables used are saved instead of only the PET
     saveall=1
+
+
+
+Example e2o_calculateevaporation ini file:
+
+::
  
-[url]
-# Server location and location of the WRR forcing
-serverroot = http://wci.earth2observe.eu/thredds/dodsC/
-wrrsetroot = ecmwf/met_forcing_v1/
+    [url]
+    # Server location and location of the WRR forcing
+    serverroot = http://wci.earth2observe.eu/thredds/dodsC/
+    wrrsetroot = ecmwf/met_forcing_v1/
 
-[selection]
-# What to do
-calculateEvap = True
-# Choose one of the three methods below
-evapMethod = PenmanMonteith
-#evapMethod = Hargreaves
-#evapMethod = PriestleyTaylor
+    [selection]
+    # What to do
+    calculateEvap = True
+    # Choose one of the three methods below
+    evapMethod = PenmanMonteith
+    #evapMethod = Hargreaves
+    #evapMethod = PriestleyTaylor
 
-# Specifye box to download from server. Should be a bit bigger that the DEM
-latmin = -90
-latmax = +90
-lonmin = -180
-lonmax = 180
+    # Specifye box to download from server. Should be a bit bigger that the DEM
+    latmin = -90
+    latmax = +90
+    lonmin = -180
+    lonmax = 180
 
-# Start and end-year, month and day of the evaporation calculations
-startyear = 1979
-endyear= 1979
-startmonth = 1
-endmonth = 12
-startday = 1
-endday = 31
+    # Start and end-year, month and day of the evaporation calculations
+    startyear = 1979
+    endyear= 1979
+    startmonth = 1
+    endmonth = 12
+    startday = 1
+    endday = 31
 
-[downscaling]
-# location of original DEM (WFDEI) and the local high resolution DEM
-highResDEM=highresdem\DEM.tif
-# Resampling = True -> resample to resolution of dEM specified in downscaling section
-# Downscaling = True -> also apply DEM based correctiosn of T, Radiation, Pressure
-resampling  = True
-downscaling = True
-# useVarLapseRate = True -> use spatial and temporal varying lapse rate provided as part of the WRR2 forcing dataset iso the default value of -0.006
-useVarLapseRate = True
-# Wher to fine the output of the e2o_radiation script
-radcordir=output_rad
+    [downscaling]
+    # location of original DEM (WFDEI) and the local high resolution DEM
+    highResDEM=highresdem\DEM.tif
+    # Resampling = True -> resample to resolution of dEM specified in downscaling section
+    # Downscaling = True -> also apply DEM based correctiosn of T, Radiation, Pressure
+    resampling  = True
+    downscaling = True
+    # useVarLapseRate = True -> use spatial and temporal varying lapse rate provided as part of the WRR2 forcing dataset iso the default value of -0.006
+    useVarLapseRate = True
+    # Wher to fine the output of the e2o_radiation script
+    radcordir=output_rad
 
-[output]
-# Gdal output format string
-# See: http://www.gdal.org/formats_list.html
-# examples: AAIGrid, PCRaster, GTiff etc
-format=	GTiff
-directory=output/
-prefix=PET
-# Is saveall is true all variables used are saved instead of only the PET
-saveall=1
+    [output]
+    # Gdal output format string
+    # See: http://www.gdal.org/formats_list.html
+    # examples: AAIGrid, PCRaster, GTiff etc
+    format=	GTiff
+    directory=output/
+    prefix=PET
+    # Is saveall is true all variables used are saved instead of only the PET
+    saveall=1

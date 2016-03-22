@@ -1,32 +1,28 @@
-e2o-downscaling tools - manual
-==============================
-
-
 Introduction
-------------
+============
 
 Within this manual we introduce a Python based meteorological downscaling tool that allows one to:
 
 + retrieve all meteorological variables that are part of the eartH2Observe WRR1 and WRR2 datasets
- for a region of interest on a user defined grid extent and resolution;
+for a region of interest on a user defined grid extent and resolution;
 + downscale the meteorological variables temperature and air pressure using a DEM based elevation correction;
 + calculate potential evaporation from the WRR1 and WRR2 datasets using the Penman-Moneith, Priestley-Taylor
-    or Hargreaves equation, optionally considering elevation corrections for temperature, air pressure and
-    radiation and shading corrections for radiation.
+or Hargreaves equation, optionally considering elevation corrections for temperature, air pressure and
+radiation and shading corrections for radiation.
 
 This document is merely a technical manual. For background reading on the scientific concepts used we
 will in the text refer to the online documentation.
 
 
 Region specific user-defined settings
--------------------------------------
+=====================================
 
 In the previous section we have introduced the default way of running the eartH2Observe downscaling tool. In this
 section we discuss all options that are user adjustable and can be specified for the region, resolution and period of
- interest. Options will be discussed following the order in the .ini file.
+interest. Options will be discussed following the order in the .ini file.
 
 User specified DEM of area of interest
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
 
 The user can specify his region of interest, and the desired regular grid resolution by providing a high resolution
 DEM covering the region of interest. The file should be provided in GEOTiff format with the name DEM.tif in the
@@ -37,12 +33,12 @@ following directory:
     ../e2o_downscaling/e2o_dstools/highresdem
 
 The DEM will be used for the definition of the extend and resolution of the generated meteorological output files. If
- the option ‘downscaling’ is turned on (see section 3.2.4) the altitudes in the DEM will be used to spatially
- downscale temperature, air pressure and radiation.
+the option ‘downscaling’ is turned on (see section 3.2.4) the altitudes in the DEM will be used to spatially
+downscale temperature, air pressure and radiation.
 
 
 User settings in the e2o_calculateEvaporation.ini file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------
 
 Below a description of  the content of the .ini file is given. Options can be turned on or off by:
 
@@ -82,8 +78,8 @@ calculateEvap = False	-- no evaporation grids will be generated (reduces run tim
 3.2.2	Evaporation options
 To turn the generation of evaporation grids on or off the calculateEvap option is given.
 
-calculateEvap = True	 	 evaporation grids will be generated
-calculateEvap = False	 no evaporation grids will be generated (reduces run times when no evaporation is needed).
+calculateEvap = True #evaporation grids will be generated
+calculateEvap = False #no evaporation grids will be generated (reduces run times when no evaporation is needed).
 
 
 Three methods to calculate evaporation have been implemented in the down-scaling tool:
@@ -119,12 +115,12 @@ datasets.
 
 These DEMs are located in the folder : ../e2o_downscaling/e2o_dstools/lowresdem and are called demWRR1.tif and
 demWRR2.tif. The downscaling tool automatically selects the correct DEM based on the selected meteorological forcing
-(met_forcing_v0 or met_forcing_v1) defined in the .ini file at wrrsetroot.   When both downscaling and resampling are
- set to false the maximum spatial extend required for the data to be read from the netCDFs file can be set by
- defining the corners of the area of interest: latmin, latmax, lonmin and lonmax.
+(met_forcing_v0 or met_forcing_v1) defined in the .ini file at wrrsetroot. When both downscaling and resampling are
+set to false the maximum spatial extend required for the data to be read from the netCDFs file can be set by
+defining the corners of the area of interest: latmin, latmax, lonmin and lonmax.
 
 If one is for example only interested in data for Australia the process can be accelerated by avoiding the reading of
- the full world maps from the netCDFs file by setting an extend slightly larger than the Australian continent.
+the full world maps from the netCDFs file by setting an extend slightly larger than the Australian continent.
 
 ::
 
@@ -164,11 +160,12 @@ interest, see the example below for 1979:
     endday = 31
 
 
-3.2.7	Radiation correction
+Radiation correction
+--------------------
 
 The WRR1 and WRR2 provide potential solar radiation which is the radiation of an unobstructed or cloudless sky. The
-magnitude of this potential solar radiation that reaches the earth surface depends on the position of the sun the
-solar altitude or solar angleduring the day, the inclination of the solar rays with the earth’s surface, the amount
+magnitude of this potential solar radiation that reaches the earth surface depends on the position of the sun the
+solar altitude or solar angle during the day, the inclination of the solar rays with the earth’s surface, the amount
 of radiation at the outer layer of the earth’s atmosphere, the transmissivity of the sky and the altitude of the
 earth’s surface.
 

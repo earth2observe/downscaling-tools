@@ -1,6 +1,9 @@
-============================================
-eartH2Observe Downscaling tools Introduction
-============================================
+=============================
+Introduction and installation
+=============================
+
+Introduction
+============
 
 .. note::
       This documentation is for version |version| of e2o_dstools, release |release|
@@ -104,8 +107,9 @@ This well give you a lot of output, ending with something similar to what is sho
 ===========
 User manual
 ===========
+
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    manual.rst
 
@@ -117,7 +121,7 @@ Reference manual
 The e2o_getvar script
 =====================
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    e2o_getvar
 
@@ -135,23 +139,16 @@ The evaporation module
 
    evaporation
 
-
-
-
-Examples and tests
-==================
-.. toctree::
-   :maxdepth: 2
-   
-
+===
 FAQ
 ===
+
 .. toctree::
    :maxdepth: 2
 
    faq
 
-   
+=============
 Release notes
 =============
 .. toctree::
@@ -159,7 +156,7 @@ Release notes
 
    release-notes
 
-
+==================
 Indices and tables
 ==================
 
@@ -168,7 +165,7 @@ Indices and tables
 * :ref:`search`
 
 
-
+====
 TODO
 ====
 

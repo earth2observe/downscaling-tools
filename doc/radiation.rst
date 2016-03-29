@@ -1,10 +1,7 @@
-Radiation correction on a digital elevation model
-=================================================
+Clear sky Radiation on a digital elevation model
+================================================
 
-
-Introduction
-------------
-The radiation module can be used to create celar sky radiation estimates
+The radiation module can be used to create clear sky radiation estimates
 using a (high resolution) digital elevation model. In turn, these results can be used
 by the evaporation module to better estimate local evaporation.
 
@@ -12,8 +9,36 @@ by the evaporation module to better estimate local evaporation.
 Usage
 =====
 
-The folowing command takes the digital elevation model wflow_dem.map and calcilate the
-radiation components for day 1 to 366 and save these as a pcraster mapstack. The internal
+Below the command-line usage of the e2o_radiation.py script is described:
+
+::
+
+    e2o_radiation -D DEM [-d DEM][-O outputdir][-S start day][-E end day]
+              [-M][-x lon][-y lat][-h][-l loglevel][-T minutes][-L directory]
+              [-t transmissivity]
+
+    -D DEM Filename of the digital elevation model
+    -d DEM option low resolution dem to determine height correction for
+    -O outputdir (default is . )
+    -S Startday - Start day of the simulation (1 Jan is 1)
+    -E EndDay - End day of the simulation
+    -T minutes - timeresolution in minutes (60 default is 1 hour)
+    -M The DEM xy units are in metres (instead of lat/lon)
+    -x longitute of the map left (if map xy in metres)
+    -y lattitude of the map bottom (if map xy in metres)
+    -l loglevel Set loglevel (DEBUG, INFO, WARNING,ERROR)
+    -s start hour (per day) of the calculations (default =1)
+    -e end hour (per day) of the calculations (default = 23)
+    -h This information
+    -f output format as a gdal type string (http://www.gdal.org/formats_list.html) Default is PCRaster
+    -p add the file format string as a postfix to all filename (default is False)
+    -t specify thau transmissivity (default value = 0.6) (usually between 0.4 and 0.8)
+    -L determine optical correction via linke turbidity (in stead of thau transmissivity). The
+       argument should point to a directory in which monthly linke maps are present in pcraster format
+
+
+The following command takes the local digital elevation model (wflow_dem.map) and calculates the
+radiation components for day 1 to 366 and saves these as a pcraster mapstack. The internal
 timesteps is set to 60 minutes and the calculations are done for 5 hr in the morning to 22 hour at night.
 
 ::
@@ -22,17 +47,10 @@ timesteps is set to 60 minutes and the calculations are done for 5 hr in the mor
 
 
 
-Implementation
-==============
-
-.. automodule:: e2o_dstools.e2o_radiation
-    :members:
 
 
-
-
-Description
------------
+Methods
+=======
 
 Adjusted after van Dam 2000
 
@@ -186,7 +204,6 @@ time of the day and the position of the sun.
 Most of the work done for the shading is implemented in the pcraster horizontan function.
 
 
-
 Example
 =======
 
@@ -207,4 +224,11 @@ Literature
 ==========
 https://www.google.nl/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCYQFjAA&url=http%3A%2F%2Fwww.physics.arizona.edu%2F~cronin%2FSolar%2FReferences%2FIrradiance%2520Models%2520and%2520Data%2FWOC01.pdf&ei=CHNcVfKXLMf-UojagfAN&usg=AFQjCNG4m1HBoQMPeZYcPxIQRYtC4xcp6A&sig2=L02qLYq-2vNXwgwW_vUwFA
 
+
+
+Implementation
+==============
+
+.. automodule:: e2o_dstools.e2o_radiation
+    :members:
 

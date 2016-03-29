@@ -2,7 +2,7 @@
 
 # e2o_dstools is Free software, see below:
 #
-# Copyright (c) Deltares 2005-2014
+# Copyright (c) Deltares 2005-2016
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,12 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
-# $Rev:: 904           $:  Revision of last commit
-# $Author:: schelle    $:  Author of last commit
-# $Date:: 2014-01-13 1#$:  Date of last commit
 
 """
 Determine clear sky radiation over a Digital Elevation Model.
@@ -51,7 +45,7 @@ Usage::
     -L determine optical correction via linke turbidity (in stead of thau transmissivity). The
        argument should point to a directory in which monthly linke maps are present in pcraster format
 
-r
+
 The program produces the following map stacks, one for each day of
 the year:
 
@@ -69,7 +63,7 @@ the year:
 from pcraster import *
 import sys,os
 import logging
-import e2o_utils
+import e2o_dstools
 import getopt
 import numpy as np
 
@@ -87,7 +81,6 @@ def lattometres(lat):
     #radlat = spatial(lat * ((2.0 * math.pi)/360.0))
     #radlat = lat * (2.0 * math.pi)/360.0
     radlat = spatial(lat) # pcraster cos/sin work in degrees!
-
 
     m1 = 111132.92        # latitude calculation term 1
     m2 = -559.82        # latitude calculation term 2
@@ -128,8 +121,6 @@ def detRealCellLength(ZeroMap,sizeinmetres):
         reallength = (xl + yl) * 0.5
 
     return xl,yl,reallength
-
-
 
 
 def correctrad(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAltitude,Trans=0.6):
@@ -205,8 +196,6 @@ def correctrad(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAltitud
     HoriAng   = ifthenelse(HoriAng < 0, scalar(0), HoriAng)
     CritSun   = ifthenelse(SolAlt > 90, scalar(0), scalar(atan(HoriAng)))
     Shade   = SolAlt > CritSun
-
-
     OpCorr = Trans**((sqrt(1229.0+(614.0*sin(SolAlt))**2) -614.0*sin(SolAlt))*AtmPcor)    # correction for air masses [-]
     AltOpCorr = Trans**((sqrt(1229.0+(614.0*sin(SolAlt))**2) -614.0*sin(SolAlt))*AtmPcorAlt)
 
@@ -220,8 +209,6 @@ def correctrad(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAltitud
     # Stot   :total incomming light Sdir+Sdiff [W/m2] at Hour
     # Radiation :avg of Stot(Hour) and Stot(Hour-HourStep)
     # NOTE: PradM only valid for HourStep & DayStep = 1
-
-    
     SdirCor   = ifthenelse(Snor*cosIncident*scalar(Shade)<0,0.0,Snor*cosIncident*scalar(Shade))
     Sdir   = ifthenelse(Snor*cosIncident<0,0.0,Snor*cosIncident)
     SdirFlat   = ifthenelse(Snor*cosIncidentFlat<0,0.0,Snor*cosIncidentFlat)
@@ -233,11 +220,8 @@ def correctrad(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAltitud
     Stot   = Sdir + Sdiff                                             # Rad [W/m2]
     StotCor   = SdirCor + Sdiff                                   # Rad [W/m2]
     StotFlat = SdirFlat + Sdiff
-    
-    
-     
-    return StotCor, StotFlat, Shade, SdirCor, SdirFlat, OpCorr, AltOpCorr
 
+    return StotCor, StotFlat, Shade, SdirCor, SdirFlat, OpCorr, AltOpCorr
 
 
 def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAltitude, Linke, LinkeDEM):
@@ -320,13 +304,11 @@ def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
     TL2 = 0.8662 * LinkeCor[1]
     AltOpCorr = ifthenelse(sin(SolAlt) > 0.02,exp(-TL2 * m[1] * rayl[1]),cover(0.0))
 
-
     # Solar azimuth
     # ----------------------------
     # SolAzi  :angle solar beams to N-S axes earth [deg]
     SolAzi = scalar(acos((sin(SolDec)*cos(Lat)-cos(SolDec)* sin(Lat)*cos(HourAng))/cos(SolAlt)))
     SolAzi = ifthenelse(Hour <= 12, SolAzi, 360 - SolAzi)
-
 
     # Surface azimuth
     # ----------------------------
@@ -345,15 +327,11 @@ def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
     # NOTE: for a changing DEM in time use following 3 statements and put a #
     #       for the 4th CritSun statement
     HoriAng   = cover(horizontan(Altitude_UnitLatLon,directional(SolAzi)),0)
-
-
-    #HoriAng   = horizontan(Altitude,directional(SolAzi))
     HoriAng   = ifthenelse(HoriAng < 0, scalar(0), HoriAng)
     CritSun   = ifthenelse(SolAlt > 90, scalar(0), scalar(atan(HoriAng)))
     Shade   = SolAlt > CritSun
     Sout   = Sc*(1+0.03344*cos(360*Day/365.0)) # radiation outer atmosphere [W/m2]
     Snor = Sout * OpCorr
-
 
     # Radiation at DEM
     # ----------------------------
@@ -383,7 +361,9 @@ def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
 
 
 
-def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, logje, Trans=0.6, start=1, end=2, interval=60, shour=1, ehour=23, outformat='PCRaster',Addpostfix=False, linkemapstack=None):
+def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, logje, \
+               Trans=0.6, start=1, end=2, interval=60, shour=1, ehour=23, \
+               outformat='PCRaster',Addpostfix=False, linkemapstack=None):
     """
     Generate radiation masp for a number of days
 
@@ -415,7 +395,7 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
     if linkemapstack:
         demname = os.path.join(os.path.dirname(linkemapstack),"linkedem.map")
         logje.debug("Resampling linke turbidity map DEM: " + demname)
-        resX, resY, cols, rows, LinkeLon, LinkeLat, LinkeDEM, FillVal = e2o_utils.readMap(demname,'PCRaster',logging)
+        resX, resY, cols, rows, LinkeLon, LinkeLat, LinkeDEM, FillVal = e2o_dstools.e2o_utils.readMap(demname,'PCRaster',logging)
         lat = pcr2numpy(ycoordinate(boolean(cover(1.0))),0.0)[:,0]
         lon = pcr2numpy(xcoordinate(boolean(cover(1.0))),0.0)[0,:]
         loncut = np.all([LinkeLon >= lon.min() - np.diff(LinkeLon).max(), LinkeLon <= lon.max() + np.diff(LinkeLon).max()], axis=0)
@@ -424,7 +404,7 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
         LinkeLat = LinkeLat[latcut]
         a = LinkeDEM[latcut,:]
         b = a[:,loncut]
-        LinkeDEMRESAMP = e2o_utils.resample_grid(b,LinkeLon, LinkeLat,lon, lat,method='linear',FillVal=0.0)
+        LinkeDEMRESAMP = e2o_dstools.e2o_utils.resample_grid(b,LinkeLon, LinkeLat,lon, lat,method='linear',FillVal=0.0)
         linkdempcr = numpy2pcr(Scalar,LinkeDEMRESAMP,0.0)
 
     oldmonth = 0
@@ -448,12 +428,12 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
             for Hour in calchours:
                 logje.debug("Hour: " + str(Hour))
                 if linkemapstack:
-                    mapname = e2o_utils.getmapnamemonth(Day,linkemapstack)
+                    mapname = e2o_dstools.e2o_utils.getmapnamemonth(Day,linkemapstack)
                     month = int(mapname.split('.0')[1])
 
                     if month != oldmonth:
                         logje.debug("Resampling linke turbidity map: " + mapname)
-                        resX, resY, cols, rows, LinkeLon, LinkeLat, LinkeMap, FillVal = e2o_utils.readMap(mapname,'PCRaster',logging)
+                        resX, resY, cols, rows, LinkeLon, LinkeLat, LinkeMap, FillVal = e2o_dstools.e2o_utils.readMap(mapname,'PCRaster',logging)
 
                         lat = pcr2numpy(ycoordinate(boolean(cover(1.0))),0.0)[:,0]
                         lon = pcr2numpy(xcoordinate(boolean(cover(1.0))),0.0)[0,:]
@@ -467,7 +447,7 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
                         #print lat
                         #print lon
                         #print
-                        linkemap = e2o_utils.resample_grid(b,LinkeLon, LinkeLat,lon, lat,method='linear',FillVal=0.0)
+                        linkemap = e2o_dstools.e2o_utils.resample_grid(b,LinkeLon, LinkeLat,lon, lat,method='linear',FillVal=0.0)
                         linkemappcr = numpy2pcr(Scalar,linkemap,0.0)
                         #report(linkemappcr,'linkemappcr.map')
                         oldmonth = month
@@ -495,17 +475,17 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
             y = pcr2numpy(ycoordinate(boolean(cover(1.0))),1E31)[:,0]
 
             data = pcr2numpy(avgrad/Calcsteps,1E31)
-            e2o_utils.writeMap(os.path.join(SaveDir,"COR00000." + nr + postfix),outformat,x,y,data, 1E31)
+            e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"COR00000." + nr + postfix),outformat,x,y,data, 1E31)
             data = pcr2numpy(avshade,1E31)
-            e2o_utils.writeMap(os.path.join(SaveDir,"SUN00000." + nr+ postfix),outformat,x,y,data, 1E31)
+            e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"SUN00000." + nr+ postfix),outformat,x,y,data, 1E31)
             data = pcr2numpy(_flat/Calcsteps,1E31)
-            e2o_utils.writeMap(os.path.join(SaveDir,"FLAT0000." + nr+ postfix),outformat,x,y,data, 1E31)
+            e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"FLAT0000." + nr+ postfix),outformat,x,y,data, 1E31)
             data = pcr2numpy(cordir/Calcsteps,1E31)
-            e2o_utils.writeMap(os.path.join(SaveDir,"CORDIR00." + nr+ postfix),outformat,x,y,data, 1E31)
+            e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"CORDIR00." + nr+ postfix),outformat,x,y,data, 1E31)
             data = pcr2numpy(flatdir/Calcsteps,1E31)
-            e2o_utils.writeMap(os.path.join(SaveDir,"FLATDIR0." + nr+ postfix),outformat,x,y,data, 1E31)
+            e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"FLATDIR0." + nr+ postfix),outformat,x,y,data, 1E31)
             data = pcr2numpy(max(0.00001,avgoptcor)/max(0.00001,avgaltoptcor) ,1E31)
-            e2o_utils.writeMap(os.path.join(SaveDir,"OPT00000." + nr+ postfix),outformat,x,y,data, 1E31)
+            e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"OPT00000." + nr+ postfix),outformat,x,y,data, 1E31)
 
 
 def usage(*args):
@@ -527,7 +507,8 @@ def main(argv=None):
     :param argv: See usage
     :return:
     """
-
+    linkemapstack = e2o_dstools.get_data('')
+    print linkemapstack
     if argv is None:
         argv = sys.argv[1:]
         if len(argv) == 0:
@@ -558,6 +539,9 @@ def main(argv=None):
     linkemapstack = None
     trans = 0.6
     deminterpolmethod = 'nearest'
+    linkemapstack = e2o_dstools.get_data('')
+    print linkemapstack
+
 
 
     for o, a in opts:
@@ -565,7 +549,7 @@ def main(argv=None):
         if o == '-O': outputdir = a
         if o == '-D': thedem = a
         if o == '-d': lowresdem = a
-        if o == '-M': xymetres = true
+        if o == '-M': xymetres = True
         if o == '-x': lat = int(a)
         if o == '-y': lon = int(a)
         if o == '-t': trans = float(a)
@@ -579,8 +563,7 @@ def main(argv=None):
         if o == '-p': postfix = True
         if o == '-L': linkemapstack = a
 
-
-    logger = e2o_utils.setlogger("e2o_radiation.log","e2o_radiation",level=loglevel)
+    logger = e2o_dstools.e2o_utils.setlogger("e2o_radiation.log","e2o_radiation",level=loglevel)
     if not os.path.exists(thedem):
         logger.error("Cannot find dem: " + thedem + " exiting.")
         sys.exit(1)

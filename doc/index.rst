@@ -125,15 +125,15 @@ The e2o_getvar script
 
    e2o_getvar
 
-The radiation module
-====================
+The e2o_radiation script
+========================
 .. toctree::
    :maxdepth: 2
 
    radiation
 
-The evaporation module
-======================
+The e2o_calculateEvaporation script
+===================================
 .. toctree::
    :maxdepth: 2
 

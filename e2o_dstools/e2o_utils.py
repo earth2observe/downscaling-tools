@@ -13,9 +13,14 @@ import os
 from numpy import *
 import sys
 import datetime
-from scipy import interpolate, ndimage
-#import scipy.interpolate
-#import scipy.ndimage
+from scipy import interpolate
+
+try:
+    import netCDF4.utils
+except:
+    import netCDF4_utils
+
+import netcdftime
 
 class ncdatset():
     """
@@ -332,6 +337,7 @@ class getstep():
         self.lon=[]
         self.data = []
         self.logger = logger
+        self.timestepSeconds = timestepSeconds
 
     def getdate(self,thedate):
 
@@ -352,9 +358,9 @@ class getstep():
             time = self.dset.time
             timeObj = netCDF4.num2date(time[:], units=time.units, calendar=time.calendar)
 
-            if timestepSecond < 3600:
+            if self.timestepSeconds < 3600:
                 dpos = thedate.second -1
-            elif timestepSecond < 86400:
+            elif self.timestepSeconds < 86400:
                 dpos = thedate.hour -1
             else:
                 dpos = thedate.day -1

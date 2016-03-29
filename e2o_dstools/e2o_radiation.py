@@ -64,6 +64,7 @@ from pcraster import *
 import sys,os
 import logging
 import e2o_dstools
+import e2o_dstools.e2o_utils
 import getopt
 import numpy as np
 
@@ -433,13 +434,16 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
 
                     if month != oldmonth:
                         logje.debug("Resampling linke turbidity map: " + mapname)
-                        resX, resY, cols, rows, LinkeLon, LinkeLat, LinkeMap, FillVal = e2o_dstools.e2o_utils.readMap(mapname,'PCRaster',logging)
+                        resX, resY, cols, rows, LinkeLon, LinkeLat, LinkeMap, FillVal = \
+                            e2o_dstools.e2o_utils.readMap(mapname,'PCRaster',logging)
 
                         lat = pcr2numpy(ycoordinate(boolean(cover(1.0))),0.0)[:,0]
                         lon = pcr2numpy(xcoordinate(boolean(cover(1.0))),0.0)[0,:]
 
-                        loncut = np.all([LinkeLon >= lon.min() - np.diff(LinkeLon).max(), LinkeLon <= lon.max() + np.diff(LinkeLon).max()], axis=0)
-                        latcut = np.all([LinkeLat >= lat.min() - np.diff(LinkeLat).max(), LinkeLat <= lat.max()+ np.diff(LinkeLat).max()], axis=0)
+                        loncut = np.all([LinkeLon >= lon.min() - np.diff(LinkeLon).max(), \
+                                         LinkeLon <= lon.max() + np.diff(LinkeLon).max()], axis=0)
+                        latcut = np.all([LinkeLat >= lat.min() - np.diff(LinkeLat).max(), \
+                                         LinkeLat <= lat.max()+ np.diff(LinkeLat).max()], axis=0)
                         LinkeLon = LinkeLon[loncut]
                         LinkeLat = LinkeLat[latcut]
                         a = LinkeMap[latcut,:]
@@ -507,8 +511,8 @@ def main(argv=None):
     :param argv: See usage
     :return:
     """
-    linkemapstack = e2o_dstools.get_data('')
-    print linkemapstack
+
+
     if argv is None:
         argv = sys.argv[1:]
         if len(argv) == 0:
@@ -536,11 +540,10 @@ def main(argv=None):
     oformat ='PCRaster'
     postfix =False
     lowresdem="notset"
-    linkemapstack = None
+    linkemapstack = os.path.join(e2o_dstools.get_data(''),'linke')
     trans = 0.6
     deminterpolmethod = 'nearest'
-    linkemapstack = e2o_dstools.get_data('')
-    print linkemapstack
+    linkemapstack = None
 
 
 
@@ -575,14 +578,15 @@ def main(argv=None):
     dem = readmap(thedem)
     if "notset" not in lowresdem:
         logger.debug("Resampling dem...")
-        LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = e2o_utils.readMap(lowresdem,'GTiff',logger)
-        resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = e2o_utils.readMap(thedem,'GTiff',logger)
-        resLowResDEMNear = e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=deminterpolmethod,FillVal=0.0)
+        LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = e2o_dstools.e2o_utils.readMap(lowresdem,'GTiff',logger)
+        resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = e2o_dstools.e2o_utils.readMap(thedem,'GTiff',logger)
+        resLowResDEMNear = e2o_dstools.e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=deminterpolmethod,FillVal=0.0)
         Altdem = numpy2pcr(Scalar,resLowResDEMNear,FillVal)
     else:
         Altdem = dem
 
 
+    dem = ifthenelse(dem == 0.0, 0.00001,dem)
     logger.debug("Calculating slope and aspect...")
     if xymetres:
         LAT = spatial(scalar(lat))
@@ -592,7 +596,7 @@ def main(argv=None):
     else:
         LAT= ycoordinate(boolean(dem))
         LON = xcoordinate(boolean(dem))
-        Slope = slope(dem)
+        Slope = max(0.00001,slope(dem))
         xl, yl, reallength = detRealCellLength(dem * 0.0, 0)
         Slope = max(0.00001, Slope * celllength() / reallength)
         DEMxyUnits = dem * celllength() / reallength
@@ -606,7 +610,9 @@ def main(argv=None):
     #report(Aspect,'aspect.map')
     #report(Altdem,'altdem.map')
 
-    GenRadMaps(outputdir,LAT,LON,Slope,Aspect,dem,DEMxyUnits,Altdem,logger,Trans=trans,start=startday,end=endday,interval=calc_interval,shour=shour,ehour=ehour,outformat=oformat,Addpostfix=postfix,linkemapstack=linkemapstack)
+    GenRadMaps(outputdir,LAT,LON,Slope,Aspect,dem,DEMxyUnits,Altdem,logger,\
+               Trans=trans,start=startday,end=endday,interval=calc_interval,shour=shour,\
+               ehour=ehour,outformat=oformat,Addpostfix=postfix,linkemapstack=linkemapstack)
 
 
 if __name__ == "__main__":

@@ -42,8 +42,7 @@ Usage::
     -f output format as a gdal type string (http://www.gdal.org/formats_list.html) Default is PCRaster
     -p add the file format string as a postfix to all filename (default is False)
     -t specify thau transmissivity (default value = 0.6) (usually between 0.4 and 0.8)
-    -L determine optical correction via linke turbidity (in stead of thau transmissivity). The
-       argument should point to a directory in which monthly linke maps are present in pcraster format
+    -L determine optical correction via linke turbidity (in stead of thau transmissivity).
 
 
 The program produces the following map stacks, one for each day of
@@ -521,7 +520,7 @@ def main(argv=None):
 
 
     try:
-        opts, args = getopt.getopt(argv, 'hD:d:Mx:y:l:O:S:E:T:s:e:f:pL:t:')
+        opts, args = getopt.getopt(argv, 'hD:d:Mx:y:l:O:S:E:T:s:e:f:pLt:')
     except getopt.error, msg:
         usage(msg)
 
@@ -540,11 +539,10 @@ def main(argv=None):
     oformat ='PCRaster'
     postfix =False
     lowresdem="notset"
-    linkemapstack = os.path.join(e2o_dstools.get_data(''),'linke')
+    linkemapstacks = os.path.join(e2o_dstools.get_data(''),'linke')
     trans = 0.6
-    deminterpolmethod = 'nearest'
     linkemapstack = None
-
+    deminterpolmethod = 'nearest'
 
 
     for o, a in opts:
@@ -564,7 +562,7 @@ def main(argv=None):
         if o == '-e': ehour = int(a)
         if o == '-f': oformat = a
         if o == '-p': postfix = True
-        if o == '-L': linkemapstack = a
+        if o == '-L': linkemapstack = linkemapstacks
 
     logger = e2o_dstools.e2o_utils.setlogger("e2o_radiation.log","e2o_radiation",level=loglevel)
     if not os.path.exists(thedem):

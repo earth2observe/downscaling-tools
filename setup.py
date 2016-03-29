@@ -15,6 +15,10 @@ requires = [
     'matplotlib',
     'pcraster', 'osgeo','scipy']
 
+datadir = os.path.join('e2o_dstools','data')
+datafiles = [(d, [os.path.join(d,f) for f in files])
+    for d, folders, files in os.walk(datadir)]
+
 
 
 # Source dist
@@ -28,5 +32,6 @@ setup(name='e2o_dstoools',
       license = "GPL",
       scripts=['e2o_dstools/e2o_getvar.py','e2o_dstools/e2o_calculateEvaporation.py','e2o_dstools/e2o_radiation.py'],
       description='Download and downscaling tools for the earth2observe datasets',
+      data_files = datafiles,
       )
 

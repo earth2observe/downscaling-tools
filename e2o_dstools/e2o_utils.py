@@ -562,7 +562,7 @@ def getmapname(number,prefix):
 
 def writeMap(fileName, fileFormat, x, y, data, FillVal):
     """
-    Write geographical data into file. Also replave NaN bu FillVall
+    Write geographical data into file. Also replace NaN by FillVall
 
     :param fileName:
     :param fileFormat:
@@ -597,10 +597,14 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
     TempBand.WriteArray(data,0,0)
     TempBand.FlushCache()
     TempBand.SetNoDataValue(FillVal)
+
     # Create data to write to correct format (supported by 'CreateCopy')
     if verbose:
         print 'Writing to ' + fileName + '.map'
-    outDataset = driver2.CreateCopy(fileName, TempDataset, 0)
+    if fileFormat == 'GTiff':
+        outDataset = driver2.CreateCopy(fileName, TempDataset, 0 ,options = ['COMPRESS=LZW'])
+    else:
+        outDataset = driver2.CreateCopy(fileName, TempDataset, 0)
     TempDataset = None
     outDataset = None
     if verbose:

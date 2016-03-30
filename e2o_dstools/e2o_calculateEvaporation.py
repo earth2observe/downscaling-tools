@@ -11,11 +11,20 @@ usage:
     -l loglevel - DEBUG, INFO, WARN, ERROR
 """
 
-import getopt, sys, os
+import getopt, sys, os, glob
+import osgeo.gdal as gdal
+from osgeo.gdalconst import *
+from osgeo import gdal, gdalconst
 import datetime
 from numpy import *
 import numpy as np
 from e2o_utils import *
+import pdb
+import pandas as pd
+import pcraster as pcr
+from scipy import interpolate
+import scipy.ndimage
+import shutil
 
 
 
@@ -29,11 +38,6 @@ def usage(*args):
     for msg in args: print msg
     print __doc__
     sys.exit(0)
-
-
-
-
-
 
 
 def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):
@@ -72,8 +76,18 @@ def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):
     #print "saving map: " + os.path.join(directory,mapname)
     writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
 
+def convertCoordinateSystem(sourcetif,desttif,destmap): 
 
-def correctTemp(Temp,elevationCorrection):
+    #AZ - UTM38N:
+    #command= 'gdalwarp -s_srs EPSG:4326 -t_srs EPSG:32638 -te 147000 4151000 986000 4775000 -tr 1000 1000 %s %s' % (sourcetif,desttif)
+    #AZ - lat-lon:
+    command= 'gdalwarp -s_srs EPSG:4326 -t_srs EPSG:4326 -te 41.0 37.5 50.5 43.0 -tr 0.01 0.01 %s %s' % (sourcetif,desttif)
+    os.system(command)     
+
+    command= 'gdal_translate -of PCRaster -ot Float32 %s %s' % (desttif,destmap)
+    os.system(command)   
+
+def correctTemp(Temp,LapseRate,elevationCorrection):
 
     """
     Elevation based correction of temperature
@@ -82,14 +96,12 @@ def correctTemp(Temp,elevationCorrection):
     Temperature             = daily mean, min or max temperature (degrees Celcius)
     Elevation correction    = difference between high resolution and low resolution (0.5 degrees) DEM  [m]
 
-    constants:
-    lapse_rate = 0.006 # [ K m-1 ]
+
     """
 
     #apply elevation correction
-    lapse_rate = 0.006 # [ K m-1 ]
 
-    Temp_cor   = Temp - lapse_rate * elevationCorrection
+    Temp_cor   = Temp + LapseRate * elevationCorrection
 
     return Temp_cor
 
@@ -139,7 +151,7 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
 
     return Rsin_cor, Kc
 
-def correctPres(relevantDataFields, Pressure, highResDEM, resLowResDEM,FillVal=1E31):
+def correctPres(relevantDataFields, Pressure, LapseRate, highResDEM, resLowResDEM,FillVal=1E31):
     """
     Correction of air pressure for DEM based altitude correction based on barometric formula
 
@@ -159,13 +171,16 @@ def correctPres(relevantDataFields, Pressure, highResDEM, resLowResDEM,FillVal=1
     g            = 9.81         # gravitational constant [m s-2]
     R_air        = 8.3144621    # specific gas constant for dry air [J mol-1 K-1]
     Mo           = 0.0289644    # molecular weight of gas [g / mol]
-    lapse_rate   = 0.006        # lapse rate [K m-1]
 
-    # Why is this, switched off for now...
-    #highResDEM  = np.maximum(0,highResDEM)
+    
+    array_thousands         = 1000 * ones_like(highResDEM)
+    array_minumThousands    = -1000 * ones_like(highResDEM)
+    
+    elevationDiff = np.minimum((highResDEM - resLowResDEM),array_thousands)
+    elevationDiff = np.maximum(elevationDiff,array_minumThousands)
 
     Pres_cor = zeros_like(Tmean)
-    Pres_cor    = Pressure *( (Tmean/ ( Tmean + lapse_rate * (highResDEM - resLowResDEM))) ** (g * Mo / (R_air * lapse_rate)))
+    Pres_cor    = Pressure *( (Tmean/ ( Tmean + LapseRate * elevationDiff)) ** (g * Mo / (R_air * LapseRate)))
 
     Pres_cor[isnan(Pres_cor)] = FillVal
 
@@ -220,7 +235,7 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
     g            = 9.81         # gravitational constant [m s-2]
     R_air        = 8.3144621    # specific gas constant for dry air [J mol-1 K-1]
     Mo           = 0.0289644    # molecular weight of gas [g / mol]
-    lapse_rate   = 0.006        # lapse rate [K m-1]
+
 
     #CALCULATE EXTRATERRESTRIAL RADIATION
     #get day of year
@@ -321,7 +336,7 @@ def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin):
     g            = 9.81         # gravitational constant [m s-2]
     R_air        = 8.3144621    # specific gas constant for dry air [J mol-1 K-1]
     Mo           = 0.0289644    # molecular weight of gas [g / mol]
-    lapse_rate   = 0.006        # lapse rate [K m-1]
+
 
     """ http://agsys.cra-cin.it/tools/evapotranspiration/help/Priestley-Taylor.html """
 
@@ -390,6 +405,7 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
     #get day of year
     tt  = currentdate.timetuple()
     JULDAY = tt.tm_yday
+
 #    #Latitude radians
     LatRad= lat*np.pi/180.0
     test = np.tan(LatRad)
@@ -424,13 +440,11 @@ def main(argv=None):
 
     #available variables with corresponding file names and standard_names as in NC files
     variables = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
-                    'NearSurfaceSpecificHumidity','Rainfall','SurfaceIncidentShortwaveRadiation','SnowfallRate','NearSurfaceWindSpeed']
-    filenames = ["Tair_daily_E2OBS_","LWdown_daily_E2OBS_","PSurf_daily_E2OBS_","Qair_daily_E2OBS_",\
-                    "Rainf_daily_E2OBS_","SWdown_daily_E2OBS_","Snowf_daily_E2OBS_","Wind_daily_E2OBS_"]
+                    'NearSurfaceSpecificHumidity','Rainfall','SurfaceIncidentShortwaveRadiation','SnowfallRate','NearSurfaceWindSpeed','LapseRate']
     standard_names = ['air_temperature','surface_downwelling_longwave_flux_in_air','surface_air_pressure','specific_humidity',\
-                        'rainfal_flux','surface_downwelling_shortwave_flux_in_air','snowfall_flux','wind_speed']
+                        'rainfal_flux','surface_downwelling_shortwave_flux_in_air','snowfall_flux','wind_speed','air_temperature_lapse_rate']
     prefixes = ["Tmean","LWdown","PSurf","Qair",\
-                    "Rainf","SWdown","Snowf","Wind"]
+                    "Rainf","SWdown","Snowf","Wind","lapseR"]
 
     #tempdir
 
@@ -445,11 +459,13 @@ def main(argv=None):
     lonmax = 5.75
     startday = 1
     endday = 1
+    FNlowResDEM = 'lowresdem\demWRR1.tif'
     getDataForVar = True
     calculateEvap = False
     evapMethod = None
     downscaling = None
     resampling = None
+    useVarLapseRate = None
     StartStep = 1
     EndStep = 0
 
@@ -503,16 +519,31 @@ def main(argv=None):
     odir = configget(logger,theconf,"output","directory","output/")
     oprefix = configget(logger,theconf,"output","prefix","E2O")
     radcordir = configget(logger,theconf,"downscaling","radiationcordir","output_rad")
-    FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
-    FNlowResDEM = configget(logger,theconf,"downscaling","lowResDEM","origdem.map")
     saveAllData = int(configget(logger,theconf,"output","saveall","0"))
 
+    # Set low resolution DEM filename for either WRR1 or WRR2:
+    if 'met_forcing_v1' in wrrsetroot:
+        FNlowResDEM     = 'lowresdem/demWRR2.tif' 
+    else:
+        FNlowResDEM     = 'lowresdem/demWRR1.tif'
+    # Get filenames
+    if 'met_forcing_v1' in wrrsetroot: 
+        filenames = ["Tair_daily_EI_025_","LWdown_daily_EI_025_","PSurf_daily_EI_025_","Qair_daily_EI_025_",\
+                    "Rainf_daily_EI_025_","SWdown_daily_EI_025_","Snowf_daily_EI_025_","Wind_daily_EI_025_","lapseM_EI_025_"]
+        temperatureFile = ["Tair_EI_025_"]
+    else:
+        filenames = ["Tair_daily_E2OBS_","LWdown_daily_E2OBS_","PSurf_daily_E2OBS_","Qair_daily_E2OBS_",\
+                    "Rainf_daily_E2OBS_","SWdown_daily_E2OBS_","Snowf_daily_E2OBS_","Wind_daily_E2OBS_"]
+        temperatureFile = ["Tair_E2OBS_"]        
+                    
     # Check whether downscaling should be applied
-    resamplingtype   = configget(logger,theconf,"selection","resamplingtype","linear")
-    downscaling   = configget(logger,theconf,"selection","downscaling",downscaling)
-    resampling   = configget(logger,theconf,"selection","resampling",resampling)
+    resamplingtype   = configget(logger,theconf,"downscaling","resamplingtype","linear")
+    downscaling   = configget(logger,theconf,"downscaling","downscaling",downscaling)
+    resampling   = configget(logger,theconf,"downscaling","resampling",resampling)
+    useVarLapseRate   = configget(logger,theconf,"downscaling","useVarLapseRate",useVarLapseRate)
 
     if downscaling == 'True' or resampling =="True":
+        FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
         # get grid info
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = readMap(FNhighResDEM,'GTiff',logger)
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = readMap(FNlowResDEM,'GTiff',logger)
@@ -529,7 +560,19 @@ def main(argv=None):
         lowResDEM[Lmismask] = FillVal
         elevationCorrection = highResDEM - resLowResDEM
 
-
+        #set Bounding box used to minimize data retrieval from nc file
+        lonmax = math.ceil(highResLon[-1]+1)
+        lonmin = math.floor(highResLon[0]-1)
+        latmax = math.ceil(highResLat[0]+1)
+        latmin = math.floor(highResLat[-1]-1)
+        BB = dict(
+           lon=[ lonmin, lonmax],
+           lat= [ latmin, latmax]
+           )
+    else:
+        FillVal     = 1E31
+        LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = readMap(FNlowResDEM,'GTiff',logger)
+        mismask     = lowResDEM == FillVal
 
     #Check whether evaporation should be calculated
     calculateEvap   = configget(logger,theconf,"selection","calculateEvap",calculateEvap)
@@ -561,11 +604,24 @@ def main(argv=None):
         if ncnt > 0 and ncnt >= StartStep and ncnt <= EndStep:
             # Get all daily datafields needed and aad to list
             relevantDataFields = []
-            # Get all data fro this timestep
+            # Get all data for this timestep
             mapname = os.path.join(odir,getmapname(ncnt,oprefix))
             if os.path.exists(mapname) or os.path.exists(mapname + ".gz") or os.path.exists(mapname + ".zip"):
                 logger.info("Skipping map: " + mapname)
             else:
+                #retrieve lapse_rate if needed
+                if useVarLapseRate == 'True' and 'met_forcing_v1' in wrrsetroot:            
+                    if downscaling == 'True' or resampling =="True":
+                        filename        = filenames[-1]
+                        standard_name   = standard_names[-1]
+                        tlist, timelist = get_times_daily(currentdate,currentdate,serverroot, wrrsetroot, filename,logger)
+                        ncstepobj       = getstepdaily(tlist,BB,standard_name,logger)
+                        mstack          = ncstepobj.getdates(timelist)
+                        lapse_rate      = flipud(mstack.mean(axis=0))
+                        lapse_rate      = resample_grid(lapse_rate,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                else:
+                    lapse_rate = -0.006       
+                #retrieve all other variables                                                                              
                 for i in range (0,len(variables)):
                     if variables[i] in relevantVars:
                         filename = filenames[i]
@@ -580,9 +636,6 @@ def main(argv=None):
                         logger.info("Get data...: " + str(timelist))
                         mstack = ncstepobj.getdates(timelist)
                         mean_as_map = flipud(mstack.mean(axis=0))
-                        #tmp = resample_grid(mean_as_map,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='nearest',FillVal=FillVal)
-
-                        #save_as_mapsstack_per_day(highResLat,highResLon,tmp,int(ncnt),odir,prefix=str(i),oformat=oformat,FillVal=FillVal)
 
                         logger.info("Get data body...")
                         if downscaling == 'True' or resampling =="True":
@@ -594,11 +647,11 @@ def main(argv=None):
                             mean_as_map[mismask] = FillVal
                             if downscaling == "True":
                                 if variables[i]     == 'Temperature':
-                                    mean_as_map     = correctTemp(mean_as_map,elevationCorrection)
+                                    mean_as_map     = correctTemp(mean_as_map, lapse_rate, elevationCorrection)
                                 if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
                                     mean_as_map, Kc    = correctRsin(mean_as_map,currentdate,radcordir, logger)
                                 if variables[i]     == 'SurfaceAtmosphericPressure':
-                                    mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEM,FillVal=FillVal)
+                                    mean_as_map     = correctPres(relevantDataFields, mean_as_map, lapse_rate, highResDEM, resLowResDEM,FillVal=FillVal)
                             mean_as_map[mismask] = FillVal
 
                         relevantDataFields.append(mean_as_map)
@@ -607,22 +660,15 @@ def main(argv=None):
                         if nrcalls ==0:
                             nrcalls = nrcalls + 1
                             latitude = ncstepobj.lat[:]
-                            #assuming a resolution of 0.5 degrees
-                            #LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
-                            #for i in range (0,int((2*(lonmax-lonmin)))):
-                            #    print i
-                            #    print latitude
-                            #    print shape(latitude)
-                            #    print LATITUDE[:,i]
-                            #    print shape(LATITUDE[:,i])
-                            #    LATITUDE[:,i]=LATITUDE[:,i]*latitude
+                            longitude   = ncstepobj.lon[:]
                             if downscaling == 'True' or resampling == "True":
-                                #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
-                                #LATITUDE = resample(FNhighResDEM,'lat',int(ncnt),logger)
                                 LATITUDE = zeros_like(highResDEM)
                                 for i in range(0,LATITUDE.shape[1]):
                                     LATITUDE[:,i] = highResLat
-
+                            else:
+                                LATITUDE = np.zeros((len(latitude),len(longitude)),float)
+                                for i in range(0,LATITUDE.shape[1]):
+                                    LATITUDE[:,i] = latitude
 
                             #assign longitudes and lattitudes grids
                             if downscaling == 'True' or resampling == "True":
@@ -634,11 +680,10 @@ def main(argv=None):
 
                 if evapMethod == 'PenmanMonteith':
                     # retrieve 3 hourly Temperature and calculate max and min Temperature
-                    filename = 'Tair_E2OBS_'
                     standard_name = 'air_temperature'
                     timestepSeconds = 10800
-
-                    tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
+                    temperatureFilename = temperatureFile[0]
+                    tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, temperatureFilename,timestepSeconds,logger )
                     ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
                     mstack = ncstepobj.getdates(timelist)
                     tmin = flipud(mstack.min(axis=0))
@@ -647,8 +692,8 @@ def main(argv=None):
                         tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                         tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                         if downscaling == "True":
-                            tmin = correctTemp(tmin,elevationCorrection)
-                            tmax = correctTemp(tmax,elevationCorrection)
+                            tmin = correctTemp(tmin,lapse_rate,elevationCorrection)
+                            tmax = correctTemp(tmax,lapse_rate,elevationCorrection)
                         tmax[mismask] = FillVal
                         tmin[mismask] = FillVal
 
@@ -675,11 +720,11 @@ def main(argv=None):
 
                 if evapMethod == 'PriestleyTaylor':
                     # retrieve 3 hourly Temperature and calculate min Temperature
-                    filename = 'Tair_E2OBS_'
+                    temperatureFilename = temperatureFile[0]
                     standard_name = 'air_temperature'
                     timestepSeconds = 10800
 
-                    tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
+                    tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, temperatureFilename,timestepSeconds,logger )
                     ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
                     mstack = ncstepobj.getdates(timelist)
                     tmin = flipud(mstack.min(axis=0))
@@ -688,8 +733,8 @@ def main(argv=None):
                         tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                         tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                         if downscaling == "True":
-                            tmin = correctTemp(tmin,elevationCorrection)
-                            tmax = correctTemp(tmax,elevationCorrection)
+                            tmin = correctTemp(tmin,lapse_rate,elevationCorrection)
+                            tmax = correctTemp(tmax,lapse_rate,elevationCorrection)
                         tmax[mismask] = FillVal
                         tmin[mismask] = FillVal
 
@@ -709,12 +754,12 @@ def main(argv=None):
 
                 if evapMethod == 'Hargreaves':
                     # retrieve 3 hourly Temperature and calculate max and min Temperature
-                    filename = 'Tair_E2OBS_'
+                    temperatureFilename = temperatureFile[0]
                     standard_name = 'air_temperature'
                     timestepSeconds = 10800
 
                     logger.info("Get times 3 hr data..")
-                    tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
+                    tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, temperatureFilename,timestepSeconds,logger )
                     logger.info("Get actual 3hr data...")
                     ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
                     mstack = ncstepobj.getdates(timelist)
@@ -725,8 +770,8 @@ def main(argv=None):
                         tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                         tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                         if resampling == "True":
-                            tmin = correctTemp(tmin,elevationCorrection)
-                            tmax = correctTemp(tmax,elevationCorrection)
+                            tmin = correctTemp(tmin,lapse_rate,elevationCorrection)
+                            tmax = correctTemp(tmax,lapse_rate,elevationCorrection)
                         tmax[mismask] = FillVal
                         tmin[mismask] = FillVal
 

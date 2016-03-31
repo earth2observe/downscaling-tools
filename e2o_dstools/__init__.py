@@ -11,9 +11,15 @@ import netcdftime
 import scipy
 import scipy.interpolate
 import scipy.special
-
+import sys
 import os
 
-_ROOT = os.path.abspath(os.path.dirname(__file__))
+
+if hasattr(sys, "frozen"):
+    _ROOT = os.path.abspath(os.path.dirname(__file__)).split("library.zip")[0]
+    #os.environ['GDAL_DATA'] = os.path.join(_ROOT,'gdal-data')
+else:
+    _ROOT = os.path.abspath(os.path.dirname(__file__))
+
 def get_data(path):
     return os.path.join(_ROOT, 'data', path)

@@ -28,6 +28,7 @@ Usage::
 
     -D DEM Filename of the digital elevation model
     -d DEM option low resolution dem to determine height correction for
+        use -d WRR1 or -d WRR2 for default WRR1 and WRR2 DEM's
     -O outputdir (default is . )
     -S Startday - Start day of the simulation (1 Jan is 1)
     -E EndDay - End day of the simulation
@@ -538,7 +539,7 @@ def main(argv=None):
     ehour=23
     oformat ='PCRaster'
     postfix =False
-    lowresdem="notset"
+    lowresdem=e2o_dstools.get_data('DEM-WRR1.tif')
     linkemapstacks = os.path.join(e2o_dstools.get_data(''),'linke')
     trans = 0.6
     linkemapstack = None
@@ -549,7 +550,13 @@ def main(argv=None):
         if o == '-h': usage()
         if o == '-O': outputdir = a
         if o == '-D': thedem = a
-        if o == '-d': lowresdem = a
+        if o == '-d':
+            if a == 'WRR1':
+                lowresdem= e2o_dstools.get_data('DEM-WRR1.tif')
+            elif a == 'WRR2':
+                lowresdem = e2o_dstools.get_data('DEM-WRR2.tif')
+            else:
+                lowresdem = a
         if o == '-M': xymetres = True
         if o == '-x': lat = int(a)
         if o == '-y': lon = int(a)

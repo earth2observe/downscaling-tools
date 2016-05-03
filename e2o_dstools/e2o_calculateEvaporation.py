@@ -25,6 +25,7 @@ import pcraster as pcr
 from scipy import interpolate
 import scipy.ndimage
 import shutil
+import e2o_dstools
 
 
 
@@ -523,9 +524,9 @@ def main(argv=None):
 
     # Set low resolution DEM filename for either WRR1 or WRR2:
     if 'met_forcing_v1' in wrrsetroot:
-        FNlowResDEM     = 'lowresdem/demWRR2.tif' 
+        FNlowResDEM     = e2o_dstools.get_data('DEM-WRR2.tif')
     else:
-        FNlowResDEM     = 'lowresdem/demWRR1.tif'
+        FNlowResDEM     = e2o_dstools.get_data('DEM-WRR1.tif')
     # Get filenames
     if 'met_forcing_v1' in wrrsetroot: 
         filenames = ["Tair_daily_EI_025_","LWdown_daily_EI_025_","PSurf_daily_EI_025_","Qair_daily_EI_025_",\

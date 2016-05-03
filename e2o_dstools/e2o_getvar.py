@@ -15,6 +15,7 @@ import getopt, sys, os
 import datetime
 from numpy import *
 from e2o_dstools.e2o_utils import *
+import e2o_dstools
 
 
 def usage(*args):
@@ -72,8 +73,11 @@ def main(argv=None):
     #available variables with corresponding file names and standard_names as in NC files
     variables = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
                     'NearSurfaceSpecificHumidity','Rainfall','SurfaceIncidentShortwaveRadiation','SnowfallRate','NearSurfaceWindSpeed']
-    filenames = ["Tair_daily_E2OBS_","LWdown_daily_E2OBS_","PSurf_daily_E2OBS_","Qair_daily_E2OBS_",\
+    filenameswrr1 = ["Tair_daily_E2OBS_","LWdown_daily_E2OBS_","PSurf_daily_E2OBS_","Qair_daily_E2OBS_",\
                     "Rainf_daily_E2OBS_","SWdown_daily_E2OBS_","Snowf_daily_E2OBS_","Wind_daily_E2OBS_"]
+    filenameswrr2 = ["Tair_daily_EI_025_", "LWdown_daily_EI_025_", "PSurf_daily_EI_025_", "Qair_daily_EI_025_", \
+                 "Rainf_daily_EI_025_", "SWdown_daily_EI_025_", "Snowf_daily_EI_025_", "Wind_daily_EI_025_"]
+
     standard_names = ['air_temperature','surface_downwelling_longwave_flux_in_air','surface_air_pressure','specific_humidity',\
                         'rainfal_flux','surface_downwelling_shortwave_flux_in_air','snowfall_flux','wind_speed']
     
@@ -90,7 +94,7 @@ def main(argv=None):
     startday = 1
     endday = 1
     getDataForVar = False
-    loglevel=logging.DEBUG
+    loglevel=logging.INFO
     downscaling = "False"
     resampling = "True"
     
@@ -137,27 +141,31 @@ def main(argv=None):
     oformat = configget(logger,theconf,"output","format","PCRaster")
     oodir = configget(logger,theconf,"output","directory","output/")
     oprefix = configget(logger,theconf,"output","prefix","E2O")
-
-    downscaling  = configget(logger,theconf,"selection","downscaling",downscaling)
     resampling  = configget(logger,theconf,"selection","resampling",resampling)
     FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
-    FNlowResDEM = configget(logger,theconf,"downscaling","lowResDEM","origdem.map")
+
     logger.debug("Done reading settings.")
+
+    if 'met_forcing_v1' in wrrsetroot:
+        FNlowResDEM     = e2o_dstools.get_data('DEM-WRR2.tif')
+        filenames = filenameswrr2
+    else:
+        FNlowResDEM     = e2o_dstools.get_data('DEM-WRR1.tif')
+        filenames = filenameswrr1
+
+    FNlowResDEM = configget(logger, theconf, "downscaling", "lowResDEM", FNlowResDEM)
 
     if downscaling =="True" or resampling == "True":
         resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
         interpolmethod=configget(logger,theconf,"downscaling","interpolmethod",interpolmethod)
-        # Resample orid dem to new resolutiion using nearest
-        if downscaling == "True":
-            lowresX, lowresY, lowcols, lowrows, xlowres, ylowres, lowresdem, FillVal = readMap(FNlowResDEM,'PCRaster',logger)
-            lowresdem_resamp = resample_grid(lowresdem,xlowres,ylowres, xhires,yhires,method='nearest')
+        # Resample orid dem to new resolution using nearest
+
 
     #Add options for multiple variables
     for i in range (0,len(variables)):
         getDataForVar = False
         # Check whether variable exists in ini file
         getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
-        print getDataForVar
         # If variable is True read timeseries from file
         if getDataForVar == 'True':
             filename = filenames[i]
@@ -181,16 +189,25 @@ def main(argv=None):
             cnt = 0
             for a in timelist:
                 mapname = getmapname(cnt+1,oprefix)
-
+                convstr = configget(logger, theconf, "conversion", variables[i], 'none')
                 if resampling == "True":
                     newdata = resample_grid(flipud(mstack[cnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,yhires,method=interpolmethod)
-                    if downscaling == "True":
-                        raise ValueError("Downscaling not implemented")
-
-                    # Make downscale function, input resampled grid, orig dem also resample
+                    if convstr != 'none':
+                        convstr = convstr.replace(variables[i],'newdata')
+                        try:
+                            exec "newdata =  " + convstr
+                        except:
+                            logger.error("Conversion string not valid: " + convstr)
                     writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
                 else:
-                    writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],flipud(mstack[cnt,:,:]),-999.0)
+                    newdata = flipud(mstack[cnt,:,:]).copy()
+                    if convstr != 'none':
+                        convstr = convstr.replace(variables[i],'newdata')
+                        try:
+                            exec "newdata =  " + convstr
+                        except:
+                            logger.error("Conversion string not valid: " + convstr)
+                    writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,-999.0)
 
                 cnt = cnt + 1
                 #save_as_mapsstack(ncstepobj.lat,ncstepobj.lon,mstack,timelist,odir,prefix=oprefix,oformat=oformat)

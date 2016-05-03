@@ -3,6 +3,7 @@ e2o_getvar - retrieve variables
 
 e2o_getval gets variables from the server for a specific region (specified in the ini file)
 and optionally resamples those to a specified Digital Elevation Model (DEM).
+e2o_getvar outputs daily values in the original units.
 
 Usage:
 ::
@@ -19,6 +20,8 @@ The .ini file below shows the available options
 
 An example ini file be found :download:`here. <_download/e2o_getvar.ini>`
 
+An example config that downloads 1 yr of Precipitation and Temperature data can be found in the
+examples/getvar directory.
 
 Implementation
 --------------

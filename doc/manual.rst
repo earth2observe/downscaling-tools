@@ -220,13 +220,16 @@ section 4. The directory where the correction files are located should be define
     radcordir=output_rad
 
 Below you will find the filenames and there content:
-COR00000.??? - Total clear sky radiation on DEM
-SUN00000.??? - Nr of time intervals a pixel was in the sun
-FLAT0000.??? - Total clear sky radiation on a flat surface
-CORDIR00.??? - Direct clear sky radiation on DEM
-FLATDIR0.??? - Direct clear sky radiation on a flat surface
 
-For full details see: REF to documentation Jaap
+::
+
+    COR00000.??? - Total clear sky radiation on DEM
+    SUN00000.??? - Nr of time intervals a pixel was in the sun
+    FLAT0000.??? - Total clear sky radiation on a flat surface
+    CORDIR00.??? - Direct clear sky radiation on DEM
+    FLATDIR0.??? - Direct clear sky radiation on a flat surface
+
+For full details see the radiation section.
 
 *Output*
 

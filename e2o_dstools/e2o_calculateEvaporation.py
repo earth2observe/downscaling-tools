@@ -700,8 +700,8 @@ def main(argv=None):
 
 
                     PETmm = PenmanMonteith(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
-                    # FIll out unrealistic values
-                    PETmm[mismask] = FillVal
+                    # FIll out unrealistic valuea
+                    #PETmm[mismask] = FillVal
                     PETmm[PETmm < -10.0] = FillVal
                     PETmm[PETmm > 135.0] = FillVal
 
@@ -716,7 +716,7 @@ def main(argv=None):
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
+                        #save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
 
 
                 if evapMethod == 'PriestleyTaylor':

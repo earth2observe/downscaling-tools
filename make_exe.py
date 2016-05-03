@@ -3,7 +3,12 @@ from bbfreeze import Freezer
 import ctypes
 import os
 import glob, shutil
-import netCDF4_utils
+import matplotlib
+
+
+def dependencies_for_freeezing():
+	import netCDF4_utils 
+
 
 nrbits = str(ctypes.sizeof(ctypes.c_voidp) * 8)
 data_files=[]
@@ -11,13 +16,15 @@ data_files=[]
 thename = "e2o_dstools-"+ str(nrbits)+"-bit"
 
 f = Freezer("e2o_dstools-" + str(nrbits) +"-bit",\
-            includes=('numpy','scipy','scipy.special._ufuncs_cxx','scipy.sparse.csgraph._validation'))
+            includes=('numpy','scipy','scipy.special._ufuncs_cxx','scipy.linalg.*','scipy.sparse.csgraph._validation'))
 f.addScript("e2o_dstools/e2o_radiation.py")
 f.addScript("e2o_dstools/e2o_getvar.py")
 f.addScript("e2o_dstools/e2o_calculateEvaporation.py")
 f()    # starts the freezing process
 
 
+# matplolib data files
+data_files=matplotlib.get_py2exe_datafiles()
 
 ddir = "c:/pcraster4-64/lib/"
 data_files.append((".", glob.glob(ddir + "/*.dll")))

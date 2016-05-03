@@ -23,7 +23,7 @@ datafiles = [(d, [os.path.join(d,f) for f in files])
 
 # Source dist
 setup(name='e2o_dstoools',
-      version= "0.1",
+      version= "2016.1",
       packages=['e2o_dstools'],
       package_dir={'e2o_dstools': 'e2o_dstools'},
       author='J. Schellekens/F. Sperna Weiland',

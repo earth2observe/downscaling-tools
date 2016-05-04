@@ -75,7 +75,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'e2o_dstools'
-copyright = u'2014-2015, Deltares'
+copyright = u'2014-2016, Deltares'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

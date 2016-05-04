@@ -1,12 +1,12 @@
 Release notes
 =============
 
-V0.2
-----
+2016.1
+------
 - Added support for WRR2
 - Added preliminary user manual
 
-V0.1
-----
+2015.1
+------
 - Initial version
 

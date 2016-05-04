@@ -462,7 +462,6 @@ def main(argv=None):
     endday = 1
     FNlowResDEM = 'lowresdem\demWRR1.tif'
     getDataForVar = True
-    calculateEvap = False
     evapMethod = None
     downscaling = None
     resampling = None
@@ -576,10 +575,8 @@ def main(argv=None):
         mismask     = lowResDEM == FillVal
 
     #Check whether evaporation should be calculated
-    calculateEvap   = configget(logger,theconf,"selection","calculateEvap",calculateEvap)
 
-    if calculateEvap == 'True':
-        evapMethod      = configget(logger,theconf,"selection","evapMethod",evapMethod)
+    evapMethod      = configget(logger,theconf,"selection","evapMethod",evapMethod)
 
     if evapMethod == 'PenmanMonteith':
         relevantVars = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\

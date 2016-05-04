@@ -64,9 +64,8 @@ will in the text refer to the online documentation.
 Region specific user-defined settings
 -------------------------------------
 
-In this
-section we discuss all options that are user adjustable and can be specified for the region, resolution and period of
-interest. Options will be discussed following the order in the .ini file.
+In this section we discuss all options that are user adjustable and can be specified for the region, resolution and
+period of interest. Options will be discussed following the order in the .ini file.
 
 User specified DEM of area of interest
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

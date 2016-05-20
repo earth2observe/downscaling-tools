@@ -4,7 +4,7 @@ e2o_getvar - retrieve variables
 e2o_getval gets variables from the server for a specific region (specified in the ini file)
 and optionally resamples those to a specified Digital Elevation Model (DEM).
 e2o_getvar outputs daily values in the original units. The script does not do
-any physical downscaling other than simple interpolation. USe the e2o_calculateEvaporation script
+any physical downscaling other than simple interpolation. Use the e2o_calculateEvaporation script
 for more elaborate downscaling options.
 
 Usage:

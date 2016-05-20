@@ -312,9 +312,10 @@ Example e2o_calculateEvaporation ini file:
     # Downscaling = True -> also apply DEM based correctiosn of T, Radiation, Pressure
     resampling  = True
     downscaling = True
-    # useVarLapseRate = True -> use spatial and temporal varying lapse rate provided as part of the WRR2 forcing dataset iso the default value of -0.006
+    # useVarLapseRate = True -> use spatial and temporal varying lapse rate provided as part of the WRR2
+    # forcing dataset in stead of the default value of -0.006
     useVarLapseRate = True
-    # Wher to fine the output of the e2o_radiation script
+    # Where to find the output of the e2o_radiation script
     radcordir=output_rad
 
     [output]
@@ -329,4 +330,75 @@ Example e2o_calculateEvaporation ini file:
 
 
 Running the examples
---------------------
+====================
+
+The example directory currently has two examples:
+
++ getvar - example for the e2o_getvar scripts
++ evaporation - example fro the e2o_calculateEvaporation script
+
+getvar
+------
+
+The getvar directory contains the following files:
+
++ examplerun1.bat - windows batch file to run the example
++ examplerun1.ini - configuration file for e2o_getvar
++ README.txt - Some information on the example
++ wflow_dem.map - local scale digital elevation model
+
+.. figure:: _static/getvar-1.png
+    :width: 640px
+    :align: center
+
+    The local elevation model (wflow_dem.map) used for downscaling.
+
+The conents of the example1.ini file is shown below. This contains all the settings fro th ee2o_getvar
+scripts. For example, by changing the line "interpolmethod=linear" to "interpolmethod=nearest" the
+script will uses a different interpolation method. Here the local elevation mdoel (wflow_dem.map)
+is also specified. The map can be in any GDAL supported raster format. Teh grid should be defined in lat,lon
+
+.. literalinclude:: _download/example1.ini
+
+
+As can be seen from the file (the conversions section) two unit conversions have been setup: Temperature is
+converted to degree Celsius and rainfall is converted to mm.
+
+To run the example type example1.bat in a windows command box. You should see output similar to the screenshot below:
+
+
+.. figure:: _static/getvar-2.png
+    :width: 640px
+    :align: center
+
+    Running the example1.bat file.
+
+The results are stored in two different directories:
+
++ output\Rainfall\
++ output\Temperature\
+
+Each directories contains one file for each time number 001 to the last step (365):
+
+::
+    E2O00000.001
+    E2O00000.002
+    E2O00000.003
+    E2O00000.004
+    ....
+    E2O00000.365
+
+The files can be opened in most GIS programs or in the PCRaster aguila program.
+
+.. figure:: _static/getvar-3.png
+    :width: 640px
+    :align: center
+
+    Display results of oen timestep in QGIS.
+
+
+If you set the output format in the ini file to PCRaster the resulting files can be used directly in
+the wflow hydrological models (https://github.com/openstreams/wflow).
+
+
+

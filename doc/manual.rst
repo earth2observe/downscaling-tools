@@ -326,3 +326,7 @@ Example e2o_calculateEvaporation ini file:
     prefix=PET
     # Is saveall is true all variables used are saved instead of only the PET
     saveall=1
+
+
+Running the examples
+--------------------

@@ -68,6 +68,8 @@ class ncdatset():
             else:
                 if a == 'latitude':
                     return self.nc.variables[a]
+                if a == 'lat':
+                    return self.nc.variables[a]
 
         return None
 
@@ -114,6 +116,8 @@ class ncdatset():
                     return self.nc.variables[a]
             else:
                 if a == 'longitude':
+                    return self.nc.variables[a]
+                if a == 'lon':
                     return self.nc.variables[a]
 
         return None
@@ -196,6 +200,7 @@ class getstepdaily():
         """
         lat = None
         lon = None
+        flipped = 0
         ret = []
 
         lastnc = None
@@ -232,21 +237,38 @@ class getstepdaily():
             if data == None:
                 self.logger.error("dataset with standard_name " + self.varname + " not found" )
 
-            lat = self.dset.lat[:]
+
+            if self.dset.lat[0] > self.dset.lat[-1]:
+                lat = self.dset.lat[::-1]
+                flipped = 1
+            else:
+                lat = self.dset.lat[:]
             lon = self.dset.lon[:]
 
             (self.latidx,) = logical_and(lat >= self.BB['lat'][0], lat <= self.BB['lat'][1]).nonzero()
             (self.lonidx,) = logical_and(lon >= self.BB['lon'][0], lon <= self.BB['lon'][1]).nonzero()
 
-
             if self.dset.dimensions ==3:
-                window = data[spos:epos,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
+                if 'lat' in data.dimensions[0]:
+
+                    window = zeros((data.shape[2],self.latidx.max() - self.latidx.min() + 1,self.lonidx.max() - self.lonidx.min() + 1))
+                    for i in arange(spos,epos):
+                        tt = flipud(data[:,:,i])
+                        window[i,:,:] = tt[self.latidx.min():self.latidx.max() + 1,
+                                 self.lonidx.min():self.lonidx.max() + 1]
+                else:
+                    window = data[spos:epos,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
+
+                if flipped:
+                    window = flipud(window).copy()
+
             if self.dset.dimensions ==4:
                 window = data[spos:epos,0,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
 
 
             self.lat = lat[self.latidx]
             self.lon = lon[self.lonidx]
+
 
             if len(ret) == 0:
                 ret = window.copy()
@@ -452,10 +474,7 @@ def get_times_daily(startdate,enddate, serverroot, wrrsetroot, filename,logger):
         dateList.append(startdate + datetime.timedelta(days = x))
 
     for thedate in dateList:
-        if 'ecmwf/met_forcing' in wrrsetroot:
-            ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
-        elif '3b42' in wrrsetroot:
-            ncfile = serverroot + wrrsetroot + "/" + "%d" % (thedate.year) + "/" + "%02d" % (thedate.month) + "/"+ filename
+        ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + ".nc"
         filelist[str(thedate)] = ncfile
 
     return filelist, dateList
@@ -594,7 +613,7 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
     # get rasterband entry
     TempBand = TempDataset.GetRasterBand(1)
     # fill rasterband with array
-    TempBand.WriteArray(data,0,0)
+    TempBand.WriteArray(data.astype(float32),0,0)
     TempBand.FlushCache()
     TempBand.SetNoDataValue(FillVal)
 

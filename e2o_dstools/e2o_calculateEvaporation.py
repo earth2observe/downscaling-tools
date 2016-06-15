@@ -18,7 +18,7 @@ from osgeo import gdal, gdalconst
 import datetime
 from numpy import *
 import numpy as np
-from e2o_utils import *
+from e2o_dstools.e2o_utils import *
 import pdb
 import pandas as pd
 import pcraster as pcr
@@ -462,6 +462,7 @@ def main(argv=None):
     endday = 1
     FNlowResDEM = 'lowresdem\demWRR1.tif'
     getDataForVar = True
+    calculateEvap = False
     evapMethod = None
     downscaling = None
     resampling = None
@@ -575,8 +576,9 @@ def main(argv=None):
         mismask     = lowResDEM == FillVal
 
     #Check whether evaporation should be calculated
-
-    evapMethod      = configget(logger,theconf,"selection","evapMethod",evapMethod)
+    calculateEvap   = configget(logger,theconf,"selection","calculateEvap",calculateEvap)
+    if calculateEvap == 'True':
+        evapMethod      = configget(logger,theconf,"selection","evapMethod",evapMethod)
 
     if evapMethod == 'PenmanMonteith':
         relevantVars = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
@@ -698,7 +700,7 @@ def main(argv=None):
 
                     PETmm = PenmanMonteith(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
                     # FIll out unrealistic valuea
-                    #PETmm[mismask] = FillVal
+                    PETmm[mismask] = FillVal
                     PETmm[PETmm < -10.0] = FillVal
                     PETmm[PETmm > 135.0] = FillVal
 
@@ -713,7 +715,7 @@ def main(argv=None):
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
-                        #save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
 
 
                 if evapMethod == 'PriestleyTaylor':

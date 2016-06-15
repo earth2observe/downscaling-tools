@@ -474,7 +474,8 @@ def get_times_daily(startdate,enddate, serverroot, wrrsetroot, filename,logger):
         dateList.append(startdate + datetime.timedelta(days = x))
 
     for thedate in dateList:
-        ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + ".nc"
+        #ncfile = serverroot + wrrsetroot + filename + "%d" % (thedate.year) + ".nc"
+        ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
         filelist[str(thedate)] = ncfile
 
     return filelist, dateList

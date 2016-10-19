@@ -1,0 +1,15 @@
+2016-10-19 14:16:03,110 - e2o_getvar - INFO - returning default (None) for output:netcdfout
+2016-10-19 14:16:03,111 - e2o_getvar - INFO - returning default (/home/jaap/anaconda/lib/python2.7/site-packages/e2o_dstoools-2016.1-py2.7.egg/e2o_dstools/data/DEM-WRR2.tif) for downscaling:lowResDEM
+2016-10-19 14:16:07,044 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v1/1979/Tair_daily_EI_025_197901.nc
+2016-10-19 14:16:11,455 - e2o_getvar - INFO - Saving air_temperature to mapstack output/TemperatureE2O
+2016-10-19 14:16:14,926 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v1/1979/lapseM_EI_025_197901.nc
+2016-10-19 14:16:23,044 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v1/1979/lapseM_EI_025_197901.nc
+2016-10-19 14:16:30,436 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v1/1979/lapseM_EI_025_197901.nc
+2016-10-19 14:17:00,233 - e2o_getvar - INFO - returning default (False) for selection:DownwellingLongWaveRadiation
+2016-10-19 14:17:00,233 - e2o_getvar - INFO - returning default (False) for selection:SurfaceAtmosphericPressure
+2016-10-19 14:17:00,233 - e2o_getvar - INFO - returning default (False) for selection:NearSurfaceSpecificHumidity
+2016-10-19 14:17:00,234 - e2o_getvar - INFO - returning default (False) for selection:Rainfall
+2016-10-19 14:17:00,234 - e2o_getvar - INFO - returning default (False) for selection:SurfaceIncidentShortwaveRadiation
+2016-10-19 14:17:00,234 - e2o_getvar - INFO - returning default (False) for selection:SnowfallRate
+2016-10-19 14:17:00,234 - e2o_getvar - INFO - returning default (False) for selection:NearSurfaceWindSpeed
+2016-10-19 14:17:00,234 - e2o_getvar - INFO - Done.

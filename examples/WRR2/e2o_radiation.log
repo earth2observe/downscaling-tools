@@ -1,0 +1,10 @@
+2016-10-19 14:31:39,171 - e2o_radiation - DEBUG - File logging to e2o_radiation.log
+2016-10-19 14:31:39,172 - e2o_radiation - DEBUG - Reading dem: gtopo05min.map
+2016-10-19 14:31:39,685 - e2o_radiation - DEBUG - Resampling dem...
+2016-10-19 14:31:42,838 - e2o_radiation - DEBUG - Calculating slope and aspect...
+2016-10-19 14:31:48,794 - e2o_radiation - INFO - Calulations for day: 1
+2016-10-19 14:31:48,838 - e2o_radiation - DEBUG - Hour: 5.0
+2016-10-19 14:36:49,083 - e2o_radiation - DEBUG - Hour: 6.0
+2016-10-19 14:43:13,559 - e2o_radiation - DEBUG - Hour: 7.0
+2016-10-19 14:49:55,335 - e2o_radiation - DEBUG - Hour: 8.0
+2016-10-19 14:57:00,755 - e2o_radiation - DEBUG - Hour: 9.0

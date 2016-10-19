@@ -258,8 +258,8 @@ def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
     a = pow(100,5.256)
     #report(a,"zz.map")
 
-    AtmPcor = pow(((288.0-0.0065*Altitude)/288.0),5.256)
-    AtmPcorAlt = pow(((288.0-0.0065*AltAltitude)/288.0),5.256)
+    #AtmPcor = pow(((288.0-0.0065*Altitude)/288.0),5.256)
+    #AtmPcorAlt = pow(((288.0-0.0065*AltAltitude)/288.0),5.256)
     #Lat = Lat * pi/180
     ##########################################################################
     # Calculate Solar Angle and correct radiation ############################
@@ -276,7 +276,6 @@ def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
 
     SolDec =180/pi * (0.006918-0.399912 * cos(theta)+0.070257 * sin(theta) - 0.006758 * cos(2*theta)+0.000907 * sin(2*theta) - 0.002697 * cos(3*theta)+0.001480 * sin(3*theta))
 
-    #HourAng = 180/pi * 15*(Hour-12.01)
     HourAng = 15.0*(Hour-12.01)
     SolAlt  = scalar(asin(scalar(sin(Lat)*sin(SolDec)+cos(Lat)*cos(SolDec)*cos(HourAng))))
 

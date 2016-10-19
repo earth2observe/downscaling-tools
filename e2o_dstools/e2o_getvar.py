@@ -138,11 +138,17 @@ def main(argv=None):
     serverroot = configget(logger,theconf,"url","serverroot",serverroot)
     wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
 
+    start = datetime.datetime(startyear,startmonth,startday)
+    end = datetime.datetime(endyear,endmonth,endday)
+
     oformat = configget(logger,theconf,"output","format","PCRaster")
     oodir = configget(logger,theconf,"output","directory","output/")
     oprefix = configget(logger,theconf,"output","prefix","E2O")
     resampling  = configget(logger,theconf,"selection","resampling",resampling)
     FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
+    netcdfout = configget(logger, theconf, "output", "netcdfout", "None")
+    interpolmethod = configget(logger, theconf, "downscaling", "interpolmethod", interpolmethod)
+    downscaling = configget(logger, theconf, "downscaling", "downscaling", downscaling)
 
     logger.debug("Done reading settings.")
 
@@ -157,9 +163,33 @@ def main(argv=None):
 
     if downscaling =="True" or resampling == "True":
         resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
-        interpolmethod=configget(logger,theconf,"downscaling","interpolmethod",interpolmethod)
+        resX, resY, cols, rows, xlres, ylres, lowresdem, FillVal = readMap(FNlowResDEM, 'PCRaster', logger)
         # Resample orid dem to new resolution using nearest
+        x = xhires
+        y = yhires
+        demmask = hiresdem != FillVal
+        mismask = hiresdem == FillVal
+        Ldemmask = lowresdem != FillVal
+        Lmismask = lowresdem == FillVal
+        # Fille gaps in high res DEM with Zeros for ineterpolation purposes
+        lowresdem[Lmismask] = 0.0
+        resLowResDEM = resample_grid(lowresdem, xlres, ylres, xhires, yhires, method=interpolmethod,
+                                     FillVal=0.0)
 
+        lowresdem[Lmismask] = FillVal
+        BB = dict(lon=[min(x), max(x)], lat=[min(y), max(y)])
+    else:
+        resX, resY, cols, rows, xlres, ylres, lowresdem, FillVal = readMap(FNlowResDEM, 'PCRaster', logger)
+        x = xlres
+        y = ylres
+
+    EndStep = (end - start).days + 1
+    StartStep = 1
+
+
+
+    if netcdfout != 'None':
+            ncout = netcdfoutput(netcdfout,x,y,logging,start,EndStep - StartStep)
 
     #Add options for multiple variables
     for i in range (0,len(variables)):
@@ -191,13 +221,35 @@ def main(argv=None):
                 mapname = getmapname(cnt+1,oprefix)
                 convstr = configget(logger, theconf, "conversion", variables[i], 'none')
                 if resampling == "True":
-                    newdata = resample_grid(flipud(mstack[cnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,yhires,method=interpolmethod)
+                    newdata = resample_grid(flipud(mstack[cnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,
+                                            yhires,method=interpolmethod)
                     if convstr != 'none':
                         convstr = convstr.replace(variables[i],'newdata')
                         try:
                             exec "newdata =  " + convstr
                         except:
                             logger.error("Conversion string not valid: " + convstr)
+
+                    # Process temperature, downscale and use laps rate if possible
+                    if variables[i] == 'Temperature':
+                        if 'met_forcing_v1' in wrrsetroot:
+                            if downscaling == 'True':
+                                standard_name = 'air_temperature_lapse_rate'
+                                tlist, timelist = get_times_daily(a, a, serverroot, wrrsetroot,
+                                                                  "lapseM_EI_025_", logger)
+
+                                ncstepobj = getstepdaily(tlist, BB, standard_name, logger)
+                                mmstack = ncstepobj.getdates(timelist)
+                                lapse_rate = flipud(mmstack.mean(axis=0))
+                                lapse_rate = resample_grid(lapse_rate, ncstepobj.lon, ncstepobj.lat, xhires, yhires,
+                                                           method=interpolmethod, FillVal=FillVal)
+                            else:
+                                lapse_rate = -0.006
+                        else:
+                            if downscaling == 'True':
+                                lapse_rate = -0.006
+
+                        newdata =  newdata + lapse_rate * (hiresdem - resLowResDEM)
                     writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
                 else:
                     newdata = flipud(mstack[cnt,:,:]).copy()
@@ -209,8 +261,10 @@ def main(argv=None):
                             logger.error("Conversion string not valid: " + convstr)
                     writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,-999.0)
 
+                if netcdfout != 'None':
+                    ncout.savetimestep(cnt+1,newdata,name=standard_name,var=variables[i])
                 cnt = cnt + 1
-                #save_as_mapsstack(ncstepobj.lat,ncstepobj.lon,mstack,timelist,odir,prefix=oprefix,oformat=oformat)
+
 
     logger.info("Done.")
 

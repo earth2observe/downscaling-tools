@@ -79,10 +79,12 @@ and name of the file are given in the ini file:
     [downscaling]
     highResDEM=highResDEM\wflow_dem.map
     radiationcordir=output_rad\
+    #radiationcordir=None
 
 The DEM will be used for the definition of the extend and resolution of the generated meteorological output files. If
 the option ‘downscaling’ is turned on the altitudes in the DEM will be used to spatially
-downscale temperature, air pressure and radiation.
+downscale temperature, air pressure and radiation. IF the directory containing the radiation data is set to 'None' the radiation
+is not corrected according to aspect and slope but only for altitude.
 
 
 User settings in the e2o_calculateEvaporation.ini file

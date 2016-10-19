@@ -1,16 +1,3 @@
-"""
-Determine downscaled reference evaporation from the eartH2Observe WFDEI forcing
-
-usage:
-
-    e2o_calculateEvaporation.py -I inifile [-S start][-E end][-l loglevel]
-
-    -I inifile - ini file with settings which data to get
-    -S start - start timestep (default is 1)
-    -E end - end timestep default is last one defined in ini file (from date)
-    -l loglevel - DEBUG, INFO, WARN, ERROR
-"""
-
 import getopt, sys, os, glob
 import osgeo.gdal as gdal
 from osgeo.gdalconst import *
@@ -26,6 +13,21 @@ from scipy import interpolate
 import scipy.ndimage
 import shutil
 import e2o_dstools
+
+"""
+Determine downscaled reference evaporation from the eartH2Observe WFDEI forcing
+
+usage:
+
+    e2o_calculateEvaporation.py -I inifile [-S start][-E end][-l loglevel]
+
+    -I inifile - ini file with settings which data to get
+
+
+    -S start - start timestep (default is 1)
+    -E end - end timestep default is last one defined in ini file (from date)
+    -l loglevel - DEBUG, INFO, WARN, ERROR
+"""
 
 
 
@@ -88,24 +90,6 @@ def convertCoordinateSystem(sourcetif,desttif,destmap):
     command= 'gdal_translate -of PCRaster -ot Float32 %s %s' % (desttif,destmap)
     os.system(command)   
 
-def correctTemp(Temp,LapseRate,elevationCorrection):
-
-    """
-    Elevation based correction of temperature
-
-    inputs:
-    Temperature             = daily mean, min or max temperature (degrees Celcius)
-    Elevation correction    = difference between high resolution and low resolution (0.5 degrees) DEM  [m]
-
-
-    """
-
-    #apply elevation correction
-
-    Temp_cor   = Temp + LapseRate * elevationCorrection
-
-    return Temp_cor
-
 def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     """
     Corrects incoming radiation using the information from the e2o_radiation module
@@ -151,6 +135,26 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     Rsin_cor[Rsin_cor < 0.0] = FillVal
 
     return Rsin_cor, Kc
+
+
+def correctRsinAlt(Rsin,AltitudeOrg,AltitudeDownscale,logger):
+    """
+    Corrects incoming radiation for DEM only
+
+    :param Rsin:
+    :param AltitudeOrg:
+    :param AltitudeDownscale:
+    :param logger:
+    :return radcor:
+    """
+
+    #AtmPcorOrg = power(((288.0-0.0065*AltitudeOrg)/288.0),5.256)
+    #AtmPcorDownscale = power(((288.0-0.0065*AltitudeDownscale)/288.0),5.256)
+    #AtmCorFac = AtmPcorOrg/AtmPcorDownscale
+    Rsin_cor = Rsin# * AtmCorFac
+
+    return Rsin_cor
+
 
 def correctPres(relevantDataFields, Pressure, LapseRate, highResDEM, resLowResDEM,FillVal=1E31):
     """
@@ -521,6 +525,7 @@ def main(argv=None):
     oprefix = configget(logger,theconf,"output","prefix","E2O")
     radcordir = configget(logger,theconf,"downscaling","radiationcordir","output_rad")
     saveAllData = int(configget(logger,theconf,"output","saveall","0"))
+    netcdfout = configget(logger,theconf,"output","netcdfout","None")
 
     # Set low resolution DEM filename for either WRR1 or WRR2:
     if 'met_forcing_v1' in wrrsetroot:
@@ -548,6 +553,8 @@ def main(argv=None):
         # get grid info
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = readMap(FNhighResDEM,'GTiff',logger)
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = readMap(FNlowResDEM,'GTiff',logger)
+        X = highResLon
+        Y = highResLat
         #writeMap("DM.MAP","PCRaster",highResLon,highResLat,highResDEM,FillVal)
         #elevationCorrection, highResDEM, resLowResDEM = resampleDEM(FNhighResDEM,FNlowResDEM,logger)
         demmask=highResDEM != FillVal
@@ -574,6 +581,8 @@ def main(argv=None):
         FillVal     = 1E31
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = readMap(FNlowResDEM,'GTiff',logger)
         mismask     = lowResDEM == FillVal
+        X = lowResLon
+        Y = lowResLat
 
     #Check whether evaporation should be calculated
     calculateEvap   = configget(logger,theconf,"selection","calculateEvap",calculateEvap)
@@ -597,7 +606,8 @@ def main(argv=None):
     logger.info("Will start at step: " + str(StartStep) + " date/time: " + str(start + datetime.timedelta(days=StartStep)))
     logger.info("Will stop at step: " + str(EndStep) + " date/time: " + str(start + datetime.timedelta(days=EndStep)))
 
-
+    if netcdfout != 'None':
+        ncout = netcdfoutput(netcdfout,X,Y,logging,start,EndStep - StartStep)
     while currentdate <= end:
         ncnt += 1
 
@@ -648,8 +658,13 @@ def main(argv=None):
                             if downscaling == "True":
                                 if variables[i]     == 'Temperature':
                                     mean_as_map     = correctTemp(mean_as_map, lapse_rate, elevationCorrection)
+
                                 if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
-                                    mean_as_map, Kc    = correctRsin(mean_as_map,currentdate,radcordir, logger)
+                                    if radcordir != 'None':
+                                        mean_as_map, Kc    = correctRsin(mean_as_map,currentdate,radcordir, logger)
+                                    else:
+                                        mean_as_map = correctRsinAlt(mean_as_map,lowResDEM,highResDEM,  logger)
+
                                 if variables[i]     == 'SurfaceAtmosphericPressure':
                                     mean_as_map     = correctPres(relevantDataFields, mean_as_map, lapse_rate, highResDEM, resLowResDEM,FillVal=FillVal)
                             mean_as_map[mismask] = FillVal
@@ -705,17 +720,29 @@ def main(argv=None):
                     PETmm[PETmm > 135.0] = FillVal
 
                     logger.info("Saving PM PET data for: " +str(currentdate))
-                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat,FillVal=FillVal)
+
+                    if netcdfout != 'None':
+                        ncout.savetimestep(ncnt,PETmm,unit="mm",var="PotEvap",name='water_potential_evaporation_amount')
+                    else:
+                        save_as_mapsstack_per_day(lats, lons, PETmm, int(ncnt), odir, prefix=oprefix, oformat=oformat,
+                                                  FillVal=FillVal)
+
                     if saveAllData:
-                        save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[1],int(ncnt),odir,prefix='RLIN',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[2],int(ncnt),odir,prefix='PRESS',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[3],int(ncnt),odir,prefix='REL',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
+                        if netcdfout != 'None':
+                            ncout.savetimestep(ncnt, relevantDataFields[0], unit="degrees", var=relevantVars[0],
+                                               name='air_temperature')
+                            ncout.savetimestep(ncnt, relevantDataFields[1], unit="W/m^2", var=relevantVars[1],
+                                               name='surface_air_pressure')
+                        else:
+                            save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal)
+                            save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[1],int(ncnt),odir,prefix='RLIN',oformat=oformat,FillVal=FillVal)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[2],int(ncnt),odir,prefix='PRESS',oformat=oformat,FillVal=FillVal)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[3],int(ncnt),odir,prefix='REL',oformat=oformat,FillVal=FillVal)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
+                            #save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
 
 
                 if evapMethod == 'PriestleyTaylor':

@@ -39,6 +39,28 @@ globmetadata['references'] = 'https://github.com/earth2observe'
 globmetadata['Conventions'] = 'CF-1.4'
 
 
+def getmetadatafromini(inifile,var):
+    """
+
+    :param inifile: inifile
+    :param var: Name of the mapstack
+    :return: dictionary
+    """
+    metadata = {}
+
+    config = ConfigParser.SafeConfigParser()
+    config.optionxform = str
+    if os.path.exists(inifile):
+        config.read(inifile)
+    else:
+        print ("Cannot open ini file: " +  inifile)
+        exit(1)
+
+    metadata = dict(config.items(var))
+
+    return metadata
+
+
 
 class ncdatset():
     """
@@ -640,7 +662,7 @@ class netcdfoutput():
         prepare_nc(self.ncfile, timeList, x, y, globmetadata, logger, Format=self.Format, EPSG=EPSG,zlib=self.zlib,
                    least_significant_digit=self.least_significant_digit)
 
-    def savetimestep(self, timestep, data, unit="mm", var='P', name="Precipitation"):
+    def savetimestep(self, timestep, data, unit="mm", var='P', name="Precipitation",metadata={}):
         """
         save a single timestep for a variable
 
@@ -681,6 +703,10 @@ class netcdfoutput():
 
             nc_var.units = unit
             nc_var.standard_name = name
+            for attr in metadata:
+                # print metadata[attr]
+                nc_var.setncattr(attr, metadata[attr])
+
             self.nc_trg.sync()
 
         miss = float(nc_var._FillValue)
@@ -725,7 +751,11 @@ def get_times_daily(startdate,enddate, serverroot, wrrsetroot, filename,logger):
 
     for thedate in dateList:
         #ncfile = serverroot + wrrsetroot + filename + "%d" % (thedate.year) + ".nc"
-        ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
+        if 'jrc/MSWEP/daily_e2o_netcdf_convention' in wrrsetroot:
+            ncfile = serverroot + wrrsetroot  + "/" + filename + "%d%02d.nc" % (
+            thedate.year, thedate.month)
+        else:
+            ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
         filelist[str(thedate)] = ncfile
 
     return filelist, dateList

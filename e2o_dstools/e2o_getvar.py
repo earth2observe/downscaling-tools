@@ -103,6 +103,7 @@ def main(argv=None):
     loglevel=logging.INFO
     downscaling = "False"
     resampling = "True"
+    metadata = {}
     
 
     if argv is None:
@@ -155,16 +156,18 @@ def main(argv=None):
     netcdfout = configget(logger, theconf, "output", "netcdfout", "None")
     interpolmethod = configget(logger, theconf, "downscaling", "interpolmethod", interpolmethod)
     downscaling = configget(logger, theconf, "downscaling", "downscaling", downscaling)
+    wrrversion = int(configget(logger, theconf, "selection", "wrrversion", '2'))
 
     logger.debug("Done reading settings.")
 
-    if 'met_forcing_v1' in wrrsetroot or 'MSWEP' in wrrsetroot or 'rainf' in wrrsetroot:
+    if  wrrversion ==2:
         FNlowResDEM     = e2o_dstools.get_data('DEM-WRR2.tif')
         filenames = filenameswrr2
     else:
         FNlowResDEM     = e2o_dstools.get_data('DEM-WRR1.tif')
         filenames = filenameswrr1
 
+    # Redefine filenames (needed vro ensemble forcing)
     ncfilenames = configget(logger, theconf, "selection", "ncfilenames", 'None')
     if ncfilenames != 'None':
         exec 'filenames = ' + ncfilenames
@@ -199,16 +202,17 @@ def main(argv=None):
 
 
 
+    # Setup netcdf output plus meta information
     if netcdfout != 'None':
-            ncout = netcdfoutput(netcdfout,x,y,logging,start,EndStep - StartStep)
-
-
-
+        globalmetadata = getmetadatafromini(inifile,'netcdf_attributes')
+        metadata.update(globalmetadata)
+        ncout = netcdfoutput(netcdfout,x,y,logging,start,EndStep - StartStep,metadata=metadata)
 
 
     #Add options for multiple variables
     for i in range (0,len(variables)):
         getDataForVar = False
+        varmetadata = getmetadatafromini(inifile, 'netcdf_attributes_' + variables[i])
         # Check whether variable exists in ini file
         getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
         # If variable is True read timeseries from file
@@ -293,7 +297,7 @@ def main(argv=None):
                         writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,-999.0)
 
                     if netcdfout != 'None':
-                        ncout.savetimestep(cnt+1,newdata,name=standard_name,var=variables[i])
+                        ncout.savetimestep(cnt+1,newdata,name=standard_name,var=variables[i],metadata=varmetadata)
                     cnt = cnt + 1
                     arcnt = arcnt +1
 

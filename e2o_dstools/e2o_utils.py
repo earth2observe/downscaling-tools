@@ -731,6 +731,42 @@ def get_times_daily(startdate,enddate, serverroot, wrrsetroot, filename,logger):
     return filelist, dateList
 
 
+def get_times_daily_P(startdate,enddate, serverroot, wrrsetroot, filename,logger):
+    """
+    generate a dictionary with date/times and the NC files in which the data resides
+    """
+
+    numdays = enddate - startdate
+    dateList = []
+    filelist = {}
+    for x in range (0, numdays.days + 1):
+        dateList.append(startdate + datetime.timedelta(days = x))
+
+    for thedate in dateList:
+        #ncfile = serverroot + wrrsetroot + filename + "%d" % (thedate.year) + ".nc"
+        ncfile = serverroot + wrrsetroot +  "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
+        filelist[str(thedate)] = ncfile
+
+    return filelist, dateList
+
+def get_times_daily(startdate,enddate, serverroot, wrrsetroot, filename,logger):
+    """
+    generate a dictionary with date/times and the NC files in which the data resides
+    """
+
+    numdays = enddate - startdate
+    dateList = []
+    filelist = {}
+    for x in range (0, numdays.days + 1):
+        dateList.append(startdate + datetime.timedelta(days = x))
+
+    for thedate in dateList:
+        #ncfile = serverroot + wrrsetroot + filename + "%d" % (thedate.year) + ".nc"
+        ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
+        filelist[str(thedate)] = ncfile
+
+    return filelist, dateList
+
 def get_times(startdate,enddate, serverroot, wrrsetroot, filename, timestepSeconds, logger):
     """
     generate a dictionary with date/times and the NC files in which the data resides for flexible timestep

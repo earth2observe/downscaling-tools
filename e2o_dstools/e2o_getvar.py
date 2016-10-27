@@ -16,7 +16,7 @@ import datetime
 from numpy import *
 from e2o_dstools.e2o_utils import *
 import e2o_dstools
-
+import math
 
 def usage(*args):
     """
@@ -61,6 +61,12 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
             cnt = cnt + 1    
 
 
+
+def dict_split(d, chunk_size=1):
+    return [
+            dict(item for item in sorted(d.items())[i:i+chunk_size])
+            for i in range(0, len(d.items()), chunk_size)
+           ]
 
 
 def main(argv=None):
@@ -152,12 +158,17 @@ def main(argv=None):
 
     logger.debug("Done reading settings.")
 
-    if 'met_forcing_v1' in wrrsetroot:
+    if 'met_forcing_v1' in wrrsetroot or 'MSWEP' in wrrsetroot or 'rainf' in wrrsetroot:
         FNlowResDEM     = e2o_dstools.get_data('DEM-WRR2.tif')
         filenames = filenameswrr2
     else:
         FNlowResDEM     = e2o_dstools.get_data('DEM-WRR1.tif')
         filenames = filenameswrr1
+
+    ncfilenames = configget(logger, theconf, "selection", "ncfilenames", 'None')
+    if ncfilenames != 'None':
+        exec 'filenames = ' + ncfilenames
+
 
     FNlowResDEM = configget(logger, theconf, "downscaling", "lowResDEM", FNlowResDEM)
 
@@ -191,6 +202,10 @@ def main(argv=None):
     if netcdfout != 'None':
             ncout = netcdfoutput(netcdfout,x,y,logging,start,EndStep - StartStep)
 
+
+
+
+
     #Add options for multiple variables
     for i in range (0,len(variables)):
         getDataForVar = False
@@ -201,69 +216,86 @@ def main(argv=None):
             filename = filenames[i]
             standard_name = standard_names[i]
 
-            start = datetime.datetime(startyear,startmonth,startday)
-            end = datetime.datetime(endyear,endmonth,endday)
+            splitinyears = True
+
+            start = datetime.datetime(startyear, startmonth, startday)
+            end = datetime.datetime(endyear, endmonth, endday)
+
+            cnt = 0
             odir = os.path.join(oodir,variables[i])
             if not os.path.exists(odir):
                 os.makedirs(odir)
-            tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot, filename,logger )       
+            if 0:
+                wholetlist, wholetimelist = get_times_daily(start,end,serverroot, wrrsetroot, filename,logger )
+            else:
+                wholetlist, wholetimelist = get_times_daily_P(start, end, serverroot, wrrsetroot, filename, logger)
 
-            ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
-
-            #print unique(tlist.values())
-            mstack = ncstepobj.getdates(timelist)
-
-            logger.info("Saving " + ncstepobj.varname + " to mapstack " + odir + oprefix)
+            chunks=     dict_split(wholetlist,10)
+            lchunks = [wholetimelist[x:x + 10] for x in xrange(0, len(wholetimelist), 10)]
 
 
-            cnt = 0
-            for a in timelist:
-                mapname = getmapname(cnt+1,oprefix)
-                convstr = configget(logger, theconf, "conversion", variables[i], 'none')
-                if resampling == "True":
-                    newdata = resample_grid(flipud(mstack[cnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,
-                                            yhires,method=interpolmethod)
-                    if convstr != 'none':
-                        convstr = convstr.replace(variables[i],'newdata')
-                        try:
-                            exec "newdata =  " + convstr
-                        except:
-                            logger.error("Conversion string not valid: " + convstr)
+            for tlist,timelist in zip(chunks,lchunks):
 
-                    # Process temperature, downscale and use laps rate if possible
-                    if variables[i] == 'Temperature':
-                        if 'met_forcing_v1' in wrrsetroot:
-                            if downscaling == 'True':
-                                standard_name = 'air_temperature_lapse_rate'
-                                tlist, timelist = get_times_daily(a, a, serverroot, wrrsetroot,
-                                                                  "lapseM_EI_025_", logger)
+                ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
 
-                                ncstepobj = getstepdaily(tlist, BB, standard_name, logger)
-                                mmstack = ncstepobj.getdates(timelist)
-                                lapse_rate = flipud(mmstack.mean(axis=0))
-                                lapse_rate = resample_grid(lapse_rate, ncstepobj.lon, ncstepobj.lat, xhires, yhires,
-                                                           method=interpolmethod, FillVal=FillVal)
+
+                #print unique(tlist.values())
+                mstack = ncstepobj.getdates(timelist)
+
+                logger.info("Saving " + ncstepobj.varname + " to mapstack " + odir + oprefix)
+
+                arcnt = 0
+                for a in tlist:
+                    print a
+                    mapname = getmapname(cnt+1,oprefix)
+                    convstr = configget(logger, theconf, "conversion", variables[i], 'none')
+                    if resampling == "True":
+                        newdata = resample_grid(flipud(mstack[arcnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,
+                                                yhires,method=interpolmethod)
+                        if convstr != 'none':
+                            convstr = convstr.replace(variables[i],'newdata')
+                            try:
+                                exec "newdata =  " + convstr
+                            except:
+                                logger.error("Conversion string not valid: " + convstr)
+
+                        # Process temperature, downscale and use laps rate if possible
+                        if variables[i] == 'Temperature':
+                            if 'met_forcing_v1' in wrrsetroot:
+                                if downscaling == 'True':
+                                    standard_name = 'air_temperature_lapse_rate'
+                                    tlist, timelist = get_times_daily(a, a, serverroot, wrrsetroot,
+                                                                      "lapseM_EI_025_", logger)
+
+                                    ncstepobj = getstepdaily(tlist, BB, standard_name, logger)
+                                    mmstack = ncstepobj.getdates(timelist)
+                                    lapse_rate = flipud(mmstack.mean(axis=0))
+                                    lapse_rate = resample_grid(lapse_rate, ncstepobj.lon, ncstepobj.lat, xhires, yhires,
+                                                               method=interpolmethod, FillVal=FillVal)
+                                else:
+                                    lapse_rate = -0.006
                             else:
-                                lapse_rate = -0.006
-                        else:
-                            if downscaling == 'True':
-                                lapse_rate = -0.006
+                                if downscaling == 'True':
+                                    lapse_rate = -0.006
 
-                        newdata =  newdata + lapse_rate * (hiresdem - resLowResDEM)
-                    writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
-                else:
-                    newdata = flipud(mstack[cnt,:,:]).copy()
-                    if convstr != 'none':
-                        convstr = convstr.replace(variables[i],'newdata')
-                        try:
-                            exec "newdata =  " + convstr
-                        except:
-                            logger.error("Conversion string not valid: " + convstr)
-                    writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,-999.0)
+                            newdata =  newdata + lapse_rate * (hiresdem - resLowResDEM)
+                        logger.info("Writing map: " + os.path.join(odir, mapname))
+                        writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
+                    else:
+                        newdata = flipud(mstack[arcnt,:,:]).copy()
+                        if convstr != 'none':
+                            convstr = convstr.replace(variables[i],'newdata')
+                            try:
+                                exec "newdata =  " + convstr
+                            except:
+                                logger.error("Conversion string not valid: " + convstr)
+                        logger.info("Writing map: " + os.path.join(odir,mapname))
+                        writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,-999.0)
 
-                if netcdfout != 'None':
-                    ncout.savetimestep(cnt+1,newdata,name=standard_name,var=variables[i])
-                cnt = cnt + 1
+                    if netcdfout != 'None':
+                        ncout.savetimestep(cnt+1,newdata,name=standard_name,var=variables[i])
+                    cnt = cnt + 1
+                    arcnt = arcnt +1
 
 
     logger.info("Done.")

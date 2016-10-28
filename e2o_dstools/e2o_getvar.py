@@ -232,7 +232,7 @@ def main(argv=None):
 
     allsteps=(end-start).days
     #for tlist,timelist in zip(chunks,lchunks):
-    for thisstep in arange(0,allsteps):
+    for thisstep in arange(0,allsteps +1):
         currentdate=start+datetime.timedelta(days=thisstep)
         logger.info("Processing date: " + str(currentdate))
         tlist, timelist = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, filename,

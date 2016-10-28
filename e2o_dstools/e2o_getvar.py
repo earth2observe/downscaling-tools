@@ -76,16 +76,7 @@ def main(argv=None):
     wrrsetroot = "ecmwf/met_forcing_v0/"
     variable = "Tair_daily_E2OBS_"
     
-    #available variables with corresponding file names and standard_names as in NC files
-    variables = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
-                    'NearSurfaceSpecificHumidity','Rainfall','SurfaceIncidentShortwaveRadiation','SnowfallRate','NearSurfaceWindSpeed']
-    filenameswrr1 = ["Tair_daily_E2OBS_","LWdown_daily_E2OBS_","PSurf_daily_E2OBS_","Qair_daily_E2OBS_",\
-                    "Rainf_daily_E2OBS_","SWdown_daily_E2OBS_","Snowf_daily_E2OBS_","Wind_daily_E2OBS_"]
-    filenameswrr2 = ["Tair_daily_EI_025_", "LWdown_daily_EI_025_", "PSurf_daily_EI_025_", "Qair_daily_EI_025_", \
-                 "Rainf_daily_EI_025_", "SWdown_daily_EI_025_", "Snowf_daily_EI_025_", "Wind_daily_EI_025_"]
 
-    standard_names = ['air_temperature','surface_downwelling_longwave_flux_in_air','surface_air_pressure','specific_humidity',\
-                        'rainfal_flux','surface_downwelling_shortwave_flux_in_air','snowfall_flux','wind_speed']
     
     # defaults, overwritten by info from ini file
     standard_name ='air_temperature'
@@ -127,6 +118,7 @@ def main(argv=None):
     logger.debug("Reading settings from in: " + inifile)
     theconf = iniFileSetUp(inifile)
     interpolmethod ='linear'
+    ncoutfillval=-9999.0
 
 
     lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
@@ -154,23 +146,27 @@ def main(argv=None):
     resampling  = configget(logger,theconf,"selection","resampling",resampling)
     FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
     netcdfout = configget(logger, theconf, "output", "netcdfout", "None")
+    rwbuffer = int(configget(logger, theconf, "output", "rwbuffer", "10"))
+    least_significant_digit = int(configget(logger, theconf, "output", "least_significant_digit", "6"))
     interpolmethod = configget(logger, theconf, "downscaling", "interpolmethod", interpolmethod)
     downscaling = configget(logger, theconf, "downscaling", "downscaling", downscaling)
     wrrversion = int(configget(logger, theconf, "selection", "wrrversion", '2'))
+    timestepsecs = float(configget(logger, theconf, "selection", "timestepsecs", '86400'))
+    timeflatten =configget(logger, theconf, "conversion", "intime", 'mean')
 
     logger.debug("Done reading settings.")
 
     if  wrrversion ==2:
         FNlowResDEM     = e2o_dstools.get_data('DEM-WRR2.tif')
-        filenames = filenameswrr2
     else:
         FNlowResDEM     = e2o_dstools.get_data('DEM-WRR1.tif')
-        filenames = filenameswrr1
 
-    # Redefine filenames (needed vro ensemble forcing)
-    ncfilenames = configget(logger, theconf, "selection", "ncfilenames", 'None')
-    if ncfilenames != 'None':
-        exec 'filenames = ' + ncfilenames
+
+
+    variable = configget(logger, theconf, "selection", "variable", 'None')
+    filename = configget(logger, theconf, "selection", "filename", 'None')
+    standard_name = configget(logger, theconf, "selection", "standard_name", 'None')
+
 
 
     FNlowResDEM = configget(logger, theconf, "downscaling", "lowResDEM", FNlowResDEM)
@@ -188,7 +184,7 @@ def main(argv=None):
         # Fille gaps in high res DEM with Zeros for ineterpolation purposes
         lowresdem[Lmismask] = 0.0
         resLowResDEM = resample_grid(lowresdem, xlres, ylres, xhires, yhires, method=interpolmethod,
-                                     FillVal=0.0)
+                                     FillVal=FillVal)
 
         lowresdem[Lmismask] = FillVal
         BB = dict(lon=[min(x), max(x)], lat=[min(y), max(y)])
@@ -204,102 +200,115 @@ def main(argv=None):
 
     # Setup netcdf output plus meta information
     if netcdfout != 'None':
-        globalmetadata = getmetadatafromini(inifile,'netcdf_attributes')
-        metadata.update(globalmetadata)
-        ncout = netcdfoutput(netcdfout,x,y,logging,start,EndStep - StartStep,metadata=metadata)
+        try:
+            globalmetadata = getmetadatafromini(inifile,'netcdf_attributes')
+            metadata.update(globalmetadata)
+        except:
+            logger.warn("No netcdf metadata found in ini file. Expected section: netcdf_attributes")
+        ncout = netcdfoutput(netcdfout,x,y,logger,start,EndStep - StartStep,metadata=metadata,maxbuf=rwbuffer,
+                             least_significant_digit=least_significant_digit,FillVal=ncoutfillval)
 
 
     #Add options for multiple variables
-    for i in range (0,len(variables)):
-        getDataForVar = False
-        varmetadata = getmetadatafromini(inifile, 'netcdf_attributes_' + variables[i])
-        # Check whether variable exists in ini file
-        getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
-        # If variable is True read timeseries from file
-        if getDataForVar == 'True':
-            filename = filenames[i]
-            standard_name = standard_names[i]
-
-            splitinyears = True
-
-            start = datetime.datetime(startyear, startmonth, startday)
-            end = datetime.datetime(endyear, endmonth, endday)
-
-            cnt = 0
-            odir = os.path.join(oodir,variables[i])
-            if not os.path.exists(odir):
-                os.makedirs(odir)
-            if 0:
-                wholetlist, wholetimelist = get_times_daily(start,end,serverroot, wrrsetroot, filename,logger )
-            else:
-                wholetlist, wholetimelist = get_times_daily_P(start, end, serverroot, wrrsetroot, filename, logger)
-
-            chunks=     dict_split(wholetlist,10)
-            lchunks = [wholetimelist[x:x + 10] for x in xrange(0, len(wholetimelist), 10)]
+    #for i in range (0,len(variables)):
+    getDataForVar = False
+    try:
+        varmetadata = getmetadatafromini(inifile, 'netcdf_attributes_' + variable)
+    except:
+        varmetadata = {}
+        logger.warn("Could not find section with variable metadata: netcdf_attributes_" + variable)
 
 
-            for tlist,timelist in zip(chunks,lchunks):
+    valid_max = float(configget(logger, theconf, 'selection', "valid_max", '1E31'))
+    valid_min = float(configget(logger, theconf, 'selection', "valid_min", '-1E31'))
 
-                ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
+    start = datetime.datetime(startyear, startmonth, startday)
+    end = datetime.datetime(endyear, endmonth, endday)
+
+    cnt = 0
+    odir = os.path.join(oodir,variable)
+    if not os.path.exists(odir):
+        os.makedirs(odir)
+
+    allsteps=(end-start).days
+    #for tlist,timelist in zip(chunks,lchunks):
+    for thisstep in arange(0,allsteps):
+        currentdate=start+datetime.timedelta(days=thisstep)
+        logger.info("Processing date: " + str(currentdate))
+        tlist, timelist = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, filename,
+                                    timestepsecs, logger)
+        ncstepobj = getstep(tlist,BB,standard_name,timestepsecs,logger)
+        # get the steps for this time
 
 
-                #print unique(tlist.values())
-                mstack = ncstepobj.getdates(timelist)
+        mstack = ncstepobj.getdates(timelist)
+        exec "thevar = mstack." + timeflatten + "(axis=0)"
 
-                logger.info("Saving " + ncstepobj.varname + " to mapstack " + odir + oprefix)
+        thevar[thevar<valid_min]=NaN
+        thevar[thevar > valid_max] = NaN
+        arcnt = 0
 
-                arcnt = 0
-                for a in tlist:
-                    print a
-                    mapname = getmapname(cnt+1,oprefix)
-                    convstr = configget(logger, theconf, "conversion", variables[i], 'none')
-                    if resampling == "True":
-                        newdata = resample_grid(flipud(mstack[arcnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,
-                                                yhires,method=interpolmethod)
-                        if convstr != 'none':
-                            convstr = convstr.replace(variables[i],'newdata')
-                            try:
-                                exec "newdata =  " + convstr
-                            except:
-                                logger.error("Conversion string not valid: " + convstr)
+        mapname = getmapname(cnt+1,oprefix)
+        convstr = configget(logger, theconf, "conversion", variable, 'none')
+        if resampling == "True":
+            newdata = resample_grid(flipud(thevar),ncstepobj.lon,ncstepobj.lat, xhires,
+                                    yhires,method=interpolmethod,FillVal=NaN)
+            if convstr != 'none':
+                convstr = convstr.replace(variable,'newdata')
+                try:
+                    exec "newdata =  " + convstr
+                except:
+                    logger.error("Conversion string not valid: " + convstr)
 
-                        # Process temperature, downscale and use laps rate if possible
-                        if variables[i] == 'Temperature':
-                            if 'met_forcing_v1' in wrrsetroot:
-                                if downscaling == 'True':
-                                    standard_name = 'air_temperature_lapse_rate'
-                                    tlist, timelist = get_times_daily(a, a, serverroot, wrrsetroot,
-                                                                      "lapseM_EI_025_", logger)
 
-                                    ncstepobj = getstepdaily(tlist, BB, standard_name, logger)
-                                    mmstack = ncstepobj.getdates(timelist)
-                                    lapse_rate = flipud(mmstack.mean(axis=0))
-                                    lapse_rate = resample_grid(lapse_rate, ncstepobj.lon, ncstepobj.lat, xhires, yhires,
-                                                               method=interpolmethod, FillVal=FillVal)
-                                else:
-                                    lapse_rate = -0.006
-                            else:
-                                if downscaling == 'True':
-                                    lapse_rate = -0.006
+            # Process temperature, downscale and use laps rate if possible
+            # needs to be fixed
+            if variable == 'Temperature':
+                if wrrversion == 2:
+                    if downscaling == 'True':
+                        standard_name = 'air_temperature_lapse_rate'
+                        tlist, timelist = get_times_daily(a, a, serverroot, wrrsetroot,
+                                                          "lapseM_EI_025_", logger)
 
-                            newdata =  newdata + lapse_rate * (hiresdem - resLowResDEM)
-                        logger.info("Writing map: " + os.path.join(odir, mapname))
-                        writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
+                        ncstepobj = getstepdaily(tlist, BB, standard_name, logger)
+                        mmstack = ncstepobj.getdates(timelist)
+                        lapse_rate = flipud(mmstack.mean(axis=0))
+                        lapse_rate = resample_grid(lapse_rate, ncstepobj.lon, ncstepobj.lat, xhires, yhires,
+                                                   method=interpolmethod, FillVal=ncoutfillval)
                     else:
-                        newdata = flipud(mstack[arcnt,:,:]).copy()
-                        if convstr != 'none':
-                            convstr = convstr.replace(variables[i],'newdata')
-                            try:
-                                exec "newdata =  " + convstr
-                            except:
-                                logger.error("Conversion string not valid: " + convstr)
-                        logger.info("Writing map: " + os.path.join(odir,mapname))
-                        writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,-999.0)
+                        lapse_rate = -0.006
+                else:
+                    if downscaling == 'True':
+                        lapse_rate = -0.006
 
-                    if netcdfout != 'None':
-                        ncout.savetimestep(cnt+1,newdata,name=standard_name,var=variables[i],metadata=varmetadata)
-                    cnt = cnt + 1
-                    arcnt = arcnt +1
+                newdata =  newdata + lapse_rate * (hiresdem - resLowResDEM)
+
+            newdata[isnan(newdata)] = ncoutfillval
+            if netcdfout != 'None':
+                logger.info("Saving step to netcdf: " + str(thisstep))
+                ncout.savetimestep(cnt + 1, newdata, name=standard_name, var=variable, metadata=varmetadata)
+            else:
+                logger.info("Writing map: " + os.path.join(odir, mapname))
+                writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
+        else:
+            newdata = flipud(thevar).copy()
+            if convstr != 'none':
+                convstr = convstr.replace(variable,'newdata')
+                try:
+                    exec "newdata =  " + convstr
+                except:
+                    logger.error("Conversion string not valid: " + convstr)
+
+            if netcdfout != 'None':
+                logger.info("Saving step to netcdf: " + str(thisstep))
+                ncout.savetimestep(cnt + 1, newdata, name=standard_name, var=variable, metadata=varmetadata)
+            else:
+                logger.info("Writing map: " + os.path.join(odir, mapname))
+                writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,-999.0)
+
+
+        cnt = cnt + 1
+        arcnt = arcnt +1
 
 
     logger.info("Done.")

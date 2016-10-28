@@ -185,6 +185,7 @@ def main(argv=None):
             cnt = 0
             for a in timelist:
                 mapname = getmapname(cnt+1,oprefix)
+                #nmapname = getmapname(cnt + 1, "_P")
                 convstr = configget(logger, theconf, "conversion", variables[i], 'none')
                 if resampling == "True":
                     newdata = resample_grid(flipud(mstack[cnt,:,:].astype(float32)),ncstepobj.lon,ncstepobj.lat, \
@@ -195,7 +196,9 @@ def main(argv=None):
                             exec "newdata =  " + convstr
                         except:
                             logger.error("Conversion string not valid: " + convstr)
+                    logger.info("Writing map: " + mapname)
                     writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
+                    #writeMap(os.path.join(odir, nmapname), oformat, ncstepobj.lon, ncstepobj.lat, flipud(mstack[cnt,:,:]), -999.0)
                 else:
                     newdata = flipud(mstack[cnt,:,:]).copy()
                     if convstr != 'none':
@@ -204,6 +207,7 @@ def main(argv=None):
                             exec "newdata =  " + convstr
                         except:
                             logger.error("Conversion string not valid: " + convstr)
+                    logger.info("Writing map: " + mapname)
                     writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,-999.0)
 
                 cnt = cnt + 1

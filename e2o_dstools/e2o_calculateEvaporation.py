@@ -55,7 +55,7 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
             writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[cnt,:,:],-999.0)
             cnt = cnt + 1
 
-def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster",FillVal=1E31,gzip=True):
+def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster",FillVal=1E31,gzip=False):
     import platform
 
     if not os.path.exists(directory):
@@ -734,7 +734,7 @@ def main(argv=None):
                             ncout.savetimestep(ncnt, relevantDataFields[1], unit="W/m^2", var=relevantVars[1],
                                                name='surface_air_pressure')
                         else:
-                            save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal)
+                            save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FllVal)
                             save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal)
                             save_as_mapsstack_per_day(lats,lons,relevantDataFields[1],int(ncnt),odir,prefix='RLIN',oformat=oformat,FillVal=FillVal)
                             save_as_mapsstack_per_day(lats,lons,relevantDataFields[2],int(ncnt),odir,prefix='PRESS',oformat=oformat,FillVal=FillVal)

@@ -279,8 +279,9 @@ class getstepdaily():
 
 
             if self.dset.lat[0] > self.dset.lat[-1]:
-                lat = self.dset.lat[::-1]
-                flipped = 1
+                lat = self.dset.lat[::-1].copy()
+                #flipped = 1
+                #lat = self.dset.lat[:]
             else:
                 lat = self.dset.lat[:]
             lon = self.dset.lon[:]
@@ -293,14 +294,12 @@ class getstepdaily():
 
                     window = zeros((data.shape[2],self.latidx.max() - self.latidx.min() + 1,self.lonidx.max() - self.lonidx.min() + 1))
                     for i in arange(spos,epos):
-                        tt = flipud(data[:,:,i])
+                        tt = flipud(data[:,:,i]).copy()
                         window[i,:,:] = tt[self.latidx.min():self.latidx.max() + 1,
                                  self.lonidx.min():self.lonidx.max() + 1]
                 else:
                     window = data[spos:epos,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
 
-                if flipped:
-                    window = flipud(window).copy()
 
             if self.dset.dimensions ==4:
                 window = data[spos:epos,0,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
@@ -399,7 +398,7 @@ class getstep():
         self.lon=[]
         self.data = []
         self.logger = logger
-        self.timestepSeconds = timestepSeconds
+
 
     def getdate(self,thedate):
 
@@ -629,7 +628,8 @@ def prepare_nc(trgFile, timeList, x, y, metadata, logger, EPSG="EPSG:4326", unit
 class netcdfoutput():
     def __init__(self, netcdffile, x, y, logger, starttime, timesteps, EPSG="EPSG:4326", timestepsecs=86400,
                  metadata={}, zlib=True, Format="NETCDF4",
-                 maxbuf=25, least_significant_digit=None):
+                 maxbuf=25, least_significant_digit=None,
+                 FillVal=1E31):
         """
         Under construction
         """
@@ -638,6 +638,7 @@ class netcdfoutput():
         self.zlib = zlib
         self.Format = Format
         self.least_significant_digit = least_significant_digit
+        self.FillVal=FillVal
 
         def date_range(start, end, timestepsecs):
                 r = int((end + dt.timedelta(seconds=timestepsecs) - start).total_seconds()/timestepsecs)
@@ -675,7 +676,7 @@ class netcdfoutput():
         """
         # Open target netCDF file
         var = os.path.basename(var)
-        self.nc_trg = netCDF4.Dataset(self.ncfile, 'a', format=self.Format, zlib=self.zlib, complevel=9)
+        self.nc_trg = netCDF4.Dataset(self.ncfile, 'a', format=self.Format, zlib=self.zlib, complevel=9,)
         self.nc_trg.set_fill_off()
         # read time axis and convert to time objects
         # TODO: use this to append time
@@ -692,11 +693,11 @@ class netcdfoutput():
         except:
             self.logger.debug("Creating variable " + var + " in netcdf file. Format: " + self.Format)
             if self.EPSG.lower() == "epsg:4326":
-                nc_var = self.nc_trg.createVariable(var, 'f4', ('time', 'lat', 'lon',), fill_value=-9999.0, zlib=self.zlib,
+                nc_var = self.nc_trg.createVariable(var, 'f4', ('time', 'lat', 'lon',), fill_value=self.FillVal, zlib=self.zlib,
                                                     complevel=9, least_significant_digit=self.least_significant_digit)
                 nc_var.coordinates = "lat lon"
             else:
-                nc_var = self.nc_trg.createVariable(var, 'f4', ('time', 'y', 'x',), fill_value=-9999.0, zlib=self.zlib,
+                nc_var = self.nc_trg.createVariable(var, 'f4', ('time', 'y', 'x',), fill_value=self.FillVal, zlib=self.zlib,
                                                     complevel=9, least_significant_digit=self.least_significant_digit)
                 nc_var.coordinates = "lat lon"
                 nc_var.grid_mapping = "crs"
@@ -709,7 +710,6 @@ class netcdfoutput():
 
             self.nc_trg.sync()
 
-        miss = float(nc_var._FillValue)
 
         if self.bufflst.has_key(var):
             self.bufflst[var][bufpos, :, :] = data
@@ -815,6 +815,29 @@ def get_times(startdate,enddate, serverroot, wrrsetroot, filename, timestepSecon
 
     for thedate in dateList:
         ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
+        filelist[str(thedate)] = ncfile
+
+    return filelist, dateList
+
+
+def get_times_P(startdate,enddate, serverroot, wrrsetroot, filename, timestepSeconds, logger):
+    """
+    generate a dictionary with date/times and the NC files in which the data resides for flexible timestep
+    """
+
+    numdays = enddate - startdate
+    dateList = []
+    filelist = {}
+    #days
+    for x in range (0, numdays.days + 1):
+        #selected time-step in seconds
+        delta = 0
+        while delta < 86400:
+            dateList.append(startdate + datetime.timedelta(seconds = delta) + datetime.timedelta(days=x))
+            delta += timestepSeconds
+
+    for thedate in dateList:
+        ncfile = serverroot + wrrsetroot +  "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
         filelist[str(thedate)] = ncfile
 
     return filelist, dateList
@@ -1131,16 +1154,10 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
         res = interobj(yx_outpoints)
         result = reshape(res, (len(Yout), len(Xout)))
         result[isnan(result)] = FillVal
-    # elif method in 'cubic quintic':
-    #     interobj = interpolate.interp2d(Xin, Ysrt, gridZ_in,  kind=method, bounds_error=False)
-    #     res = interobj(Xout, Yout)
-    #     result = reshape(res, (len(Yout), len(Xout)))
-    #     result[isnan(result)] = FillVal
-    #     res = flipud(res)
     else:
         raise ValueError("Interpolation method " + method + " not known.")
 
-    #reshape to the new grid
+
 
     
     return result

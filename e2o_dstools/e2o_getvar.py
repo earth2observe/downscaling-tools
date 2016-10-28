@@ -309,6 +309,7 @@ def main(argv=None):
 
         cnt = cnt + 1
         arcnt = arcnt +1
+        del ncstepobj
 
 
     logger.info("Done.")

@@ -721,7 +721,7 @@ class netcdfoutput():
 
         if buffreset == 0 or idx == self.maxbuf - 1 or self.timesteps <= timestep:
             spos = idx - bufpos
-            self.logger.debug(
+            self.logger.info(
                 "Writing buffer for " + var + " to file at: " + str(spos) + " " + str(int(bufpos) + 1) + " timesteps")
             nc_var[spos:idx + 1, :, :] = self.bufflst[var][0:bufpos + 1, :, :]
             self.nc_trg.sync()

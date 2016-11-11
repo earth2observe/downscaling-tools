@@ -43,7 +43,7 @@ SurfaceIncidentShortwaveRadiation    SWdown_daily_EI_025_ SWdown_daily_E2OBS_  s
 SnowfallRate                         Snowf_daily_EI_025_  Snowf_daily_E2OBS_   snowfall_flux
 NearSurfaceWindSpeed                 Wind_daily_EI_025_   Wind_daily_E2OBS_    wind_speed
 LapseRate                            lapseM_EI_025_               -            air_temperature_lapse_rate
-=================================== ===================== ==================== =========================================
+==================================== ==================== ==================== =========================================
 
 Implementation
 --------------

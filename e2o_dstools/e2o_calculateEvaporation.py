@@ -534,7 +534,8 @@ def main(argv=None):
         FNlowResDEM     = e2o_dstools.get_data('DEM-WRR1.tif')
     # Get filenames
     if 'met_forcing_v1' in wrrsetroot: 
-        filenames = ["Tair_daily_EI_025_","LWdown_daily_EI_025_","PSurf_daily_EI_025_","Qair_daily_EI_025_",\
+        filenames = \
+            ["Tair_daily_EI_025_","LWdown_daily_EI_025_","PSurf_daily_EI_025_","Qair_daily_EI_025_",\
                     "Rainf_daily_EI_025_","SWdown_daily_EI_025_","Snowf_daily_EI_025_","Wind_daily_EI_025_","lapseM_EI_025_"]
         temperatureFile = ["Tair_EI_025_"]
     else:

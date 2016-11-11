@@ -29,22 +29,21 @@ An example config that downloads 1 yr of Precipitation and Temperature data can 
 examples/getvar directory.
 
 
-.. table:: Variables and names to be used in the ini file
+Table: Variables and names to be used in the ini file
 
-   :widths: auto
-
-    | Variable                          | Filenames WRR2       | Filenames WRR1      | standard_name                             |
-    |-----------------------------------|----------------------|---------------------|-------------------------------------------|
-    | Temperature                       | Tair_daily_EI_025_   | Tair_daily_E2OBS_   | air_temperature                           |
-    | DownwellingLongWaveRadiation      | LWdown_daily_EI_025_ | LWdown_daily_E2OBS_ | surface_downwelling_longwave_flux_in_air  |
-    | SurfaceAtmosphericPressure        | PSurf_daily_EI_025_  | PSurf_daily_E2OBS_  | surface_air_pressure                      |
-    | NearSurfaceSpecificHumidity       | Qair_daily_EI_025_   | Qair_daily_E2OBS_   | specific_humidity                         |
-    | Rainfall                          | Rainf_daily_EI_025_  | Rainf_daily_E2OBS_  | rainfal_flux                              |
-    | SurfaceIncidentShortwaveRadiation | SWdown_daily_EI_025_ | SWdown_daily_E2OBS_ | surface_downwelling_shortwave_flux_in_air |
-    | SnowfallRate                      | Snowf_daily_EI_025_  | Snowf_daily_E2OBS_  | snowfall_flux                             |
-    | NearSurfaceWindSpeed              | Wind_daily_EI_025_   | Wind_daily_E2OBS_   | wind_speed                                |
-    | LapseRate                         | lapseM_EI_025_       |       -             | air_temperature_lapse_rate                |
-
++-----------------------------------+----------------------+---------------------+-------------------------------------------+
+| Variable                          | Filenames WRR2       | Filenames WRR1      | standard_name                             |
++-----------------------------------+----------------------+---------------------+-------------------------------------------+
+| Temperature                       | Tair_daily_EI_025_   | Tair_daily_E2OBS_   | air_temperature                           |
+| DownwellingLongWaveRadiation      | LWdown_daily_EI_025_ | LWdown_daily_E2OBS_ | surface_downwelling_longwave_flux_in_air  |
+| SurfaceAtmosphericPressure        | PSurf_daily_EI_025_  | PSurf_daily_E2OBS_  | surface_air_pressure                      |
+| NearSurfaceSpecificHumidity       | Qair_daily_EI_025_   | Qair_daily_E2OBS_   | specific_humidity                         |
+| Rainfall                          | Rainf_daily_EI_025_  | Rainf_daily_E2OBS_  | rainfal_flux                              |
+| SurfaceIncidentShortwaveRadiation | SWdown_daily_EI_025_ | SWdown_daily_E2OBS_ | surface_downwelling_shortwave_flux_in_air |
+| SnowfallRate                      | Snowf_daily_EI_025_  | Snowf_daily_E2OBS_  | snowfall_flux                             |
+| NearSurfaceWindSpeed              | Wind_daily_EI_025_   | Wind_daily_E2OBS_   | wind_speed                                |
+| LapseRate                         | lapseM_EI_025_       |       -             | air_temperature_lapse_rate                |
++-----------------------------------+----------------------+---------------------+-------------------------------------------+
 
 Implementation
 --------------

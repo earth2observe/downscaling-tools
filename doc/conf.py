@@ -29,10 +29,12 @@ class Mock(MagicMock):
             return Mock()
  
 MOCK_MODULES = ['_pcraster','_pcraster_modflow','PCRaster.NumPy',
-                'osgeo.gdal','osgeo.gdalconst','osgeo','netCDF4',
+                'osgeo,','osgeo.gdal','osgeo.gdalconst','netCDF4',
                 'netCDF4_utils','netcdftime','PCRaster','PCRaster.Framework']
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

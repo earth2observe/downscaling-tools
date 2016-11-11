@@ -331,6 +331,31 @@ Example e2o_calculateEvaporation ini file:
     saveall=1
 
 
+Downscaling Precipitation
+-------------------------
+
+The e2o_getvar script can downscale precipitation (Rainfall) using the WorldClim dataset which supplies monthly
+climatology. It does so using the following
+steps:
+
++ The WorldClim data is averaged to the resolution of the original data (0.25 degree)
++ For each timesteps a factor is determiend fro each pixel by dividing the WordClim data for the corresponding month
+  by the current data.
++ This factor is rescaled to the desired output resolution
++ The WorldClim data at the desired output resolution is divided by the derived factor to obtain downscaled input data
+
+If we assume the input precipitation data is the avegare for the 0.25 grid cell it is best to use the nearest interpolation.
+The efects of downscaling and interpoltion types is shown in the figure below.
+
+.. figure:: _static/p_downscale.png
+    :width: 640px
+    :align: center
+
+    Precipitation for the earth2observe MSWEP dataset for the Rhine basin. Top left is the original
+    data interpolated using a nearest interpolation. Top rigth the original data nut interpolated
+    linear. Bottom left is downscaled using the WorldClim data using a nearrest interpolation while
+    the bottom rigth is downsclaled using WorldClim and a linear interpolation.
+
 Running the examples
 ====================
 
@@ -357,8 +382,8 @@ The getvar directory contains the following files:
 
 The conents of the example1.ini file is shown below. This contains all the settings fro th ee2o_getvar
 scripts. For example, by changing the line "interpolmethod=linear" to "interpolmethod=nearest" the
-script will uses a different interpolation method. Here the local elevation mdoel (wflow_dem.map)
-is also specified. The map can be in any GDAL supported raster format. Teh grid should be defined in lat,lon
+script will uses a different interpolation method. Here the local elevation model (wflow_dem.map)
+is also specified. The map can be in any GDAL supported raster format. The grid should be defined in lat,lon
 
 .. literalinclude:: _download/example1.ini
 

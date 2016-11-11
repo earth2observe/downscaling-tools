@@ -69,15 +69,82 @@ def dict_split(d, chunk_size=1):
            ]
 
 
-def main(argv=None):
+def downscale(variable, data, datalow, wrrversion,serverroot,wrrsetroot,BB,currentdate,XH,YH,XL,YL,
+              interpolmethod, ncoutfillval, hiresdem, resLowResDEM, interpolmode, logger):
+    """
 
+    :param variable:
+    :param data:
+    :param wrrversion:
+    :return:
+    """
+
+    if variable == 'Temperature':
+        if wrrversion == 2:
+            standard_name = 'air_temperature_lapse_rate'
+            tlist, timelist = get_times_daily(currentdate, currentdate, serverroot, wrrsetroot,
+                                              "lapseM_EI_025_", logger)
+
+            ncstepobj = getstepdaily(tlist, BB, standard_name, logger)
+            mmstack = ncstepobj.getdates(timelist)
+            lapse_rate = flipud(mmstack.mean(axis=0))
+            lapse_rate = resample_grid(lapse_rate, ncstepobj.lon, ncstepobj.lat, XH, YH,
+                                       method=interpolmethod, FillVal=ncoutfillval)
+        else:
+            lapse_rate = -0.006
+        retdata = data + lapse_rate * (hiresdem - resLowResDEM)
+    elif variable == "Rainfall":
+        if wrrversion == 2:
+            # First read P data in WRR2 resolution
+            yday = (currentdate.date() - datetime.date(currentdate.year, 1, 1)).days + 1
+            PclimMapName = getmapnamemonth(yday, "prec")
+            PclimWRR2 = e2o_dstools.get_data(os.path.join('Prec/0.2500/', PclimMapName))
+            resX, resY, cols, rows, CLIMLON, CLIMLAT, PlowClim, FillVal = \
+                readMap(PclimWRR2, 'GTiff', logger)
+            PlowClim = PlowClim.astype(float32)
+            PlowClim[PlowClim == FillVal] = NaN
+
+            # Now read the P climate data for the current resolution
+            Resstr = "%1.4f" % diff(XH).mean() # find current resolution
+            PclimCUR = e2o_dstools.get_data(os.path.join('Prec',Resstr,PclimMapName))
+            resX, resY, cols, rows, HILON, HILAT, PHiClim, FillVal = \
+                readMap(PclimCUR, 'GTiff', logger)
+            PHiClim = PHiClim.astype(float32)
+            PHiClim[PHiClim==FillVal] = NaN
+
+            # Now determine diff between current data at original resolution and the climatology at the same resolutions
+            # resample climatology first as it may not cover the whole earth
+            _PlowClim= resample_grid(PlowClim,  CLIMLON, CLIMLAT,XL, YL,
+                                       method='nearest', FillVal=NaN)
+
+            datalow[datalow<=0] = NaN
+            multlow = _PlowClim/datalow
+            multhi = resample_grid(multlow, XL, YL, XH, YH,
+                                       method=interpolmode, FillVal=NaN)
+
+            _PHiClim = resample_grid(PHiClim,  HILON, HILAT,XH, YH,
+                                       method='nearest', FillVal=NaN)
+            multhi[multhi <= 0] = NaN
+            retdata = _PHiClim/multhi
+            # fill with interpolated original data
+            retdata[~isfinite(retdata)] = data[~isfinite(retdata)]
+        else:
+            retdata = data
+    else:
+        retdata = data
+
+
+    return retdata
+
+
+
+
+
+def main(argv=None):
 
     serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
     wrrsetroot = "ecmwf/met_forcing_v0/"
     variable = "Tair_daily_E2OBS_"
-    
-
-    
     # defaults, overwritten by info from ini file
     standard_name ='air_temperature'
     startyear = 1979
@@ -147,6 +214,7 @@ def main(argv=None):
     FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
     netcdfout = configget(logger, theconf, "output", "netcdfout", "None")
     rwbuffer = int(configget(logger, theconf, "output", "rwbuffer", "10"))
+    ncoutfillval = float(configget(logger, theconf, "output", "ncoutfillval", "-9999.9"))
     least_significant_digit = int(configget(logger, theconf, "output", "least_significant_digit", "6"))
     interpolmethod = configget(logger, theconf, "downscaling", "interpolmethod", interpolmethod)
     downscaling = configget(logger, theconf, "downscaling", "downscaling", downscaling)
@@ -235,8 +303,12 @@ def main(argv=None):
     for thisstep in arange(0,allsteps +1):
         currentdate=start+datetime.timedelta(days=thisstep)
         logger.info("Processing date: " + str(currentdate))
-        tlist, timelist = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, filename,
-                                    timestepsecs, logger)
+        if variable == "Rainfall":
+            tlist, timelist = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, filename,
+                                        timestepsecs, logger)
+        else:
+            tlist, timelist = get_times(currentdate, currentdate, serverroot, wrrsetroot, filename,
+                                        timestepsecs, logger)
         ncstepobj = getstep(tlist,BB,standard_name,timestepsecs,logger)
         # get the steps for this time
 
@@ -250,46 +322,36 @@ def main(argv=None):
 
         mapname = getmapname(cnt+1,oprefix)
         convstr = configget(logger, theconf, "conversion", variable, 'none')
+        if convstr != 'none':
+            convstr = convstr.replace(variable, 'thevar')
+            try:
+                exec "thevar =  " + convstr
+            except:
+                logger.error("Conversion string not valid: " + convstr)
+
         if resampling == "True":
             newdata = resample_grid(flipud(thevar),ncstepobj.lon,ncstepobj.lat, xhires,
                                     yhires,method=interpolmethod,FillVal=NaN)
-            if convstr != 'none':
-                convstr = convstr.replace(variable,'newdata')
-                try:
-                    exec "newdata =  " + convstr
-                except:
-                    logger.error("Conversion string not valid: " + convstr)
+
 
 
             # Process temperature, downscale and use laps rate if possible
             # needs to be fixed
-            if variable == 'Temperature':
-                if wrrversion == 2:
-                    if downscaling == 'True':
-                        standard_name = 'air_temperature_lapse_rate'
-                        tlist, timelist = get_times_daily(a, a, serverroot, wrrsetroot,
-                                                          "lapseM_EI_025_", logger)
+            if downscaling == 'True':
+                newdata = downscale(variable, newdata,flipud(thevar),wrrversion,serverroot,wrrsetroot,BB,currentdate, xhires, yhires,ncstepobj.lon,ncstepobj.lat,
+                              interpolmethod, ncoutfillval, hiresdem, resLowResDEM,interpolmethod,logger)
 
-                        ncstepobj = getstepdaily(tlist, BB, standard_name, logger)
-                        mmstack = ncstepobj.getdates(timelist)
-                        lapse_rate = flipud(mmstack.mean(axis=0))
-                        lapse_rate = resample_grid(lapse_rate, ncstepobj.lon, ncstepobj.lat, xhires, yhires,
-                                                   method=interpolmethod, FillVal=ncoutfillval)
-                    else:
-                        lapse_rate = -0.006
-                else:
-                    if downscaling == 'True':
-                        lapse_rate = -0.006
 
-                newdata =  newdata + lapse_rate * (hiresdem - resLowResDEM)
+
 
             newdata[isnan(newdata)] = ncoutfillval
+            newdata[~isfinite(newdata)] = ncoutfillval
             if netcdfout != 'None':
                 logger.info("Saving step to netcdf: " + str(thisstep))
                 ncout.savetimestep(cnt + 1, newdata, name=standard_name, var=variable, metadata=varmetadata)
             else:
                 logger.info("Writing map: " + os.path.join(odir, mapname))
-                writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
+                writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,ncoutfillval)
         else:
             newdata = flipud(thevar).copy()
             if convstr != 'none':
@@ -304,7 +366,7 @@ def main(argv=None):
                 ncout.savetimestep(cnt + 1, newdata, name=standard_name, var=variable, metadata=varmetadata)
             else:
                 logger.info("Writing map: " + os.path.join(odir, mapname))
-                writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,-999.0)
+                writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,ncoutfillval)
 
 
         cnt = cnt + 1

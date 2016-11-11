@@ -1,36 +1,23 @@
-2016-10-19 20:20:42,820 - e2o_getvar - INFO - returning default (None) for output:netcdfout
-2016-10-19 20:20:42,821 - e2o_getvar - INFO - returning default (/home/jaap/anaconda/lib/python2.7/site-packages/e2o_dstoools-2016.1-py2.7.egg/e2o_dstools/data/DEM-WRR2.tif) for downscaling:lowResDEM
-2016-10-19 20:20:43,654 - e2o_getvar - INFO - returning default (False) for selection:Temperature
-2016-10-19 20:20:43,654 - e2o_getvar - INFO - returning default (False) for selection:DownwellingLongWaveRadiation
-2016-10-19 20:20:43,655 - e2o_getvar - INFO - returning default (False) for selection:SurfaceAtmosphericPressure
-2016-10-19 20:20:43,655 - e2o_getvar - INFO - returning default (False) for selection:NearSurfaceSpecificHumidity
-2016-10-19 20:20:45,946 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197901.nc
-2016-10-19 20:21:16,626 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197902.nc
-2016-10-19 20:22:05,558 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197903.nc
-2016-10-19 20:22:33,984 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197904.nc
-2016-10-19 20:23:04,038 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197905.nc
-2016-10-19 20:23:37,941 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197906.nc
-2016-10-19 20:24:10,655 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197907.nc
-2016-10-19 20:24:40,541 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197908.nc
-2016-10-19 20:25:11,293 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197909.nc
-2016-10-19 20:25:47,734 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197910.nc
-2016-10-19 20:26:21,077 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197911.nc
-2016-10-19 20:26:51,974 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197912.nc
-2016-10-19 20:27:30,392 - e2o_getvar - INFO - Saving rainfal_flux to mapstack lisflood/RainfallE2O
-2016-10-19 20:35:06,861 - e2o_getvar - INFO - returning default (False) for selection:SurfaceIncidentShortwaveRadiation
-2016-10-19 20:35:08,658 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197901.nc
-2016-10-19 20:35:44,688 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197902.nc
-2016-10-19 20:36:15,237 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197903.nc
-2016-10-19 20:36:50,175 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197904.nc
-2016-10-19 20:37:20,437 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197905.nc
-2016-10-19 20:37:57,415 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197906.nc
-2016-10-19 20:38:28,558 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197907.nc
-2016-10-19 20:39:03,526 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197908.nc
-2016-10-19 20:39:41,982 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197909.nc
-2016-10-19 20:40:19,828 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197910.nc
-2016-10-19 20:40:56,924 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197911.nc
-2016-10-19 20:41:38,063 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Snowf_daily_MSWEP_025_197912.nc
-2016-10-19 20:42:14,627 - e2o_getvar - INFO - Saving snowfall_flux to mapstack lisflood/SnowfallRateE2O
-2016-10-19 20:42:14,627 - e2o_getvar - INFO - returning default (none) for conversion:SnowfallRate
-2016-10-19 20:48:50,203 - e2o_getvar - INFO - returning default (False) for selection:NearSurfaceWindSpeed
-2016-10-19 20:48:50,204 - e2o_getvar - INFO - Done.
+2016-11-10 13:47:39,007 - e2o_getvar - INFO - returning default (True) for selection:resampling
+2016-11-10 13:47:39,007 - e2o_getvar - INFO - returning default (None) for output:netcdfout
+2016-11-10 13:47:39,007 - e2o_getvar - INFO - returning default (2) for selection:wrrversion
+2016-11-10 13:47:39,007 - e2o_getvar - INFO - returning default (C:\repos\e2o-downscaling-tools\e2o_dstools\data\DEM-WRR2.tif) for downscaling:lowResDEM
+2016-11-10 13:47:41,700 - e2o_getvar - WARNING - Could not find section with variable metadata: netcdf_attributes_Rainfall
+2016-11-10 13:47:41,700 - e2o_getvar - INFO - returning default (1E31) for selection:valid_max
+2016-11-10 13:47:41,700 - e2o_getvar - INFO - returning default (-1E31) for selection:valid_min
+2016-11-10 13:47:41,701 - e2o_getvar - INFO - Processing date: 1979-01-01 00:00:00
+2016-11-10 13:47:42,039 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197901.nc
+2016-11-10 13:47:49,772 - e2o_getvar - INFO - Writing map: linds\Rainfall\E2O00000.001
+2016-11-10 13:47:49,946 - e2o_getvar - INFO - Processing date: 1979-01-02 00:00:00
+2016-11-10 13:47:50,069 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197901.nc
+2016-11-10 13:47:57,575 - e2o_getvar - INFO - Writing map: linds\Rainfall\E2O00000.002
+2016-11-10 13:47:57,753 - e2o_getvar - INFO - Processing date: 1979-01-03 00:00:00
+2016-11-10 13:47:57,861 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197901.nc
+2016-11-10 13:48:05,591 - e2o_getvar - INFO - Writing map: linds\Rainfall\E2O00000.003
+2016-11-10 13:48:05,766 - e2o_getvar - INFO - Processing date: 1979-01-04 00:00:00
+2016-11-10 13:48:05,875 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197901.nc
+2016-11-10 13:48:13,446 - e2o_getvar - INFO - Writing map: linds\Rainfall\E2O00000.004
+2016-11-10 13:48:13,621 - e2o_getvar - INFO - Processing date: 1979-01-05 00:00:00
+2016-11-10 13:48:13,733 - e2o_getvar - INFO - Processing url: http://wci.earth2observe.eu/thredds/dodsC/jrc/MSWEP/daily_e2o_netcdf_convention//Rainf_daily_MSWEP_025_197901.nc
+2016-11-10 13:48:21,375 - e2o_getvar - INFO - Writing map: linds\Rainfall\E2O00000.005
+2016-11-10 13:48:21,558 - e2o_getvar - INFO - Done.

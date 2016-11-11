@@ -1138,12 +1138,6 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
     # and thus flip the image
     Ysrt = sort(Yin)
 
-    # First average if the output has a lower resolution than the input grid
-    insize = min(diff(Xin))
-    outsize = min(diff(Xout))
-    #if insize < outsize:
-    #    xsize = outsize/insize
-    #    gridZ_in = ndimage.filters.percentile_filter(gridZ_in,50,size=xsize)
 
     if method in 'nearest linear':
         interobj = interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(FillVal))

@@ -4,7 +4,11 @@ e2o_getvar - retrieve variables
 e2o_getval gets variables from the server for a specific region (specified in the ini file)
 and optionally resamples those to a specified Digital Elevation Model (DEM).
 e2o_getvar outputs daily values in the original units. The script does
-physical downscaling only fro Temperature and Precipitation. The other variables are interpolated only.
+physical downscaling only for Temperature and Precipitation. The other variables are interpolated only.
+In order to downscale the precipitation data you must check if the resolution you want is available in the data/Prec
+directory ( we use the WorldClim data, see Hijmans et. al. 2005) and make files for the new resolution.
+You can use the newres.bat script as an example. If you have other
+high resolution climatology data you can use that instead of the worldclim data.
 
 Use the e2o_calculateEvaporation script for more elaborate downscaling options for radiation.
 
@@ -18,17 +22,12 @@ ini file configuration
 ----------------------
 
 
-
-
 The .ini file below shows the available options
 
-.. literalinclude:: _download/example1.ini
+.. literalinclude:: _static/e2o_getvar.ini
 
 
-An example ini file be found :download:`here. <_download/example1.ini>`
-
-An example config that downloads 1 yr of Precipitation MSWEP data can be found in the
-examples/getvar directory.
+An example ini file be found :download:`here. <_static/e2o_getvar.ini>`
 
 
 Table: Variables and names to be used in the ini file
@@ -47,6 +46,8 @@ NearSurfaceWindSpeed                 Wind_daily_EI_025_   Wind_daily_E2OBS_    w
 LapseRate                            lapseM_EI_025_               -            air_temperature_lapse_rate
 ==================================== ==================== ==================== =========================================
 
+
+
 Implementation
 --------------
 
@@ -55,3 +56,10 @@ Implementation
 .. automodule:: e2o_dstools.e2o_getvar
     :members:
 
+
+References
+----------
+
+Hijmans, R.J., S.E. Cameron, J.L. Parra, P.G. Jones and A. Jarvis, 2005.
+Very high resolution interpolated climate surfaces for global land areas.
+International Journal of Climatology 25: 1965-1978.

@@ -101,6 +101,11 @@ def downscale(variable, data, datalow, wrrversion,serverroot,wrrsetroot,BB,curre
             yday = (currentdate.date() - datetime.date(currentdate.year, 1, 1)).days + 1
             PclimMapName = getmapnamemonth(yday, "prec")
             PclimWRR2 = e2o_dstools.get_data(os.path.join('Prec/0.2500/', PclimMapName))
+            if not os.path.exists(PclimWRR2):
+                logger.error('Cannot find WorlClim data for downscaling: ' + PclimWRR2)
+                logger.error('Please download and process the worldclim data at resolution: ' + PclimWRR2)
+                exit(1)
+
             resX, resY, cols, rows, CLIMLON, CLIMLAT, PlowClim, FillVal = \
                 readMap(PclimWRR2, 'GTiff', logger)
             PlowClim = PlowClim.astype(float32)
@@ -109,6 +114,11 @@ def downscale(variable, data, datalow, wrrversion,serverroot,wrrsetroot,BB,curre
             # Now read the P climate data for the current resolution
             Resstr = "%1.4f" % diff(XH).mean() # find current resolution
             PclimCUR = e2o_dstools.get_data(os.path.join('Prec',Resstr,PclimMapName))
+            if not os.path.exists(PclimCUR):
+                logger.error('Cannot find WorlClim data for downscaling: ' + PclimCUR)
+                logger.error('Please download and process the worldclim data at resolution: ' + Resstr)
+                exit(1)
+
             resX, resY, cols, rows, HILON, HILAT, PHiClim, FillVal = \
                 readMap(PclimCUR, 'GTiff', logger)
             PHiClim = PHiClim.astype(float32)

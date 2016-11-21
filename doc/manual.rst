@@ -369,8 +369,11 @@ getvar
 
 The getvar directory contains the following files:
 
-+ examplerun1.bat - windows batch file to run the example
-+ examplerun1.ini - configuration file for e2o_getvar
++ run_example.bat - windows batch file to run one of the examples
++ e2o_getvar.ini - configuration file for e2o_getvar to download and downscale Temperature
++ examplerun1.ini - configuration file for e2o_getvar to download and interpolate MSWEP Precipitation
++ examplerun2.ini - configuration file for e2o_getvar to download and Downscale MSWEP Precipitation. You will
+need to have downloaded and processed WorldClim precipitation data to use this example.
 + README.txt - Some information on the example
 + wflow_dem.map - local scale digital elevation model
 
@@ -380,12 +383,12 @@ The getvar directory contains the following files:
 
     The local elevation model (wflow_dem.map) used for downscaling.
 
-The conents of the example1.ini file is shown below. This contains all the settings fro th ee2o_getvar
-scripts. For example, by changing the line "interpolmethod=linear" to "interpolmethod=nearest" the
+The conents of the example1.ini file is shown below. This contains all the settings for the e2o_getvar
+script. For example, by changing the line "interpolmethod=linear" to "interpolmethod=nearest" the
 script will uses a different interpolation method. Here the local elevation model (wflow_dem.map)
 is also specified. The map can be in any GDAL supported raster format. The grid should be defined in lat,lon
 
-.. literalinclude:: _download/example1.ini
+.. literalinclude:: _static/e2o_getvar.ini
 
 
 As can be seen from the file (the conversions section) two unit conversions have been setup: Temperature is

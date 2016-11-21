@@ -8,6 +8,8 @@ usage:
 
     -I inifile - ini file with settings which data to get
     -l loglevel (must be one of DEBUG, WARNING, ERROR)
+
+    See: http://e2o-downscaling-tools.readthedocs.io/en/latest/e2o_getvar.html
 """
 
 

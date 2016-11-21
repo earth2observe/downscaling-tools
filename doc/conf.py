@@ -29,8 +29,9 @@ class Mock(MagicMock):
             return Mock()
  
 MOCK_MODULES = ['_pcraster','_pcraster_modflow','PCRaster.NumPy',
-                'osgeo,','osgeo.gdal','osgeo.gdalconst','netCDF4',
-                'netCDF4_utils','netcdftime','PCRaster','PCRaster.Framework']
+                'osgeo.gdal','osgeo.gdalconst','osgeo','osgeo.ogr','netCDF4',
+                'netCDF4_utils','netcdftime','PCRaster','PCRaster.Framework','pyproj']
+
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
@@ -44,7 +45,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('pcraster-for-doc-only/'))
-
+sys.path.insert(0, os.path.abspath('../'))
 
 import e2o_dstools
 # -- General configuration -----------------------------------------------------

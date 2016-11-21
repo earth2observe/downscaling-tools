@@ -5,7 +5,8 @@ e2o_getval gets variables from the server for a specific region (specified in th
 and optionally resamples those to a specified Digital Elevation Model (DEM).
 e2o_getvar outputs daily values in the original units. The script does
 physical downscaling only for Temperature and Precipitation. The other variables are interpolated only.
-In order to downscale the precipitation data you must check if the resolution you want is available in the data/Prec
+In order to downscale the precipitation data you must first download the data from: .
+Next, check if the resolution you want is available in the data/Prec
 directory ( we use the WorldClim data, see Hijmans et. al. 2005) and make files for the new resolution.
 You can use the newres.bat script as an example. If you have other
 high resolution climatology data you can use that instead of the worldclim data.

@@ -383,10 +383,12 @@ need to have downloaded and processed WorldClim precipitation data to use this e
 
     The local elevation model (wflow_dem.map) used for downscaling.
 
-The conents of the example1.ini file is shown below. This contains all the settings for the e2o_getvar
+The contents of the e2o_getvar.ini file is shown below. This contains all the settings for the e2o_getvar
 script. For example, by changing the line "interpolmethod=linear" to "interpolmethod=nearest" the
 script will uses a different interpolation method. Here the local elevation model (wflow_dem.map)
-is also specified. The map can be in any GDAL supported raster format. The grid should be defined in lat,lon
+is also specified. The map can be in any GDAL supported raster format. The grid should be defined in lat,lon.
+Optionally you can save the results in a netCDF4 file by specifying the netcdfout option in the output section.
+In that case you can also specify attributes to save in the netcdf file, see example3.ini.
 
 .. literalinclude:: _static/e2o_getvar.ini
 
@@ -394,7 +396,7 @@ is also specified. The map can be in any GDAL supported raster format. The grid 
 As can be seen from the file (the conversions section) two unit conversions have been setup: Temperature is
 converted to degree Celsius and rainfall is converted to mm.
 
-To run the example type example1.bat in a windows command box. You should see output similar to the screenshot below:
+To run the example type run_example.bat in a windows command box. You should see output similar to the screenshot below:
 
 
 .. figure:: _static/getvar-2.png
@@ -403,21 +405,20 @@ To run the example type example1.bat in a windows command box. You should see ou
 
     Running the example1.bat file.
 
-The results are stored in two different directories:
+The results are stored in the directorie:
 
-+ output\Rainfall\
 + output\Temperature\
 
-Each directories contains one file for each time number 001 to the last step (365):
+The directory contains one file for each time number 001 to the last step (365):
 
 ::
 
-    E2O00000.001
-    E2O00000.002
-    E2O00000.003
-    E2O00000.004
+    TEMP0000.001
+    TEMP0000.002
+    TEMP0000.003
+    TEMP0000.004
     ....
-    E2O00000.365
+    TEMP0000.365
 
 The files can be opened in most GIS programs or in the PCRaster aguila program.
 
@@ -425,7 +426,7 @@ The files can be opened in most GIS programs or in the PCRaster aguila program.
     :width: 640px
     :align: center
 
-    Display results of oen timestep in QGIS.
+    Display results of one timestep in QGIS.
 
 
 If you set the output format in the ini file to PCRaster the resulting files can be used directly in

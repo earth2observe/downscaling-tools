@@ -339,7 +339,7 @@ climatology. It does so using the following
 steps:
 
 + The WorldClim data is averaged to the resolution of the original data (0.25 degree)
-+ For each timesteps a factor is determiend fro each pixel by dividing the WordClim data for the corresponding month
++ For each timesteps a factor is determined for each pixel by dividing the WordClim data for the corresponding month
   by the current data.
 + This factor is rescaled to the desired output resolution
 + The WorldClim data at the desired output resolution is divided by the derived factor to obtain downscaled input data

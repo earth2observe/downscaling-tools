@@ -31,40 +31,6 @@ pressure at surface, longwave downward radiation, shortwave downward radiation, 
 values are derived by calculating the daily average of the 3-hourly values.
 
 
-Installation
-============
-
-Python package installation
----------------------------
-
-As a first step make sure all the required packages are installed:
-
-- pcraster python extensions - www.pcraster.eu
-- netCDF4
-- numpy
-- gdal
-- matplotlib
-- scipy
-
-The easiest option we have found is to use the Anaconda python distribution and use the conda program
-to install the requirement packages. pcraster needs to be installed manually.
-
-After installing all the requirements you can use the setup.py script to install the package. If you want to
-downscale precipitation data you must first download the required data
-(https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec)
-and extract the data in the e2o_dstools/data directory before running the setup.py script.
-
-Binary installation
--------------------
-
-A binary installation can be found at: https://github.com/earth2observe/downscaling-tools/releases
-(64 bit windows only at the moment). Just download the zip or 7z file and unzip at a location you ant to install
-the program. If you want to
-downscale precipitation data you must first download the required data
-(https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec)
-and extract the data in the binary_distribution_name/data directory.
-
-
 Determining downscaled reference evapotranspiration from the forcing dataset
 ============================================================================
 

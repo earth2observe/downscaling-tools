@@ -26,7 +26,7 @@ The latest release can be downloaded from github: https://github.com/earth2obser
 Installing the window exe distribution
 --------------------------------------
 
-Download the file e2o_dstools-64-bit-2016.1.zip (or similar) from the releases to you computer. Please note that
+Download the file e2o_downscale-2016-3-normal-win32-64.zip (or similar) from the releases to you computer. Please note that
 this file will only work on windows computers with a 64 bit operating system.
 
 Make a directory in which to store the program (e.g c:\dstools) and unzip the contents of the zip file
@@ -34,7 +34,7 @@ into this directory, you should now have something like this:
 
 ::
 
-    c:\dstools\e2o_dstools-64-bit\
+    c:\dstools\e2o_downscale-2016-3-normal-win32-64\
     c:\dstools\examples\
 
 
@@ -45,7 +45,7 @@ run (in this case e2o_getvar.exe) as shown below:
 
 ::
 
-    c:\>c:\dstools\e2o_dstools-64-bit\e2o_getvar.exe
+    c:\>c:\dstools\e2o_downscale-2016-3-normal-win32-64\e2o_getvar.exe
 
     Get a variable from the forcing data from the e2o server for a specific region and time range
 
@@ -63,8 +63,26 @@ To save you from having to type the full path to the program every time you want
 directory c:\dstools\e2o_dstools-64-bit\ to you computer's search path (see e.g.
 http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/ on how to do this)
 
+If you want to
+downscale precipitation data you must first download the required data
+(https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec)
+and extract the data in the e2o_downscale-2016-3-normal-win32-64/data directory.
+
+
 Installing the python distribution
 ----------------------------------
+
+As a first step make sure all the required packages are installed:
+
+- pcraster python extensions - www.pcraster.eu
+- netCDF4
+- numpy
+- gdal
+- matplotlib
+- scipy
+
+The easiest option we have found is to use the Anaconda python distribution and use the conda program
+to install the requirement packages. pcraster needs to be installed manually.
 
 Download the zip file with the source code from github (see above) and unzip the
 file into an empty directory and unzip it's contents. In the example below we have unzipped the file
@@ -103,6 +121,13 @@ This well give you a lot of output, ending with something similar to what is sho
     Installed c:\anaconda\lib\site-packages\e2o_dstoools-0.1-py2.7.egg
     Processing dependencies for e2o-dstoools==0.1
     Finished processing dependencies for e2o-dstoools==0.1
+
+
+If you want to
+downscale precipitation data you must first download the required data
+(https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec)
+and extract the data in the e2o_dstools/data directory before running the setup.py script.
+
 
 ===========
 User manual

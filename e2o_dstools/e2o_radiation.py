@@ -60,13 +60,14 @@ the year:
 """
 
 
-from pcraster import *
+
 import sys,os
 import logging
 import e2o_dstools
 import e2o_dstools.e2o_utils
 import getopt
 import numpy as np
+from pcraster import *
 
 
 
@@ -221,6 +222,8 @@ def correctrad(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAltitud
     Stot   = Sdir + Sdiff                                             # Rad [W/m2]
     StotCor   = SdirCor + Sdiff                                   # Rad [W/m2]
     StotFlat = SdirFlat + Sdiff
+
+
 
     return StotCor, StotFlat, Shade, SdirCor, SdirFlat, OpCorr, AltOpCorr
 
@@ -477,17 +480,31 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
             x = pcr2numpy(xcoordinate(boolean(cover(1.0))),1E31)[0,:]
             y = pcr2numpy(ycoordinate(boolean(cover(1.0))),1E31)[:,0]
 
-            data = pcr2numpy(avgrad/Calcsteps,1E31)
+            msk = np.isnan(pcr2numpy(Altitude,np.nan))
+
+
+            data = pcr2numpy(avgrad/Calcsteps,np.nan)
+            data = e2o_dstools.e2o_utils.fill_data_mask(data, msk)
             e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"COR00000." + nr + postfix),outformat,x,y,data, 1E31)
-            data = pcr2numpy(avshade,1E31)
+
+            data = pcr2numpy(avshade,np.nan)
+            data = e2o_dstools.e2o_utils.fill_data_mask(data, msk)
             e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"SUN00000." + nr+ postfix),outformat,x,y,data, 1E31)
-            data = pcr2numpy(_flat/Calcsteps,1E31)
+
+            data = pcr2numpy(_flat/Calcsteps,np.nan)
+            data = e2o_dstools.e2o_utils.fill_data_mask(data, msk)
             e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"FLAT0000." + nr+ postfix),outformat,x,y,data, 1E31)
-            data = pcr2numpy(cordir/Calcsteps,1E31)
+
+            data = pcr2numpy(cordir/Calcsteps,np.nan)
+            data = e2o_dstools.e2o_utils.fill_data_mask(data, msk)
             e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"CORDIR00." + nr+ postfix),outformat,x,y,data, 1E31)
-            data = pcr2numpy(flatdir/Calcsteps,1E31)
+
+            data = pcr2numpy(flatdir/Calcsteps,np.nan)
+            data = e2o_dstools.e2o_utils.fill_data_mask(data, msk)
             e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"FLATDIR0." + nr+ postfix),outformat,x,y,data, 1E31)
-            data = pcr2numpy(max(0.00001,avgoptcor)/max(0.00001,avgaltoptcor) ,1E31)
+
+            data = pcr2numpy(max(0.00001,avgoptcor)/max(0.00001,avgaltoptcor) ,np.nan)
+            data = e2o_dstools.e2o_utils.fill_data_mask(data, msk)
             e2o_dstools.e2o_utils.writeMap(os.path.join(SaveDir,"OPT00000." + nr+ postfix),outformat,x,y,data, 1E31)
 
 
@@ -585,7 +602,7 @@ def main(argv=None):
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = e2o_dstools.e2o_utils.readMap(lowresdem,'GTiff',logger)
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = e2o_dstools.e2o_utils.readMap(thedem,'GTiff',logger)
         resLowResDEMNear = e2o_dstools.e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=deminterpolmethod,FillVal=0.0)
-        demmask = np.isnan(highResDEM)
+        demmask = np.isfinite(highResDEM)
         Altdem = numpy2pcr(Scalar,resLowResDEMNear,FillVal)
     else:
         Altdem = dem

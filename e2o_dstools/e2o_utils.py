@@ -63,6 +63,32 @@ def fill_data(data, invalid=None):
     ind = nd.distance_transform_edt(invalid, return_distances=False, return_indices=True)
     return data[tuple(ind)]
 
+def fill_data_mask(data,mask, invalid=None):
+    """
+    Replace the value of invalid 'data' cells (indicated by 'invalid')
+    by the value of the nearest valid data cell. Limit to mask
+
+    Input:
+        data:    numpy array of any dimension
+        mask: mask to apply
+        invalid: a binary array of same shape as 'data'. True cells set where data
+                 value should be replaced.
+                 If None (default), use: invalid  = np.isnan(data)
+
+    Output:
+        Return a filled array.
+    """
+    #import numpy as np
+    #import scipy.ndimage as nd
+
+    if invalid is None: invalid = isnan(data)
+
+    ind = nd.distance_transform_edt(invalid, return_distances=False, return_indices=True)
+    ndata =  data[tuple(ind)]
+    ndata[mask] = nan
+
+    return ndata
+
 def getmetadatafromini(inifile,var):
     """
 
@@ -995,7 +1021,15 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
     xul = x[0]-(x[1]-x[0])/2
     yul = y[0]+(y[0]-y[1])/2
 
-    TempDataset.SetGeoTransform( [ xul, x[1]-x[0], 0, yul, 0, y[1]-y[0] ] )
+    if fileFormat == 'PCRaster':
+        rnd = 6
+    else:
+        rnd = 9
+
+    xres = around(diff(x).mean(),rnd)
+    yres = around(diff(y).mean(), rnd)
+    TempDataset.SetGeoTransform( [ xul, xres , 0, yul, 0, yres ] )
+
     # get rasterband entry
     TempBand = TempDataset.GetRasterBand(1)
     # fill rasterband with array

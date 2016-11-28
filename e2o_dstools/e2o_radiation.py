@@ -585,6 +585,7 @@ def main(argv=None):
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = e2o_dstools.e2o_utils.readMap(lowresdem,'GTiff',logger)
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = e2o_dstools.e2o_utils.readMap(thedem,'GTiff',logger)
         resLowResDEMNear = e2o_dstools.e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=deminterpolmethod,FillVal=0.0)
+        demmask = np.isnan(highResDEM)
         Altdem = numpy2pcr(Scalar,resLowResDEMNear,FillVal)
     else:
         Altdem = dem

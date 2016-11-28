@@ -55,7 +55,22 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
             writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[cnt,:,:],-999.0)
             cnt = cnt + 1
 
-def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster",FillVal=1E31,gzip=False):
+def fixmapwithmask(data,mask):
+    """
+    Fill maps value within mask with average
+    :param data:
+    :param mask:
+    :return:
+    """
+
+    #avgfill = data[isfinite(data)].flatten().mean()
+
+    data = fill_data(data)
+    data[~mask] = nan
+
+    return data
+
+def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster",FillVal=1E31,gzip=False,miscount=3827895):
     import platform
 
     if not os.path.exists(directory):
@@ -63,6 +78,12 @@ def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="
     mapname = getmapname(ncnt,prefix)
     #print "saving map: " + os.path.join(directory,mapname)
     #writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
+
+    mymiscount = sum(isnan(data))
+    if not miscount ==  mymiscount:
+        print mapname + ": oops expected nr missing data: "+ str(miscount) + " got "+ str(mymiscount)
+
+    data[isnan(data)] = FillVal
     writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[:,:],FillVal)
     if gzip:
         if 'Linux' in platform.system():
@@ -90,7 +111,7 @@ def convertCoordinateSystem(sourcetif,desttif,destmap):
     command= 'gdal_translate -of PCRaster -ot Float32 %s %s' % (desttif,destmap)
     os.system(command)   
 
-def correctRsin(Rsin,currentdate,radiationCorDir,logger):
+def correctRsin(Rsin,currentdate,radiationCorDir,logger,missmask):
     """
     Corrects incoming radiation using the information from the e2o_radiation module
 
@@ -120,7 +141,7 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     resX, resY, cols, rows, x, y, optcoradjust, FillVal          = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'OPT')))),'PCRaster',logger)
 
     #ratio direct - diffuse
-    missmask = cor == FillVal
+
     flat[flat == 0.0] = 0.00001
     flatdir[flatdir == 0.0] = 0.00001
     #ratio           = flatdir / flat
@@ -131,8 +152,9 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     #corrected Rsin direct for elevation and slope
     Rsin_dir_cor    = (cordir/maximum(0.0001,flatdir))*Rsin_dir
     Rsin_cor        = Rsin_dir_cor + (Rsin - Rsin_dir)
-    Rsin_cor[missmask] = FillVal
-    Rsin_cor[Rsin_cor < 0.0] = FillVal
+    Rsin_cor        = Rsin_dir_cor + (Rsin - Rsin_dir)
+    Rsin_cor[missmask] = nan
+    Rsin_cor[Rsin_cor < 0.0] = nan
 
     return Rsin_cor, Kc
 
@@ -558,15 +580,17 @@ def main(argv=None):
         Y = highResLat
         #writeMap("DM.MAP","PCRaster",highResLon,highResLat,highResDEM,FillVal)
         #elevationCorrection, highResDEM, resLowResDEM = resampleDEM(FNhighResDEM,FNlowResDEM,logger)
-        demmask=highResDEM != FillVal
-        mismask=highResDEM == FillVal
-        Ldemmask=lowResDEM != FillVal
-        Lmismask=lowResDEM == FillVal
+        demmask=isfinite(highResDEM)
+        miscount = sum(isnan(highResDEM))
+        mismask=isnan(highResDEM)
+        Ldemmask=isfinite(lowResDEM)
+
+        Lmismask=isnan(lowResDEM)
         # Fille gaps in high res DEM with Zeros for ineterpolation purposes
         lowResDEM[Lmismask] = 0.0
         resLowResDEM = resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=resamplingtype,FillVal=0.0)
 
-        lowResDEM[Lmismask] = FillVal
+        lowResDEM[Lmismask] = nan
         elevationCorrection = highResDEM - resLowResDEM
 
         #set Bounding box used to minimize data retrieval from nc file
@@ -579,9 +603,9 @@ def main(argv=None):
            lat= [ latmin, latmax]
            )
     else:
-        FillVal     = 1E31
+        FillVal     = nan
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = readMap(FNlowResDEM,'GTiff',logger)
-        mismask     = lowResDEM == FillVal
+        mismask     = lowResDEM == nan
         X = lowResLon
         Y = lowResLat
 
@@ -629,7 +653,7 @@ def main(argv=None):
                         ncstepobj       = getstepdaily(tlist,BB,standard_name,logger)
                         mstack          = ncstepobj.getdates(timelist)
                         lapse_rate      = flipud(mstack.mean(axis=0))
-                        lapse_rate      = resample_grid(lapse_rate,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        lapse_rate      = resample_grid(lapse_rate,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=nan)
                 else:
                     lapse_rate = -0.006       
                 #retrieve all other variables                                                                              
@@ -655,20 +679,20 @@ def main(argv=None):
                             #mean_as_map = resample(FNhighResDEM,prefixes[i],int(ncnt),logger)
                             mean_as_map = resample_grid(mean_as_map,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                             #mean_as_map = flipud(mean_as_map)
-                            mean_as_map[mismask] = FillVal
+                            mean_as_map[mismask] = nan
                             if downscaling == "True":
                                 if variables[i]     == 'Temperature':
                                     mean_as_map     = correctTemp(mean_as_map, lapse_rate, elevationCorrection)
 
                                 if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
                                     if radcordir != 'None':
-                                        mean_as_map, Kc    = correctRsin(mean_as_map,currentdate,radcordir, logger)
+                                        mean_as_map, Kc    = correctRsin(mean_as_map,currentdate,radcordir, logger,mismask)
                                     else:
                                         mean_as_map = correctRsinAlt(mean_as_map,lowResDEM,highResDEM,  logger)
 
                                 if variables[i]     == 'SurfaceAtmosphericPressure':
-                                    mean_as_map     = correctPres(relevantDataFields, mean_as_map, lapse_rate, highResDEM, resLowResDEM,FillVal=FillVal)
-                            mean_as_map[mismask] = FillVal
+                                    mean_as_map     = correctPres(relevantDataFields, mean_as_map, lapse_rate, highResDEM, resLowResDEM,FillVal=nan)
+                            mean_as_map[mismask] = nan
 
                         relevantDataFields.append(mean_as_map)
 
@@ -705,20 +729,27 @@ def main(argv=None):
                     tmin = flipud(mstack.min(axis=0))
                     tmax = flipud(mstack.max(axis=0))
                     if downscaling == 'True' or resampling == "True":
-                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
-                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=nan)
+                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=nan)
                         if downscaling == "True":
                             tmin = correctTemp(tmin,lapse_rate,elevationCorrection)
                             tmax = correctTemp(tmax,lapse_rate,elevationCorrection)
-                        tmax[mismask] = FillVal
-                        tmin[mismask] = FillVal
+                        tmax[mismask] = nan
+                        tmin[mismask] = nan
 
 
                     PETmm = PenmanMonteith(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
                     # FIll out unrealistic valuea
-                    PETmm[mismask] = FillVal
-                    PETmm[PETmm < -10.0] = FillVal
-                    PETmm[PETmm > 135.0] = FillVal
+                    PETmm[mismask] = nan
+                    PETmm[PETmm < -10.0] = nan
+                    PETmm[PETmm > 135.0] = nan
+
+                    PETmm = fixmapwithmask(PETmm,demmask)
+                    tmin = fixmapwithmask(tmin, demmask)
+                    tmax = fixmapwithmask(tmax, demmask)
+                    for a in [0,1,2,3,4,5]:
+                        relevantDataFields[a] = fixmapwithmask(relevantDataFields[a], demmask)
+
 
                     logger.info("Saving PM PET data for: " +str(currentdate))
 
@@ -726,7 +757,7 @@ def main(argv=None):
                         ncout.savetimestep(ncnt,PETmm,unit="mm",var="PotEvap",name='water_potential_evaporation_amount')
                     else:
                         save_as_mapsstack_per_day(lats, lons, PETmm, int(ncnt), odir, prefix=oprefix, oformat=oformat,
-                                                  FillVal=FillVal)
+                                                  FillVal=FillVal,miscount=miscount)
 
                     if saveAllData:
                         if netcdfout != 'None':
@@ -735,14 +766,14 @@ def main(argv=None):
                             ncout.savetimestep(ncnt, relevantDataFields[1], unit="W/m^2", var=relevantVars[1],
                                                name='surface_air_pressure')
                         else:
-                            save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal)
-                            save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal)
-                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[1],int(ncnt),odir,prefix='RLIN',oformat=oformat,FillVal=FillVal)
-                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[2],int(ncnt),odir,prefix='PRESS',oformat=oformat,FillVal=FillVal)
-                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[3],int(ncnt),odir,prefix='REL',oformat=oformat,FillVal=FillVal)
-                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
-                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal)
-                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
+                            save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                            save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[1],int(ncnt),odir,prefix='RLIN',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[2],int(ncnt),odir,prefix='PRESS',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[3],int(ncnt),odir,prefix='REL',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                            save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal,miscount=miscount)
                             #save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
 
 
@@ -758,26 +789,33 @@ def main(argv=None):
                     tmin = flipud(mstack.min(axis=0))
                     tmax = flipud(mstack.max(axis=0))
                     if downscaling == 'True' or resampling == "True":
-                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
-                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=nan)
+                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=nan)
                         if downscaling == "True":
                             tmin = correctTemp(tmin,lapse_rate,elevationCorrection)
                             tmax = correctTemp(tmax,lapse_rate,elevationCorrection)
-                        tmax[mismask] = FillVal
-                        tmin[mismask] = FillVal
+                        tmax[mismask] = nan
+                        tmin[mismask] = nan
 
                     PETmm = PriestleyTaylor(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
-                    PETmm[mismask] = FillVal
-                    PETmm[PETmm < -10.0] = FillVal
-                    PETmm[PETmm > 135.0] = FillVal
+                    PETmm[mismask] = nan
+                    PETmm[PETmm < -10.0] = nan
+                    PETmm[PETmm > 135.0] = nan
+
+                    PETmm = fixmapwithmask(PETmm,demmask)
+                    tmin = fixmapwithmask(tmin, demmask)
+                    tmax = fixmapwithmask(tmax, demmask)
+                    for a in [0,4]:
+                        relevantDataFields[a] = fixmapwithmask(relevantDataFields[a], demmask)
+
                     logger.info("Saving PriestleyTaylor PET data for: " +str(currentdate))
 
-                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat,FillVal=FillVal)
+                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat,FillVal=FillVal,miscount=miscount)
                     if saveAllData:
-                        save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                        save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal,miscount=miscount)
 
 
                 if evapMethod == 'Hargreaves':
@@ -795,27 +833,32 @@ def main(argv=None):
                     tmax = flipud(mstack.max(axis=0))
 
                     if downscaling == 'True' or resampling == "True":
-                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
-                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=nan)
+                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=nan)
                         if resampling == "True":
                             tmin = correctTemp(tmin,lapse_rate,elevationCorrection)
                             tmax = correctTemp(tmax,lapse_rate,elevationCorrection)
-                        tmax[mismask] = FillVal
-                        tmin[mismask] = FillVal
+                        tmax[mismask] = nan
+                        tmin[mismask] = nan
 
                     logger.info("Start hargreaves..")
                     PETmm = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
-                    PETmm[mismask] = FillVal
-                    PETmm[PETmm < -10.0] = FillVal
-                    PETmm[PETmm > 135.0] = FillVal
+                    PETmm[mismask] = nan
+                    PETmm[PETmm < -10.0] = nan
+                    PETmm[PETmm > 135.0] = nan
+
+                    PETmm = fixmapwithmask(PETmm,demmask)
+                    tmin = fixmapwithmask(tmin, demmask)
+                    tmax = fixmapwithmask(tmax, demmask)
+                    relevantDataFields[0] = fixmapwithmask(relevantDataFields[0], demmask)
 
                     logger.info("Saving Hargreaves PET data for: " +str(currentdate))
 
-                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat,FillVal=FillVal)
+                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat,FillVal=FillVal,miscount=miscount)
                     if saveAllData:
-                        save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                        save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal,miscount=miscount)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal,miscount=miscount)
 
         else:
             pass

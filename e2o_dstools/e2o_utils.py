@@ -20,6 +20,7 @@ import datetime
 import datetime as dt
 import time
 from scipy import interpolate
+from scipy import ndimage as nd
 
 try:
     import netCDF4.utils
@@ -38,6 +39,29 @@ globmetadata['history'] = time.ctime()
 globmetadata['references'] = 'https://github.com/earth2observe'
 globmetadata['Conventions'] = 'CF-1.4'
 
+
+
+def fill_data(data, invalid=None):
+    """
+    Replace the value of invalid 'data' cells (indicated by 'invalid')
+    by the value of the nearest valid data cell
+
+    Input:
+        data:    numpy array of any dimension
+        invalid: a binary array of same shape as 'data'. True cells set where data
+                 value should be replaced.
+                 If None (default), use: invalid  = np.isnan(data)
+
+    Output:
+        Return a filled array.
+    """
+    #import numpy as np
+    #import scipy.ndimage as nd
+
+    if invalid is None: invalid = isnan(data)
+
+    ind = nd.distance_transform_edt(invalid, return_distances=False, return_indices=True)
+    return data[tuple(ind)]
 
 def getmetadatafromini(inifile,var):
     """
@@ -846,7 +870,8 @@ def get_times_P(startdate,enddate, serverroot, wrrsetroot, filename, timestepSec
 
 def readMap(fileName, fileFormat,logger):
     """
-    ead geographical file into memory
+    ead geographical file into memory. Readmap reterusn the fillvals but all fillval
+    will be replaced by nan anyway.
 
     :param fileName: Name of the file to read
     :param fileFormat: Gdal format string
@@ -878,6 +903,7 @@ def readMap(fileName, fileFormat,logger):
     data = RasterBand.ReadAsArray(0,0,cols,rows)
     FillVal = RasterBand.GetNoDataValue()
     RasterBand = None
+    data[data == FillVal] = nan
     del ds
     return resX, resY, cols, rows, x, y, data, FillVal
 

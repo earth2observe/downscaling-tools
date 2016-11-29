@@ -407,8 +407,8 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
         LinkeLat = LinkeLat[latcut]
         a = LinkeDEM[latcut,:]
         b = a[:,loncut]
-        LinkeDEMRESAMP = e2o_dstools.e2o_utils.resample_grid(b,LinkeLon, LinkeLat,lon, lat,method='linear',FillVal=0.0)
-        linkdempcr = numpy2pcr(Scalar,LinkeDEMRESAMP,0.0)
+        LinkeDEMRESAMP = e2o_dstools.e2o_utils.resample_grid(b,LinkeLon, LinkeLat,lon, lat,method='linear',FillVal=np.nan)
+        linkdempcr = numpy2pcr(Scalar,LinkeDEMRESAMP,np.nan)
 
     oldmonth = 0
     for Day in range(start,end+1):
@@ -453,8 +453,8 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
                         #print lat
                         #print lon
                         #print
-                        linkemap = e2o_dstools.e2o_utils.resample_grid(b,LinkeLon, LinkeLat,lon, lat,method='linear',FillVal=0.0)
-                        linkemappcr = numpy2pcr(Scalar,linkemap,0.0)
+                        linkemap = e2o_dstools.e2o_utils.resample_grid(b,LinkeLon, LinkeLat,lon, lat,method='linear',FillVal=np.nan)
+                        linkemappcr = numpy2pcr(Scalar,linkemap,np.nan)
                         #report(linkemappcr,'linkemappcr.map')
                         oldmonth = month
 
@@ -601,9 +601,9 @@ def main(argv=None):
         logger.debug("Resampling dem...")
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = e2o_dstools.e2o_utils.readMap(lowresdem,'GTiff',logger)
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = e2o_dstools.e2o_utils.readMap(thedem,'GTiff',logger)
-        resLowResDEMNear = e2o_dstools.e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=deminterpolmethod,FillVal=0.0)
+        resLowResDEMNear = e2o_dstools.e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=deminterpolmethod,FillVal=np.nan)
         demmask = np.isfinite(highResDEM)
-        Altdem = numpy2pcr(Scalar,resLowResDEMNear,FillVal)
+        Altdem = numpy2pcr(Scalar,resLowResDEMNear,np.nan)
     else:
         Altdem = dem
 

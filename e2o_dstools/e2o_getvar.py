@@ -72,7 +72,7 @@ def dict_split(d, chunk_size=1):
 
 
 def downscale(variable, data, datalow, wrrversion,serverroot,wrrsetroot,BB,currentdate,XH,YH,XL,YL,
-              interpolmethod, ncoutfillval, hiresdem, resLowResDEM, interpolmode, logger):
+              interpolmethod, ncoutfillval, hiresdem, resLowResDEM, interpolmode, logger,localdatadir=''):
     """
 
     :param variable:
@@ -115,14 +115,33 @@ def downscale(variable, data, datalow, wrrversion,serverroot,wrrsetroot,BB,curre
             Resstr = "%1.4f" % diff(XH).mean() # find current resolution
             PclimCUR = e2o_dstools.get_data(os.path.join('Prec',Resstr,PclimMapName))
             if not os.path.exists(PclimCUR):
-                logger.error('Cannot find WorlClim data for downscaling: ' + PclimCUR)
-                logger.error('Please download and process the worldclim data at resolution: ' + Resstr)
-                exit(1)
-
-            resX, resY, cols, rows, HILON, HILAT, PHiClim, FillVal = \
-                readMap(PclimCUR, 'GTiff', logger)
-            PHiClim = PHiClim.astype(float32)
-            PHiClim[PHiClim==FillVal] = NaN
+                userdir = os.path.join(localdatadir,'Prec_Clim_For_Downscale',Resstr)
+                userfile = os.path.join(userdir,PclimMapName)
+                if not os.path.exists(userfile):
+                    logger.info('Cannot find WorlClim data for downscaling: ' + PclimCUR)
+                    logger.info('Resampling 0.0083 to : ' + Resstr)
+                    PclimMapName = getmapnamemonth(yday, "prec")
+                    PclimBaseRes = e2o_dstools.get_data(os.path.join('Prec/0.0083/', PclimMapName))
+                    resXX, resYX, cols_, rows, baseCLIMLON, baseCLIMLAT, baseClim, FillVal = \
+                        readMap(PclimBaseRes, 'GTiff', logger)
+                    PHiClim = resample_grid(baseClim,baseCLIMLON,baseCLIMLAT,XH,YH,method='nearest', FillVal=NaN)
+                    HILON = XH
+                    HILAT = YH
+                    #exit(1)
+                    if not os.path.exists(userdir):
+                        logger.info('Making directory:  ' + userdir)
+                        os.makedirs(userdir)
+                    writeMap(userfile,"GTiff",XH,YH,PHiClim.astype(float32),1E31)
+                else:
+                    resX, resY, cols, rows, HILON, HILAT, PHiClim, FillVal = \
+                        readMap(userfile, 'GTiff', logger)
+                    PHiClim = PHiClim.astype(float32)
+                    PHiClim[PHiClim == FillVal] = NaN
+            else:
+                resX, resY, cols, rows, HILON, HILAT, PHiClim, FillVal = \
+                    readMap(PclimCUR, 'GTiff', logger)
+                PHiClim = PHiClim.astype(float32)
+                PHiClim[PHiClim==FillVal] = NaN
 
             # Now determine diff between current data at original resolution and the climatology at the same resolutions
             # resample climatology first as it may not cover the whole earth
@@ -351,7 +370,7 @@ def main(argv=None):
             # needs to be fixed
             if downscaling == 'True':
                 newdata = downscale(variable, newdata,flipud(thevar),wrrversion,serverroot,wrrsetroot,BB,currentdate, xhires, yhires,ncstepobj.lon,ncstepobj.lat,
-                              interpolmethod, ncoutfillval, hiresdem, resLowResDEM,interpolmethod,logger)
+                              interpolmethod, ncoutfillval, hiresdem, resLowResDEM,interpolmethod,logger,localdatadir=odir)
 
 
 

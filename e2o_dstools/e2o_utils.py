@@ -926,7 +926,7 @@ def readMap(fileName, fileFormat,logger):
     y = linspace(originY+resY/2,originY+resY/2+resY*(rows-1),rows)
     # Retrieve raster
     RasterBand = ds.GetRasterBand(1) # there's only 1 band, starting from 1
-    data = RasterBand.ReadAsArray(0,0,cols,rows)
+    data = RasterBand.ReadAsArray(0,0,cols,rows).astype(float32)
     FillVal = RasterBand.GetNoDataValue()
     RasterBand = None
     data[data == FillVal] = nan

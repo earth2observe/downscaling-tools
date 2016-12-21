@@ -286,7 +286,7 @@ def main(argv=None):
                                      FillVal=FillVal)
 
         lowresdem[Lmismask] = FillVal
-        BB = dict(lon=[min(x), max(x)], lat=[min(y), max(y)])
+        #BB = dict(lon=[min(x), max(x)], lat=[min(y), max(y)])
     else:
         resX, resY, cols, rows, xlres, ylres, lowresdem, FillVal = readMap(FNlowResDEM, 'PCRaster', logger)
         x = xlres

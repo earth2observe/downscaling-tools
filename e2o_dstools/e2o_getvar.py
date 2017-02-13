@@ -337,77 +337,84 @@ def main(argv=None):
     allsteps=(end-start).days
     #for tlist,timelist in zip(chunks,lchunks):
     for thisstep in arange(0,allsteps +1):
-        currentdate=start+datetime.timedelta(days=thisstep)
-        logger.info("Processing date: " + str(currentdate))
-        if variable == "Rainfall":
-            tlist, timelist = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, filename,
-                                        timestepsecs, logger)
+
+        mapname = getmapname(cnt + 1, oprefix)
+
+        if os.path.exists(os.path.join(odir,mapname)):
+            logger.info('Skipping map: ' + mapname)
         else:
-            tlist, timelist = get_times(currentdate, currentdate, serverroot, wrrsetroot, filename,
-                                        timestepsecs, logger)
-        ncstepobj = getstep(tlist,BB,standard_name,timestepsecs,logger)
-        # get the steps for this time
-
-
-        mstack = ncstepobj.getdates(timelist)
-        exec "thevar = mstack." + timeflatten + "(axis=0)"
-
-        thevar[thevar<valid_min]=NaN
-        thevar[thevar > valid_max] = NaN
-        arcnt = 0
-
-        mapname = getmapname(cnt+1,oprefix)
-        convstr = configget(logger, theconf, "conversion", variable, 'none')
-        if convstr != 'none':
-            convstr = convstr.replace(variable, 'thevar')
-            try:
-                exec "thevar =  " + convstr
-            except:
-                logger.error("Conversion string not valid: " + convstr)
-
-        if resampling == "True":
-            newdata = resample_grid(flipud(thevar),ncstepobj.lon,ncstepobj.lat, xhires,
-                                    yhires,method=interpolmethod,FillVal=NaN)
-
-
-
-            # Process temperature, downscale and use laps rate if possible
-            # needs to be fixed
-            if downscaling == 'True':
-                newdata = downscale(variable, newdata,flipud(thevar),wrrversion,serverroot,wrrsetroot,BB,currentdate, xhires, yhires,ncstepobj.lon,ncstepobj.lat,
-                              interpolmethod, ncoutfillval, hiresdem, resLowResDEM,interpolmethod,logger,localdatadir=odir)
-
-
-
-
-            newdata[isnan(newdata)] = ncoutfillval
-            newdata[~isfinite(newdata)] = ncoutfillval
-            if netcdfout != 'None':
-                logger.info("Saving step to netcdf: " + str(thisstep))
-                ncout.savetimestep(cnt + 1, newdata, name=standard_name, var=variable, metadata=varmetadata)
+            currentdate=start+datetime.timedelta(days=thisstep)
+            logger.info("Processing date: " + str(currentdate))
+            if variable == "Rainfall":
+                tlist, timelist = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, filename,
+                                            timestepsecs, logger)
             else:
-                logger.info("Writing map: " + os.path.join(odir, mapname))
-                writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,ncoutfillval)
-        else:
-            newdata = flipud(thevar).copy()
+                tlist, timelist = get_times(currentdate, currentdate, serverroot, wrrsetroot, filename,
+                                            timestepsecs, logger)
+            ncstepobj = getstep(tlist,BB,standard_name,timestepsecs,logger)
+            # get the steps for this time
+
+
+            mstack = ncstepobj.getdates(timelist)
+            exec "thevar = mstack." + timeflatten + "(axis=0)"
+
+            thevar[thevar<valid_min]=NaN
+            thevar[thevar > valid_max] = NaN
+
+
+            #mapname = getmapname(cnt+1,oprefix)
+            convstr = configget(logger, theconf, "conversion", variable, 'none')
             if convstr != 'none':
-                convstr = convstr.replace(variable,'newdata')
+                convstr = convstr.replace(variable, 'thevar')
                 try:
-                    exec "newdata =  " + convstr
+                    exec "thevar =  " + convstr
                 except:
                     logger.error("Conversion string not valid: " + convstr)
 
-            if netcdfout != 'None':
-                logger.info("Saving step to netcdf: " + str(thisstep))
-                ncout.savetimestep(cnt + 1, newdata, name=standard_name, var=variable, metadata=varmetadata)
-            else:
-                logger.info("Writing map: " + os.path.join(odir, mapname))
-                writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,ncoutfillval)
+            if resampling == "True":
+                newdata = resample_grid(flipud(thevar),ncstepobj.lon,ncstepobj.lat, xhires,
+                                        yhires,method=interpolmethod,FillVal=NaN)
 
+
+
+                # Process temperature, downscale and use laps rate if possible
+                # needs to be fixed
+                if downscaling == 'True':
+                    newdata = downscale(variable, newdata,flipud(thevar),wrrversion,serverroot,wrrsetroot,BB,currentdate, xhires, yhires,ncstepobj.lon,ncstepobj.lat,
+                                  interpolmethod, ncoutfillval, hiresdem, resLowResDEM,interpolmethod,logger,localdatadir=odir)
+
+
+
+
+                newdata[isnan(newdata)] = ncoutfillval
+                newdata[~isfinite(newdata)] = ncoutfillval
+                if netcdfout != 'None':
+                    logger.info("Saving step to netcdf: " + str(thisstep))
+                    ncout.savetimestep(cnt + 1, newdata, name=standard_name, var=variable, metadata=varmetadata)
+                else:
+                    logger.info("Writing map: " + os.path.join(odir, mapname))
+                    writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,ncoutfillval)
+            else:
+                newdata = flipud(thevar).copy()
+                if convstr != 'none':
+                    convstr = convstr.replace(variable,'newdata')
+                    try:
+                        exec "newdata =  " + convstr
+                    except:
+                        logger.error("Conversion string not valid: " + convstr)
+
+                if netcdfout != 'None':
+                    logger.info("Saving step to netcdf: " + str(thisstep))
+                    ncout.savetimestep(cnt + 1, newdata, name=standard_name, var=variable, metadata=varmetadata)
+                else:
+                    logger.info("Writing map: " + os.path.join(odir, mapname))
+                    writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],newdata,ncoutfillval)
+
+                del ncstepobj
 
         cnt = cnt + 1
-        arcnt = arcnt +1
-        del ncstepobj
+
+
 
 
     logger.info("Done.")

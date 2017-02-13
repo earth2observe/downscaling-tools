@@ -145,12 +145,17 @@ def downscale(variable, data, datalow, wrrversion,serverroot,wrrsetroot,BB,curre
 
             # Now determine diff between current data at original resolution and the climatology at the same resolutions
             # resample climatology first as it may not cover the whole earth
-            _PlowClim= resample_grid(PlowClim,  CLIMLON, CLIMLAT,XL, YL,
+
+            if YL[0] < YL[-1]:
+                yas = YL[::-1]
+            else:
+                yas =  YL
+            _PlowClim= resample_grid(PlowClim,  CLIMLON, CLIMLAT,XL, yas,
                                        method='nearest', FillVal=NaN)
 
             datalow[datalow<=0] = NaN
             multlow = _PlowClim/datalow
-            multhi = resample_grid(multlow, XL, YL, XH, YH,
+            multhi = resample_grid(multlow, XL, yas, XH, YH,
                                        method=interpolmode, FillVal=NaN)
 
             _PHiClim = resample_grid(PHiClim,  HILON, HILAT,XH, YH,

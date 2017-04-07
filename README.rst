@@ -20,3 +20,12 @@ Acknowledgement
 ---------------
 This project has received funding from the European Union’s Seventh Programme for research,
 technological development and demonstration under grant agreement No 603608
+
+
+Citing
+------
+
+See doi of the release you use. If you use a snapshot of the development version (without a DOI) cite as follows:
+
+Jaap Schellekens and Frederiek Sperna Weiland, YEAR, earth2observe/downscaling-tools: unstable-master,
+https://github.com/earth2observe/downscaling-tools, obtained: DATE_OF_DOWNLOAD

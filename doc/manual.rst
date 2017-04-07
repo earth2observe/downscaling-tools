@@ -333,7 +333,7 @@ Example e2o_calculateEvaporation ini file:
 
 
 Downscaling Precipitation
--------------------------
+=========================
 
 The e2o_getvar script can downscale precipitation (Rainfall) using the WorldClim dataset which supplies monthly
 climatology. It does so using the following

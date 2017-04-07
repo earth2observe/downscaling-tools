@@ -32,6 +32,8 @@ The .ini file below shows the available options
 An example ini file be found :download:`here. <_static/e2o_getvar.ini>`
 
 
+
+
 Table: Variables and names to be used in the ini file
 
 ==================================== ==================== ==================== =========================================

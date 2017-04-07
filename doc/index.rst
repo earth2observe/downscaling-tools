@@ -11,11 +11,11 @@ Introduction
 
 
 e2o_downscaling-tools consists of a number of python programs and procedures that facilitate local
-application of the earth2observe global water resources reanalysis. The tools
-can connect directly to the project's data server and save (resampled) data to a local computer
-for further analysis or direct application. The current first versions
+application of the earth2observe global water resources reanalysis (http://www.earth2observe.eu). The tools
+can connect directly to the project's data server (http://wci.earth2observe.eu) and save (resampled)
+data to a local computer for further analysis or direct application. The current first versions
 of the tool focusses on downscaling the global forcing dataset used in
-the project :cite:`weedonwfdei2014`.
+the project.
 
 
 Installation
@@ -26,7 +26,7 @@ The latest release can be downloaded from github: https://github.com/earth2obser
 Installing the window exe distribution
 --------------------------------------
 
-Download the file e2o_downscale-2016-3-normal-win32-64.zip (or similar) from the releases to you computer. Please note that
+Download the file e2o_downscale-2016-3-normal-win32-64.zip (or similar) from the releases tab to you computer. Please note that
 this file will only work on windows computers with a 64 bit operating system.
 
 Make a directory in which to store the program (e.g c:\dstools) and unzip the contents of the zip file
@@ -63,8 +63,7 @@ To save you from having to type the full path to the program every time you want
 directory c:\dstools\e2o_dstools-64-bit\ to you computer's search path (see e.g.
 http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/ on how to do this)
 
-If you want to
-downscale precipitation data you must first download the required data
+If you want to downscale precipitation data you must first download the required data
 (https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec)
 and extract the data in the e2o_downscale-2016-3-normal-win32-64/data directory.
 
@@ -84,8 +83,12 @@ As a first step make sure all the required packages are installed:
 The easiest option we have found is to use the Anaconda python distribution and use the conda program
 to install the requirement packages. pcraster needs to be installed manually.
 
-Download the zip file with the source code from github (see above) and unzip the
-file into an empty directory and unzip it's contents. In the example below we have unzipped the file
+Download the zip file with the source code from github (see above) and unzip the file into an empty directory and unzip
+it's contents. If you want to downscale precipitation data you must first download the required data
+(https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec) and extract the data in the
+e2o_downscale-2016-3-normal-win32-64/data directory.
+
+In the example below we have unzipped the file
 onto the root of the C-drive. We can see the following files:
 
 ::
@@ -123,10 +126,7 @@ This well give you a lot of output, ending with something similar to what is sho
     Finished processing dependencies for e2o-dstoools==0.1
 
 
-If you want to
-downscale precipitation data you must first download the required data
-(https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec)
-and extract the data in the e2o_dstools/data directory before running the setup.py script.
+
 
 
 ===========

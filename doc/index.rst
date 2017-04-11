@@ -26,10 +26,10 @@ The latest release can be downloaded from github: https://github.com/earth2obser
 Installing the window exe distribution
 --------------------------------------
 
-Download the file e2o_downscale-2016-3-normal-win32-64.zip (or similar) from the releases tab to you computer. Please note that
+Download the file e2o_downscale-RELEASE-normal-win32-64.zip (or similar) from the releases tab to you computer. Please note that
 this file will only work on windows computers with a 64 bit operating system.
 
-Make a directory in which to store the program (e.g c:\dstools) and unzip the contents of the zip file
+Make a directory in which to store the program (e.g c:\\dstools) and unzip the contents of the zip file
 into this directory, you should now have something like this:
 
 ::
@@ -60,12 +60,12 @@ run (in this case e2o_getvar.exe) as shown below:
 if you see the above you have installed the program succesfully!
 
 To save you from having to type the full path to the program every time you want to run it you can add the
-directory c:\dstools\e2o_dstools-64-bit\ to you computer's search path (see e.g.
+directory c:\\dstools\\e2o_downscale-2016-3-normal-win32-64\\ to you computer's search path (see e.g.
 http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/ on how to do this)
 
 If you want to downscale precipitation data you must first download the required data
 (https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec)
-and extract the data in the e2o_downscale-2016-3-normal-win32-64/data directory.
+and extract the data in the e2o_downscale-2016-3-normal-win32-64\\data directory.
 
 
 Installing the python distribution
@@ -93,20 +93,20 @@ onto the root of the C-drive. We can see the following files:
 
 ::
 
-    c:\downscaling-tools-2016.1\data\
-    c:\downscaling-tools-2016.1\doc\
-    c:\downscaling-tools-2016.1\e2o_dstools\
-    c:\downscaling-tools-2016.1\examples\
-    c:\downscaling-tools-2016.1\setup.py
-    c:\downscaling-tools-2016.1\make_exe.py
-    c:\downscaling-tools-2016.1\README.rst
+    c:\src\downscaling-tools-2016.3\data\
+    c:\src\downscaling-tools-2016.3\doc\
+    c:\src\downscaling-tools-2016.3\e2o_dstools\
+    c:\src\downscaling-tools-2016.3\examples\
+    c:\src\downscaling-tools-2016.3\setup.py
+    c:\src\downscaling-tools-2016.3\make_exe.py
+    c:\src\downscaling-tools-2016.3\README.rst
 
 Open a windows command prompt (press the windows key and type cmd) and navigate to the directory in which the file
 setup.py is located and run the setup script:
 
 ::
 
-    c:>cd  downscaling-tools-2016.1
+    c:>cd  src\downscaling-tools-2016.3
     c:>python setup.py install
 
 This well give you a lot of output, ending with something similar to what is shown below:

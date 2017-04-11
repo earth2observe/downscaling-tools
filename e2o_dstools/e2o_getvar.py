@@ -492,6 +492,7 @@ def main(argv=None):
             convstr = configget(logger, theconf, "conversion", variable, 'none')
             if convstr != 'none':
                 convstr = convstr.replace(variable, 'thevar')
+                varmetadata['conversionlog'] = convstr
                 try:
                     exec "thevar =  " + convstr
                 except:
@@ -514,7 +515,11 @@ def main(argv=None):
                 newdata[~isfinite(newdata)] = ncoutfillval
                 if netcdfout != 'None':
                     logger.info("Saving step to netcdf: " + str(thisstep))
-                    ncout.savetimestep(cnt + 1, newdata, name=standard_name, var=variable, metadata=varmetadata)
+                    if variable == 'TotalPrecipitation':
+                        ostdname = 'precipitation_flux'
+                    else:
+                        ostdname = standard_name
+                    ncout.savetimestep(cnt + 1, newdata, name=ostdname, var=variable, metadata=varmetadata)
                 else:
                     logger.info("Writing map: " + os.path.join(odir, mapname))
                     writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,ncoutfillval)

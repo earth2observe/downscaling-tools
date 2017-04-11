@@ -40,6 +40,26 @@ globmetadata['references'] = 'https://github.com/earth2observe'
 globmetadata['Conventions'] = 'CF-1.4'
 
 
+def get_extent(filename,rnd=0):
+    ''' Return list of corner coordinates from a dataset'''
+    ds = gdal.Open(filename, gdalconst.GA_ReadOnly)
+    gt = ds.GetGeoTransform()
+    # 'top left x', 'w-e pixel resolution', '0', 'top left y', '0', 'n-s pixel resolution (negative value)'
+    nx, ny = ds.RasterXSize, ds.RasterYSize
+    xmin = float64(gt[0])
+    ymin = float64(gt[3]) + float64(ny) * float64(gt[5])
+    xmax = float64(gt[0]) + float64(nx) * float64(gt[1])
+    ymax = float64(gt[3])
+    if rnd > 0:
+        #return round(x/rnd)/(1/rnd)
+        xmin = xmin - rnd
+        xmax = xmax + rnd
+        ymin = ymin - rnd
+        ymax = ymax + rnd
+
+    ds = None
+    return xmin, ymin, xmax, ymax
+
 
 def fill_data(data, invalid=None):
     """

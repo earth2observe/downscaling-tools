@@ -95,7 +95,7 @@ def downscale(variable, data, datalow, wrrversion,serverroot,wrrsetroot,BB,curre
         else:
             lapse_rate = -0.006
         retdata = data + lapse_rate * (hiresdem - resLowResDEM)
-    elif variable == "Rainfall":
+    elif variable == "Rainfall" or 'SnowfallRate' :
         if wrrversion == 2:
             # First read P data in WRR2 resolution
             yday = (currentdate.date() - datetime.date(currentdate.year, 1, 1)).days + 1
@@ -165,7 +165,73 @@ def downscale(variable, data, datalow, wrrversion,serverroot,wrrsetroot,BB,curre
             # fill with interpolated original data
             retdata[~isfinite(retdata)] = data[~isfinite(retdata)]
         else:
-            retdata = data
+            # First read P data in WRR1 resolution
+            yday = (currentdate.date() - datetime.date(currentdate.year, 1, 1)).days + 1
+            PclimMapName = getmapnamemonth(yday, "prec")
+            PclimWRR1 = e2o_dstools.get_data(os.path.join('Prec/0.5000/', PclimMapName))
+            if not os.path.exists(PclimWRR1):
+                logger.error('Cannot find WorlClim data for downscaling: ' + PclimWRR1)
+                logger.error('Please download and process the worldclim data at resolution: ' + PclimWRR1)
+                exit(1)
+
+            resX, resY, cols, rows, CLIMLON, CLIMLAT, PlowClim, FillVal = \
+                readMap(PclimWRR1, 'GTiff', logger)
+            PlowClim = PlowClim.astype(float32)
+            PlowClim[PlowClim == FillVal] = NaN
+
+            # Now read the P climate data for the current resolution
+            Resstr = "%1.4f" % diff(XH).mean() # find current resolution
+            PclimCUR = e2o_dstools.get_data(os.path.join('Prec',Resstr,PclimMapName))
+            if not os.path.exists(PclimCUR):
+                userdir = os.path.join(localdatadir,'Prec_Clim_For_Downscale',Resstr)
+                userfile = os.path.join(userdir,PclimMapName)
+                if not os.path.exists(userfile):
+                    logger.info('Cannot find WorlClim data for downscaling: ' + PclimCUR)
+                    logger.info('Resampling 0.0083 to : ' + Resstr)
+                    PclimMapName = getmapnamemonth(yday, "prec")
+                    PclimBaseRes = e2o_dstools.get_data(os.path.join('Prec/0.0083/', PclimMapName))
+                    resXX, resYX, cols_, rows, baseCLIMLON, baseCLIMLAT, baseClim, FillVal = \
+                        readMap(PclimBaseRes, 'GTiff', logger)
+                    PHiClim = resample_grid(baseClim,baseCLIMLON,baseCLIMLAT,XH,YH,method='nearest', FillVal=NaN)
+                    HILON = XH
+                    HILAT = YH
+                    #exit(1)
+                    if not os.path.exists(userdir):
+                        logger.info('Making directory:  ' + userdir)
+                        os.makedirs(userdir)
+                    writeMap(userfile,"GTiff",XH,YH,PHiClim.astype(float32),1E31)
+                else:
+                    resX, resY, cols, rows, HILON, HILAT, PHiClim, FillVal = \
+                        readMap(userfile, 'GTiff', logger)
+                    PHiClim = PHiClim.astype(float32)
+                    PHiClim[PHiClim == FillVal] = NaN
+            else:
+                resX, resY, cols, rows, HILON, HILAT, PHiClim, FillVal = \
+                    readMap(PclimCUR, 'GTiff', logger)
+                PHiClim = PHiClim.astype(float32)
+                PHiClim[PHiClim==FillVal] = NaN
+
+            # Now determine diff between current data at original resolution and the climatology at the same resolutions
+            # resample climatology first as it may not cover the whole earth
+
+            if YL[0] < YL[-1]:
+                yas = YL[::-1]
+            else:
+                yas =  YL
+            _PlowClim= resample_grid(PlowClim,  CLIMLON, CLIMLAT,XL, yas,
+                                       method='nearest', FillVal=NaN)
+
+            datalow[datalow<=0] = NaN
+            multlow = _PlowClim/datalow
+            multhi = resample_grid(multlow, XL, yas, XH, YH,
+                                       method=interpolmode, FillVal=NaN)
+
+            _PHiClim = resample_grid(PHiClim,  HILON, HILAT,XH, YH,
+                                       method='nearest', FillVal=NaN)
+            multhi[multhi <= 0] = NaN
+            retdata = _PHiClim/multhi
+            # fill with interpolated original data
+            retdata[~isfinite(retdata)] = data[~isfinite(retdata)]
     else:
         retdata = data
 
@@ -224,6 +290,7 @@ def main(argv=None):
     ncoutfillval=-9999.0
 
 
+
     lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
     lonmin = float(configget(logger,theconf,"selection","lonmin",str(lonmin)))
     latmax = float(configget(logger,theconf,"selection","latmax",str(latmax)))
@@ -247,7 +314,7 @@ def main(argv=None):
     oodir = configget(logger,theconf,"output","directory","output/")
     oprefix = configget(logger,theconf,"output","prefix","E2O")
     resampling  = configget(logger,theconf,"selection","resampling",resampling)
-    FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
+
     netcdfout = configget(logger, theconf, "output", "netcdfout", "None")
     rwbuffer = int(configget(logger, theconf, "output", "rwbuffer", "10"))
     ncoutfillval = float(configget(logger, theconf, "output", "ncoutfillval", "-9999.9"))
@@ -257,6 +324,7 @@ def main(argv=None):
     wrrversion = int(configget(logger, theconf, "selection", "wrrversion", '2'))
     timestepsecs = float(configget(logger, theconf, "selection", "timestepsecs", '86400'))
     timeflatten =configget(logger, theconf, "conversion", "intime", 'mean')
+    FNhighResDEM = configget(logger, theconf, "downscaling", "highResDEM", "downscaledem.map")
 
     logger.debug("Done reading settings.")
 
@@ -276,8 +344,14 @@ def main(argv=None):
     FNlowResDEM = configget(logger, theconf, "downscaling", "lowResDEM", FNlowResDEM)
 
     if downscaling =="True" or resampling == "True":
+        # Get the extent from the high res DEM
+        lonmin, latmin, lonmax, latmax = get_extent(FNhighResDEM,)
+        BB = dict(lon=[lonmin, lonmax], lat=[latmin, latmax])
+
         resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
         resX, resY, cols, rows, xlres, ylres, lowresdem, FillVal = readMap(FNlowResDEM, 'PCRaster', logger)
+        lonmin, latmin, lonmax, latmax = get_extent(FNhighResDEM,resX)
+        BB = dict(lon=[lonmin, lonmax], lat=[latmin, latmax])
         # Resample orid dem to new resolution using nearest
         x = xhires
         y = yhires
@@ -345,12 +419,17 @@ def main(argv=None):
         else:
             currentdate=start+datetime.timedelta(days=thisstep)
             logger.info("Processing date: " + str(currentdate))
-            if variable == "Rainfall":
+
+            if wrrversion == 1:
+                if standard_name == "rainfall_flux": # Hack to support wrong names in WRR1 for now
+                    standard_name = 'rainfal_flux'
+            if wrrversion == 2 and (variable == "Rainfall" or variable == "SnowfallRate"):
                 tlist, timelist = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, filename,
                                             timestepsecs, logger)
             else:
                 tlist, timelist = get_times(currentdate, currentdate, serverroot, wrrsetroot, filename,
                                             timestepsecs, logger)
+
             ncstepobj = getstep(tlist,BB,standard_name,timestepsecs,logger)
             # get the steps for this time
 
@@ -382,8 +461,6 @@ def main(argv=None):
                 if downscaling == 'True':
                     newdata = downscale(variable, newdata,flipud(thevar),wrrversion,serverroot,wrrsetroot,BB,currentdate, xhires, yhires,ncstepobj.lon,ncstepobj.lat,
                                   interpolmethod, ncoutfillval, hiresdem, resLowResDEM,interpolmethod,logger,localdatadir=odir)
-
-
 
 
                 newdata[isnan(newdata)] = ncoutfillval

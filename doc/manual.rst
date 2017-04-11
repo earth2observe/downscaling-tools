@@ -4,21 +4,20 @@ Introduction
 e2o_downscaling tools consists of a number of Python based meteorological scripts focussing on downscaling the
 meteorological forcing of the eartH2Observe project. The scripts can:
 
-+ retrieve all meteorological variables that are part of the eartH2Observe WRR1 and WRR2 datasets
-for a region of interest on a user defined grid extent and resolution;
++ retrieve all meteorological variables that are part of the eartH2Observe WRR1 and WRR2 datasets for a region of interest
+    on a user defined grid extent and resolution;
 + downscale the meteorological variables temperature and air pressure using a DEM based elevation correction;
 + calculate potential evaporation from the WRR1 and WRR2 datasets using the Penman-Moneith, Priestley-Taylor
-or Hargreaves equation, optionally considering elevation corrections for temperature, air pressure and
-radiation and shading corrections for radiation.
+    or Hargreaves equation, optionally considering elevation corrections for temperature, air pressure and
+    radiation and shading corrections for radiation.
 
 The current functionality is implemented in three scripts that all output daily values:
 
 + e2o_radiation.py - Make clear sky radiation maps and inclination correction maks for optional use by the
   e2o_calculateEvaporation.py script
 + e2o_getvar.py - Download and resample variables from the meteorological forcing datasets (V1 and V2). This script
-  resamples and extracts the data there is no further downscaling applied.
-+ e2o_calculateEvaporation.py - Calculate reference evaporation from the meteorological forcing dataset
- (three available methods) using elevation based downscaling optionally combined with radiation dowsscaling using the output
+  resamples and extracts the data and can optionally downscale prescipitation and temperature.
++ e2o_calculateEvaporation.py - Calculate reference evaporation from the meteorological forcing dataset  (three available methods) using elevation based downscaling optionally combined with radiation downscaling using the output
  of the e2o_radiation script. The script can also output downscaled versions of all variables used to calculate the evaporation.
 
 

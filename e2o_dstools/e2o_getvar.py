@@ -95,7 +95,7 @@ def downscale(variable, data, datalow, wrrversion,serverroot,wrrsetroot,BB,curre
         else:
             lapse_rate = -0.006
         retdata = data + lapse_rate * (hiresdem - resLowResDEM)
-    elif variable == "Rainfall" or 'SnowfallRate' :
+    elif variable == "Rainfall" or 'SnowfallRate' or "TotalPrecipitation":
         if wrrversion == 2:
             # First read P data in WRR2 resolution
             yday = (currentdate.date() - datetime.date(currentdate.year, 1, 1)).days + 1
@@ -409,8 +409,24 @@ def main(argv=None):
         os.makedirs(odir)
 
     allsteps=(end-start).days
+
+    # Check for pseudo variable and expand
+    if variable == "TotalPrecipitation":
+        if wrrversion == 1:
+            _variable = ['Rainfall','SnowfallRate']
+            _standard_name = ['rainfall_flux','snowfall_flux']
+            _filename = ['Rainf_daily_EOBS_', 'Snowf_daily_EOBS_']
+        else:
+            _variable = ['Rainfall', 'SnowfallRate']
+            _standard_name = ['rainfal_flux', 'snowfall_flux']
+            _filename = ['Rainf_daily_MSWEP_025_','Snowf_daily_MSWEP_025_']
+
+
+
     #for tlist,timelist in zip(chunks,lchunks):
     for thisstep in arange(0,allsteps +1):
+        _tlist = []
+        _timelist = []
 
         mapname = getmapname(cnt + 1, oprefix)
 
@@ -424,21 +440,52 @@ def main(argv=None):
                 if standard_name == "rainfall_flux": # Hack to support wrong names in WRR1 for now
                     standard_name = 'rainfal_flux'
             if wrrversion == 2 and (variable == "Rainfall" or variable == "SnowfallRate"):
-                tlist, timelist = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, filename,
+                if variable == "TotalPrecipitation":
+                    _tlist_, _timelist_ = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, _filename[0],
+                                                  timestepsecs, logger)
+                    _tlist.append(_tlist_)
+                    _timelist.append(_timelist_)
+                    _tlist_, _timelist_ = get_times_P(currentdate, currentdate, serverroot, wrrsetroot,
+                                                          _filename[1],timestepsecs, logger)
+                    _tlist.append(_tlist_)
+                    _timelist.append(_timelist_)
+                else:
+                    tlist, timelist = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, filename,
                                             timestepsecs, logger)
             else:
-                tlist, timelist = get_times(currentdate, currentdate, serverroot, wrrsetroot, filename,
-                                            timestepsecs, logger)
+                if variable == "TotalPrecipitation":
+                    _tlist_, _timelist_ = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, _filename[0],
+                                                  timestepsecs, logger)
+                    _tlist.append(_tlist_)
+                    _timelist.append(_timelist_)
+                    _tlist_, _timelist_ = get_times_P(currentdate, currentdate, serverroot, wrrsetroot,
+                                                          _filename[1],timestepsecs, logger)
+                    _tlist.append(_tlist_)
+                    _timelist.append(_timelist_)
+                else:
+                    tlist, timelist = get_times(currentdate, currentdate, serverroot, wrrsetroot, filename,
+                                                timestepsecs, logger)
 
-            ncstepobj = getstep(tlist,BB,standard_name,timestepsecs,logger)
-            # get the steps for this time
-
-
-            mstack = ncstepobj.getdates(timelist)
-            exec "thevar = mstack." + timeflatten + "(axis=0)"
-
-            thevar[thevar<valid_min]=NaN
-            thevar[thevar > valid_max] = NaN
+            if len(_tlist) > 1: # Add Snow and rain
+                ncstepobj = getstep(_tlist[0],BB,_standard_name[0],timestepsecs,logger)
+                # get the steps for this time
+                mstack = ncstepobj.getdates(_timelist[0])
+                ncstepobj1 = getstep(_tlist[1], BB, _standard_name[1], timestepsecs, logger)
+                mstack1 = ncstepobj1.getdates(_timelist[1])
+                exec "thevar = mstack." + timeflatten + "(axis=0)"
+                exec "thevar1 = mstack1." + timeflatten + "(axis=0)"
+                thevar[thevar<valid_min]=NaN
+                thevar[thevar > valid_max] = NaN
+                thevar1[thevar1 < valid_min] = NaN
+                thevar1[thevar1 > valid_max] = NaN
+                thevar = thevar + thevar1
+            else:
+                ncstepobj = getstep(tlist,BB,standard_name,timestepsecs,logger)
+                # get the steps for this time
+                mstack = ncstepobj.getdates(timelist)
+                exec "thevar = mstack." + timeflatten + "(axis=0)"
+                thevar[thevar<valid_min]=NaN
+                thevar[thevar > valid_max] = NaN
 
 
             #mapname = getmapname(cnt+1,oprefix)

@@ -2,7 +2,7 @@ __all__ = ["e2o_utils","e2o_getvar","e2o_calculateEvaporation"]
 
 __author__ = 'schelle'
 __version__ = '2017'
-__release__ = "1"
+__release__ = "2"
 
 
 import osgeo.gdal as gdal

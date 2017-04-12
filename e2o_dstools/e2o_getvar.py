@@ -319,6 +319,7 @@ def main(argv=None):
     rwbuffer = int(configget(logger, theconf, "output", "rwbuffer", "10"))
     ncoutfillval = float(configget(logger, theconf, "output", "ncoutfillval", "-9999.9"))
     least_significant_digit = int(configget(logger, theconf, "output", "least_significant_digit", "6"))
+    NetCDFFormat = configget(logger, theconf, "output", "netCDFFormat", "NETCDF4")
     interpolmethod = configget(logger, theconf, "downscaling", "interpolmethod", interpolmethod)
     downscaling = configget(logger, theconf, "downscaling", "downscaling", downscaling)
     wrrversion = int(configget(logger, theconf, "selection", "wrrversion", '2'))
@@ -384,7 +385,7 @@ def main(argv=None):
         except:
             logger.warn("No netcdf metadata found in ini file. Expected section: netcdf_attributes")
         ncout = netcdfoutput(netcdfout,x,y,logger,start,EndStep - StartStep,metadata=metadata,maxbuf=rwbuffer,
-                             least_significant_digit=least_significant_digit,FillVal=ncoutfillval)
+                             least_significant_digit=least_significant_digit,FillVal=ncoutfillval,Format=NetCDFFormat)
 
 
     #Add options for multiple variables

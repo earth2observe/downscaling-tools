@@ -4,30 +4,36 @@ Introduction
 e2o_downscaling tools consists of a number of Python based meteorological scripts focussing on downscaling the
 meteorological forcing of the eartH2Observe project. The scripts can:
 
-+ retrieve all meteorological variables that are part of the eartH2Observe WRR1 and WRR2 datasets for a region of interest
-    on a user defined grid extent and resolution;
++ retrieve all meteorological variables that are part of the eartH2Observe WRR1 and WRR2 datasets for a region of interest  on a user defined grid extent and resolution;
 + downscale the meteorological variables temperature and air pressure using a DEM based elevation correction;
-+ calculate potential evaporation from the WRR1 and WRR2 datasets using the Penman-Moneith, Priestley-Taylor
-    or Hargreaves equation, optionally considering elevation corrections for temperature, air pressure and
-    radiation and shading corrections for radiation.
++ calculate potential evaporation from the WRR1 and WRR2 datasets using the Penman-Moneith, Priestley-Taylor  or Hargreaves equation, optionally considering elevation corrections for temperature, air pressure and radiation and shading corrections for radiation.
 
 The current functionality is implemented in three scripts that all output daily values:
 
 + e2o_radiation.py - Make clear sky radiation maps and inclination correction maks for optional use by the
   e2o_calculateEvaporation.py script
 + e2o_getvar.py - Download and resample variables from the meteorological forcing datasets (V1 and V2). This script
-  resamples and extracts the data and can optionally downscale prescipitation and temperature.
-+ e2o_calculateEvaporation.py - Calculate reference evaporation from the meteorological forcing dataset  (three available methods) using elevation based downscaling optionally combined with radiation downscaling using the output
- of the e2o_radiation script. The script can also output downscaled versions of all variables used to calculate the evaporation.
+  resamples and extracts the data and can optionally downscale precipitation and temperature.
++ e2o_calculateEvaporation.py - Calculate reference evaporation from the meteorological forcing dataset
+  (three available methods) using elevation based downscaling optionally combined with radiation downscaling using the output
+  of the e2o_radiation script. The script can also output downscaled versions of all variables used to calculate the evaporation.
 
 
 The only input the user needs to supply is a high-resolution regular DEM in GEOTiff format of the area he/she is
-interested in. Reference evaporation will be calculated from the eartH2Observe dataset which is based on the WFDEI
-dataset that is corrected following the method developed in the EU FP6 project WATCH. In this method ERA-interim
-re-analysis data is corrected with the observation based CRU dataset (Weedon et al., 2014). The dataset covers the
-period 1979-2012 and contains the following 3-hourly gridded data fields: Air temperature, rainfall rate, air
-pressure at surface, longwave downward radiation, shortwave downward radiation, air humidity and wind speed. Daily
-values are derived by calculating the daily average of the 3-hourly values.
+interested in. Reference evaporation will be calculated from the eartH2Observe dataset. This dataset provides a version
+V0 (WRR1) and V1 (WRR2). WRR1  is based on the WFDEI dataset that is corrected following the method developed in the EU
+FP6 project WATCH. In this method ERA-interim re-analysis data is corrected with the observation based CRU dataset
+(Weedon et al., 2014). The dataset covers the period 1979-2012 and contains the following 3-hourly gridded data fields:
+Air temperature, rainfall rate, air pressure at surface, longwave downward radiation, shortwave downward radiation, air
+humidity and wind speed. Daily values are derived by calculating the daily average of the 3-hourly values. WRR2 covers
+1979 to 2014 and here the precipitation and snowfall come from MSWEP (Beck. et. all 2016) while the other variables are
+derived from Era Interim with a number of corrections applied.
+
+.. info:: Quick start
+
+    + If you want to retrieve downscaled and corrected reference evapotranspiration (and optionally the variables used to derive it) check the section below
+    + If you want to retrieve precipitation data from MSWEP, see the examplerun?.ini config files in the examples/getvar
+      directory. They are described  in the getvar section below
 
 
 Determining downscaled reference evapotranspiration from the forcing dataset
@@ -57,8 +63,8 @@ The figure below shows the steps used to generate down-scaled reference evaporat
 
     dpi=69;
 
-This document is merely a technical user manual. For background reading on the scientific concepts used we
-will in the text refer to the online documentation.
+This document is  a technical user manual. For background reading on the scientific concepts used we
+will  refer to the online documentation.
 
 
 Region specific user-defined settings
@@ -371,10 +377,14 @@ getvar
 The getvar directory contains the following files:
 
 + run_example.bat - windows batch file to run one of the examples
-+ e2o_getvar.ini - configuration file for e2o_getvar to download and downscale Temperature
-+ examplerun1.ini - configuration file for e2o_getvar to download and interpolate MSWEP Precipitation
++ examplerun1.ini - configuration file for e2o_getvar to download and interpolate MSWEP Precipitation (from WRR2)
 + examplerun2.ini - configuration file for e2o_getvar to download and Downscale MSWEP Precipitation. You will
-need to have downloaded and processed WorldClim precipitation data to use this example.
+  need to have downloaded the  WorldClim precipitation data to use this example (https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec).
++ examplerun3.ini - As 2 but with linear interpolation (instead of nearest)
++ examplerun4.ini - As 3 but the output is saved in a netcdf file
++ examplerun5.ini - As 2 but for Snowfall instead of Rainfall
++ examplerun6.ini - Configuration file for e2o_getvar to download and Downscale WFDEI Precipitation (from WRR1).
++ examplerun7.ini - downscale WFDEI temperature (and convert to Celcius)
 + README.txt - Some information on the example
 + wflow_dem.map - local scale digital elevation model
 
@@ -384,14 +394,14 @@ need to have downloaded and processed WorldClim precipitation data to use this e
 
     The local elevation model (wflow_dem.map) used for downscaling.
 
-The contents of the e2o_getvar.ini file is shown below. This contains all the settings for the e2o_getvar
+The contents of the examplerun7.ini file is shown below. This contains all the settings for the e2o_getvar
 script. For example, by changing the line "interpolmethod=linear" to "interpolmethod=nearest" the
 script will uses a different interpolation method. Here the local elevation model (wflow_dem.map)
 is also specified. The map can be in any GDAL supported raster format. The grid should be defined in lat,lon.
 Optionally you can save the results in a netCDF4 file by specifying the netcdfout option in the output section.
-In that case you can also specify attributes to save in the netcdf file, see example3.ini.
+In that case you can also specify attributes to save in the netcdf file, see examplerun7.ini.
 
-.. literalinclude:: _static/e2o_getvar.ini
+.. literalinclude:: _static/examplerun7.ini
 
 
 As can be seen from the file (the conversions section) two unit conversions have been setup: Temperature is
@@ -404,9 +414,9 @@ To run the example type run_example.bat in a windows command box. You should see
     :width: 640px
     :align: center
 
-    Running the example1.bat file.
+    Running the run_example.bat file.
 
-The results are stored in the directorie:
+The results are stored in the directory:
 
 + output\Temperature\
 

@@ -437,9 +437,9 @@ def main(argv=None):
             currentdate=start+datetime.timedelta(days=thisstep)
             logger.info("Processing date: " + str(currentdate))
 
-            if wrrversion == 1:
-                if standard_name == "rainfall_flux": # Hack to support wrong names in WRR1 for now
-                    standard_name = 'rainfal_flux'
+            #if wrrversion == 1:
+            if standard_name == "rainfall_flux": # Hack to support wrong names in WRR1 for now
+                standard_name = 'rainfal_flux'
             if wrrversion == 2 and (variable == "Rainfall" or variable == "SnowfallRate"):
                 if variable == "TotalPrecipitation":
                     _tlist_, _timelist_ = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, _filename[0],
@@ -492,6 +492,7 @@ def main(argv=None):
             #mapname = getmapname(cnt+1,oprefix)
             convstr = configget(logger, theconf, "conversion", variable, 'none')
             if convstr != 'none':
+                logger.info("Converting: " + convstr)
                 convstr = convstr.replace(variable, 'thevar')
                 varmetadata['conversionlog'] = convstr
                 try:

@@ -57,12 +57,51 @@ Using the examples
 ------------------
 
 examplerun1.ini
+~~~~~~~~~~~~~~~
+This example downloads and resamples MSWEP rainfall data (WRR2). No downscaling is applied. All output
+is stored in sequential geotiff files in output/Rainfall/P0000000.???, one for each timestep.
+
 examplerun2.ini
+~~~~~~~~~~~~~~~
+This example downloads and resamples MSWEP rainfall data (WRR2). Downscaling is applied using nearest
+interpolation. Therefore you need to have downloaded and installed the Prec.zip file
+at: https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec
+All output is stored in sequential geotiff files in output/Rainfall/PDS00000.???, one for each timestep.
+
 examplerun3.ini
+~~~~~~~~~~~~~~~
+This example downloads and resamples MSWEP rainfall data (WRR2). Downscaling is applied using linear
+interpolation. Therefore you need to have downloaded and installed the Prec.zip file
+at: https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec
+All output is stored in sequential geotiff files in output/Rainfall/PDSL0000.???, one for each timestep.
+
+
 examplerun4.ini
+~~~~~~~~~~~~~~~
+As example 3 but the output is saved in a netcdf file (output/Rainfall.nc)
+
 examplerun5.ini
+~~~~~~~~~~~~~~~
+This example downloads and resamples MSWEP snowfall data (WRR2). Downscaling is applied using linear
+interpolation. Therefore you need to have downloaded and installed the Prec.zip file
+at: https://github.com/earth2observe/downscaling-tools/releases/tag/2016-data-prec
+All output is stored in sequential geotiff files in output/SnowfallRate/SNO00000.???, one for each timestep.
+
+
 examplerun6.ini
+~~~~~~~~~~~~~~~
+This example downloads and resamples WFDEI TotalPrecipitation (Rain and Snow) data (WRR1). No downscaling is applied but
+only resampling  using linear interpolation.
+All output is stored in sequential geotiff files in output/TotalPrecipitation/PWWW10000.???, one for each timestep.
+
+
+
 examplerun7.ini
+~~~~~~~~~~~~~~~
+This example downloads and resamples WFDEI Air Temperature  data (WRR1). Downscaling is applied using a fixed laps rate and
+ linear interpolation.
+All output is stored in sequential geotiff files in output/Temperature/TEMP0000.???, one for each timestep.
+
 
 
 

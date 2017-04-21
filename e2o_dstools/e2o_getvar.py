@@ -415,8 +415,8 @@ def main(argv=None):
     if variable == "TotalPrecipitation":
         if wrrversion == 1:
             _variable = ['Rainfall','SnowfallRate']
-            _standard_name = ['rainfall_flux','snowfall_flux']
-            _filename = ['Rainf_daily_EOBS_', 'Snowf_daily_EOBS_']
+            _standard_name = ['rainfal_flux','snowfall_flux']
+            _filename = ['Rainf_daily_E2OBS_', 'Snowf_daily_E2OBS_']
         else:
             _variable = ['Rainfall', 'SnowfallRate']
             _standard_name = ['rainfal_flux', 'snowfall_flux']
@@ -455,11 +455,11 @@ def main(argv=None):
                                             timestepsecs, logger)
             else:
                 if variable == "TotalPrecipitation":
-                    _tlist_, _timelist_ = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, _filename[0],
+                    _tlist_, _timelist_ = get_times(currentdate, currentdate, serverroot, wrrsetroot, _filename[0],
                                                   timestepsecs, logger)
                     _tlist.append(_tlist_)
                     _timelist.append(_timelist_)
-                    _tlist_, _timelist_ = get_times_P(currentdate, currentdate, serverroot, wrrsetroot,
+                    _tlist_, _timelist_ = get_times(currentdate, currentdate, serverroot, wrrsetroot,
                                                           _filename[1],timestepsecs, logger)
                     _tlist.append(_tlist_)
                     _timelist.append(_timelist_)

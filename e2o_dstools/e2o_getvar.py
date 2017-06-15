@@ -415,11 +415,11 @@ def main(argv=None):
     if variable == "TotalPrecipitation":
         if wrrversion == 1:
             _variable = ['Rainfall','SnowfallRate']
-            _standard_name = ['rainfal_flux','snowfall_flux']
+            _standard_name = ['rainfall_flux','snowfall_flux']
             _filename = ['Rainf_daily_E2OBS_', 'Snowf_daily_E2OBS_']
         else:
             _variable = ['Rainfall', 'SnowfallRate']
-            _standard_name = ['rainfal_flux', 'snowfall_flux']
+            _standard_name = ['rainfall_flux', 'snowfall_flux']
             _filename = ['Rainf_daily_MSWEP_025_','Snowf_daily_MSWEP_025_']
 
 

@@ -347,7 +347,7 @@ def main(argv=None):
 
     if downscaling =="True" or resampling == "True":
         # Get the extent from the high res DEM
-        lonmin, latmin, lonmax, latmax = get_extent(FNhighResDEM,)
+        lonmin, latmin, lonmax, latmax = get_extent(FNhighResDEM)
         BB = dict(lon=[lonmin, lonmax], lat=[latmin, latmax])
 
         resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
@@ -361,12 +361,13 @@ def main(argv=None):
         mismask = hiresdem == FillVal
         Ldemmask = lowresdem != FillVal
         Lmismask = lowresdem == FillVal
-        # Fille gaps in high res DEM with Zeros for ineterpolation purposes
+        # Fill gaps in high res DEM with Zeros for ineterpolation purposes
         lowresdem[Lmismask] = 0.0
         resLowResDEM = resample_grid(lowresdem, xlres, ylres, xhires, yhires, method=interpolmethod,
                                      FillVal=FillVal)
 
         lowresdem[Lmismask] = FillVal
+        writeMap("1_lowres.map", oformat, xhires, yhires, resLowResDEM, FillVal)
         #BB = dict(lon=[min(x), max(x)], lat=[min(y), max(y)])
     else:
         resX, resY, cols, rows, xlres, ylres, lowresdem, FillVal = readMap(FNlowResDEM, 'PCRaster', logger)

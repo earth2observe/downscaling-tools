@@ -1220,8 +1220,9 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
 
 
     if method in 'nearest linear':
-        interobj = interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(FillVal))
-        _x, _y = meshgrid(Xout, Yout)
+        interobj = interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,
+                                                       bounds_error=False,fill_value=None)
+        _x, _y = meshgrid(Xout, Yout) # float32(FillVal)
         yx_outpoints = transpose([_y.flatten(), _x.flatten()])
 
         # interpolate

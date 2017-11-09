@@ -31,3 +31,7 @@ e2o_getvar.exe -I examplerun7.ini
 8:Resample and downscale MSWEP precipitation using linear interpolation (Rainfall and Snowfall as TotalPrecipitation)
 for the Rhine basin to 0.0366666666 degree
 e2o_getvar.exe -I examplerun8.ini
+
+9:Resample and downscale MSWEP precipitation using linear interpolation (Rainfall)
+for Fiji at aroound 500m
+e2o_getvar.exe -I examplerun9.ini

@@ -4,6 +4,7 @@ Get a variable from the forcing data from the e2o server for a specific region a
 
 usage:
 
+
     e2o_getvar.py -I inifile [-l loglevel][-h]
 
     -I inifile - ini file with settings which data to get
@@ -440,7 +441,7 @@ def main(argv=None):
             if wrrversion == 1:
                 if standard_name == "rainfall_flux": # Hack to support wrong names in WRR1 for now
                     standard_name = 'rainfal_flux'
-            if wrrversion == 2 and (variable == "Rainfall" or variable == "SnowfallRate"):
+            if wrrversion == 2 and (variable == "Rainfall" or variable == "SnowfallRate" or variable == "TotalPrecipitation"):
                 if variable == "TotalPrecipitation":
                     _tlist_, _timelist_ = get_times_P(currentdate, currentdate, serverroot, wrrsetroot, _filename[0],
                                                   timestepsecs, logger)

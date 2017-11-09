@@ -20,10 +20,14 @@ e2o_getvar.exe -I examplerun4.ini
 for the Rhine basin to 0.0366666666 degree
 e2o_getvar.exe -I examplerun5.ini
 
-6:Resample and downscale WFDEI precipitation using linear interpolation (Rainfall only!) 
+6:Resample and downscale WFDEI precipitation using linear interpolation (Rainfall and Snowfall as TotalPrecipitation)
 for the Rhine basin to 0.0366666666 degree
 e2o_getvar.exe -I examplerun6.ini
 
-7:Resample and downscale MSWEP precipitation+snowfall (TotalPrecipitation) using linear interpolation 
+7:Resample and downscale Temperature using linear interpolation
 for the Rhine basin to 0.0366666666 degree
 e2o_getvar.exe -I examplerun7.ini
+
+8:Resample and downscale MSWEP precipitation using linear interpolation (Rainfall and Snowfall as TotalPrecipitation)
+for the Rhine basin to 0.0366666666 degree
+e2o_getvar.exe -I examplerun8.ini

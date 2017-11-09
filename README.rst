@@ -13,7 +13,7 @@ of the tool focusses on downscaling the global forcing dataset used in the proje
 Status
 ------
 
-- under construction, final versions will be released in 2017
+- Final in Dec 2017
 
 
 Acknowledgement

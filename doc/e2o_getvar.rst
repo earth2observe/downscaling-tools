@@ -111,7 +111,7 @@ All output is stored in sequential geotiff files in output/TotalPrecipitation/EX
 
 examplerun9.ini
 ~~~~~~~~~~~~~~~
-This example downloads and resamples MSWEP TotalPrecipitation (Rain and Snow) data (WRR2). Fro Fiji
+This example downloads and resamples MSWEP TotalPrecipitation (Rain and Snow) data (WRR2) for Fiji
 All output is stored in sequential geotiff files in output/TotalPrecipitation/EX90000.???, one for each timestep.
 
 
